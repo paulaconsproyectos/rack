@@ -131,13 +131,13 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .quiz-next{margin-top:18px;width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;}
 .quiz-next:disabled{opacity:.2;cursor:not-allowed;}
 /* TIKTOK / SWIPE MODE */
-.tk-page{position:fixed;inset:0;background:#000;z-index:200;max-width:430px;left:50%;transform:translateX(-50%);}
+.tk-page{position:fixed;inset:0;background:#000;z-index:200;}
 .tk-feed{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
 .tk-feed::-webkit-scrollbar{display:none;}
 .tk-card{height:100vh;scroll-snap-align:start;position:relative;overflow:hidden;}
 .tk-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 .tk-grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.97) 0%,rgba(0,0,0,.4) 50%,rgba(0,0,0,.25) 100%);}
-.tk-iframe{position:absolute;inset:0;width:100%;height:100%;border:none;pointer-events:none;}
+.tk-iframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100vw;height:56.25vw;min-height:100%;min-width:177.77vh;border:none;pointer-events:none;}
 .tk-top{position:absolute;top:0;left:0;right:0;padding:52px 18px 12px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);z-index:5;}
 .tk-close{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:36px;height:36px;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tk-counter{font-size:12px;color:rgba(255,255,255,.6);font-weight:600;}
@@ -900,81 +900,126 @@ function App(){
         <div>
           {/* HOME */}
           {screen==="home" && (
-            <div>
-              <div className="home-hero">
-                <div className="greet-sm">Buenas,</div>
-                <div className="greet-lg">{user.name.split(" ")[0]}</div>
-                {streak.count>1 && (
-                  <div className="streak-card">
-                    <div className="streak-n">{streak.count}</div>
-                    <div><div className="streak-label">días seguidos en Rack</div><div className="streak-sub">Sigue viendo para mantener la racha</div></div>
+            <div style={{paddingBottom:100}}>
+              {/* HERO con backdrop de potw */}
+              <div style={{position:"relative",height:320,overflow:"hidden",marginBottom:0}}>
+                {potw && potw.backdrop && <img src={potw.backdrop} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",filter:"brightness(0.45)"}} loading="lazy"/>}
+                {(!potw||!potw.backdrop) && <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)"}}/>}
+                <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(9,9,11,0.3) 0%,transparent 40%,rgba(9,9,11,0.95) 100%)"}}/>
+                {/* Header */}
+                <div style={{position:"absolute",top:0,left:0,right:0,padding:"52px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginBottom:1}}>Buenas,</div>
+                    <div style={{fontSize:22,fontWeight:700,letterSpacing:"-0.02em",color:"#fff"}}>{user.name.split(" ")[0]}</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {streak.count>1 && (
+                      <div style={{background:"rgba(245,158,11,0.2)",border:"1px solid rgba(245,158,11,0.4)",borderRadius:20,padding:"5px 10px",display:"flex",alignItems:"center",gap:5}}>
+                        <span style={{fontFamily:"'DM Serif Display',serif",fontSize:16,color:"var(--ylw)"}}>{streak.count}</span>
+                        <span style={{fontSize:10,color:"rgba(245,158,11,0.8)",fontWeight:600}}>días</span>
+                      </div>
+                    )}
+                    <div style={{background:"rgba(99,102,241,0.25)",border:"1px solid rgba(99,102,241,0.4)",borderRadius:20,padding:"5px 11px"}}>
+                      <span style={{fontFamily:"'DM Serif Display',serif",fontSize:15,color:"var(--acc2)"}}>{user.score||0}</span>
+                      <span style={{fontSize:10,color:"var(--acc2)",marginLeft:3,fontWeight:600}}>pts</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Trending info */}
+                {potw && (
+                  <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"0 20px 20px"}}>
+                    <div style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--ylw)",marginBottom:4}}>Trending esta semana</div>
+                    <div style={{fontSize:19,fontWeight:700,color:"#fff",marginBottom:10,lineHeight:1.2}}>{potw.titleEs||potw.title}{potw.score?" · ⭐"+potw.score:""}</div>
+                    <button onClick={function(){goDetail(potw,"home");}} style={{padding:"8px 18px",background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",backdropFilter:"blur(8px)"}}>Ver ficha →</button>
                   </div>
                 )}
+              </div>
+
+              {/* ACCIONES PRINCIPALES */}
+              <div style={{padding:"0 16px",marginTop:16}}>
+                {/* Quiz - acción principal */}
+                <button onClick={function(){goQuiz(false);}} style={{width:"100%",background:"linear-gradient(135deg,#4F46E5,#7C3AED)",border:"none",borderRadius:20,padding:"22px 22px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,cursor:"pointer",boxShadow:"0 8px 32px rgba(99,102,241,0.35)"}}>
+                  <div style={{textAlign:"left"}}>
+                    <div style={{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em",marginBottom:3}}>¿Qué veo hoy?</div>
+                    <div style={{fontSize:13,color:"rgba(255,255,255,0.65)",fontWeight:300}}>Test de humor · 30 segundos</div>
+                  </div>
+                  <div style={{width:48,height:48,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>→</div>
+                </button>
+
+                {/* Segunda fila: Maratón + Trailers */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                  <button onClick={function(){goQuiz(true);}} style={{background:"linear-gradient(135deg,#78350F,#B45309)",border:"none",borderRadius:16,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:3}}>Maratón</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",fontWeight:300}}>Sesión épica completa</div>
+                  </button>
+                  <button onClick={openTiktok} style={{background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:16,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:15,fontWeight:700,color:"var(--t)",marginBottom:3}}>Trailers</div>
+                    <div style={{fontSize:11,color:"var(--t3)",fontWeight:300}}>Desliza y decide</div>
+                  </button>
+                </div>
+
+                {/* Notif banner si no activado */}
                 {!notif && (
-                  <div className="notif-ban">
-                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Activa las notificaciones</div><div style={{fontSize:11,color:"var(--t3)"}}>Entérate de estrenos</div></div>
+                  <div className="notif-ban" style={{marginBottom:10}}>
+                    <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:"var(--acc2)",marginBottom:1}}>Activa las notificaciones</div><div style={{fontSize:11,color:"var(--t3)"}}>Estrenos según tus gustos</div></div>
                     <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
                   </div>
                 )}
-                <button className="quiz-cta" onClick={function(){goQuiz(false);}}>
-                  <div><div style={{fontSize:17,fontWeight:700,marginBottom:2}}>¿Qué veo hoy?</div><div style={{fontSize:12,opacity:.75,fontWeight:300}}>Test de estado de ánimo</div></div>
-                  <div style={{fontSize:13,fontWeight:600,opacity:.8}}>Empezar →</div>
-                </button>
-                <button className="marathon-cta" onClick={function(){goQuiz(true);}}>
-                  <div><div style={{fontSize:15,fontWeight:700}}>Modo Maratón</div><div style={{fontSize:12,opacity:.75,fontWeight:300}}>Tengo tiempo. Dame todo.</div></div>
-                  <div style={{fontSize:13,fontWeight:600,opacity:.8}}>→</div>
-                </button>
-                <button className="trailer-cta" onClick={openTiktok}>
-                  <div><div style={{fontSize:15,fontWeight:700,marginBottom:2}}>Modo Trailer</div><div style={{fontSize:12,color:"var(--t3)",fontWeight:300}}>Desliza trailers. Decide qué ver.</div></div>
-                  <div style={{fontSize:13,color:"var(--t3)"}}>→</div>
-                </button>
-              </div>
-              <div className="page" style={{paddingTop:8}}>
-                {potw && (
-                  <div>
-                    <div className="sec">Tendencia esta semana</div>
-                    <div className="potw-card" onClick={function(){goDetail(potw,"home");}}>
-                      {potw.backdrop && <img className="potw-bg" src={potw.backdrop} alt="" loading="lazy"/>}
-                      {!potw.backdrop && <div style={{width:"100%",height:170,background:"var(--s2)"}}/>}
-                      <div className="potw-ov">
-                        <div className="potw-tag">Trending · semana</div>
-                        <div className="potw-title">{potw.titleEs||potw.title}{potw.score?" · ⭐"+potw.score:""}</div>
-                      </div>
+
+                {/* Stats rápidas */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:14}}>
+                  <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
+                  <div className="stat-card"><div className="stat-n">{(user.watchlist||[]).length}</div><div className="stat-l">Lista</div></div>
+                  <div className="stat-card"><div className="stat-n">{reviews.filter(function(r){return r.userId===user.id;}).length}</div><div className="stat-l">Reseñas</div></div>
+                </div>
+
+                {/* Últimas recomendaciones en horizontal scroll */}
+                {films.length>0 && (
+                  <div style={{marginBottom:14}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                      <div className="sec" style={{margin:0}}>Últimas recomendaciones</div>
+                      <button onClick={function(){setTkFilms(films);setTkIdx(0);setTkMode(true);}} style={{background:"none",border:"none",color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Ver todo →</button>
+                    </div>
+                    <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4}}>
+                      {films.slice(0,6).map(function(f,i){
+                        return (
+                          <div key={i} style={{flexShrink:0,width:100,cursor:"pointer"}} onClick={function(){goDetail(f,"home");}}>
+                            {f.poster && <img src={f.poster} style={{width:100,height:150,borderRadius:10,objectFit:"cover",display:"block",marginBottom:5}} alt="" loading="lazy"/>}
+                            {!f.poster && <div style={{width:100,height:150,borderRadius:10,background:"var(--s3)",marginBottom:5}}/>}
+                            <div style={{fontSize:11,fontWeight:600,color:"var(--t2)",lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{f.titleEs||f.title}</div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
-                <div className="stats-row">
-                  <div className="stat-card"><div className="stat-n">{user.score||0}</div><div className="stat-l">Puntos</div></div>
-                  <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
-                  <div className="stat-card"><div className="stat-n">{reviews.filter(function(r){return r.userId===user.id;}).length}</div><div className="stat-l">Reseñas</div></div>
-                </div>
-                {films.length>0 && <button className="btn btn-s" style={{marginBottom:10}} onClick={function(){setScreen("results");}}>Ver últimas recomendaciones →</button>}
+
+                {/* Mi lista horizontal */}
+                {(user.watchlist||[]).length>0 && (
+                  <div style={{marginBottom:14}}>
+                    <div className="sec">Mi lista</div>
+                    <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4}}>
+                      {(user.watchlist||[]).slice(0,8).map(function(f,i){
+                        return (
+                          <div key={i} style={{flexShrink:0,width:80,cursor:"pointer"}} onClick={function(){goDetail(f,"home");}}>
+                            {f.poster && <img src={f.poster} style={{width:80,height:120,borderRadius:9,objectFit:"cover",display:"block",marginBottom:4}} alt="" loading="lazy"/>}
+                            {!f.poster && <div style={{width:80,height:120,borderRadius:9,background:"var(--s3)",marginBottom:4}}/>}
+                            <div style={{fontSize:10,color:"var(--t3)",lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{f.titleEs||f.title}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Invite */}
                 <div className="invite-row" onClick={function(){setShowInv(true);}}>
                   <div><div className="ir-t">Invitar amigos</div><div className="ir-s">+100 pts con tu código</div></div>
                   <span style={{color:"var(--acc2)"}}>→</span>
                 </div>
-                {(user.watchlist||[]).length>0 && (
-                  <div>
-                    <div className="sec">Mi lista</div>
-                    {(user.watchlist||[]).slice(0,4).map(function(f,i){
-                      return (
-                        <div key={i} className="wl-item" onClick={function(){goDetail(f,"home");}}>
-                          {f.poster && <img className="wl-p" src={f.poster} alt="" loading="lazy"/>}
-                          {!f.poster && <div className="wl-pe"/>}
-                          <div style={{flex:1,minWidth:0}}>
-                            <div className="wl-title">{f.titleEs||f.title}</div>
-                            <div className="wl-meta">{f.type||""} · {f.year}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {(user.watchlist||[]).length===0 && (user.watched||[]).length===0 && (
-                  <div className="empty">
-                    <div className="empty-t">Empieza a descubrir cine</div>
-                    <button className="empty-cta" onClick={function(){goQuiz(false);}}>Hacer el test</button>
-                  </div>
+
+                {(user.watchlist||[]).length===0 && (user.watched||[]).length===0 && films.length===0 && (
+                  <div style={{textAlign:"center",padding:"24px 0",color:"var(--t3)",fontSize:13}}>Haz el test para empezar a descubrir cine</div>
                 )}
               </div>
             </div>
