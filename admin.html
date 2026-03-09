@@ -355,7 +355,7 @@ function renderUsers() {
       </div>
       <table class="tbl">
         <thead><tr>
-          <th>Usuario</th><th>Handle</th><th>Puntos</th><th>Vistas</th><th>Reseñas</th><th>Registrado</th><th>Acciones</th>
+          <th>Usuario</th><th>Handle</th><th>Email</th><th>Puntos</th><th>Vistas</th><th>Reseñas</th><th>Registrado</th><th>Acciones</th>
         </tr></thead>
         <tbody>
           ${users.map(u=>{
@@ -364,6 +364,7 @@ function renderUsers() {
             return `<tr>
               <td><span class="tbl-av">${ini(u.name)}</span>${u.name||"—"}</td>
               <td style="font-family:'DM Mono',monospace;color:var(--t3)">@${u.handle||"—"}</td>
+              <td style="font-size:11px;color:var(--t3)">${u.email||"—"}</td>
               <td><span class="badge badge-acc">${u.score||0} pts</span></td>
               <td>${wCount}</td>
               <td>${rCount}</td>
