@@ -359,6 +359,14 @@ const DEMO_REVIEWS=[
 ];
 const DEMO_USERS=[{id:"u1",name:"Sofía Martín",handle:"sofiam",score:847},{id:"u2",name:"Marcos Ruiz",handle:"marcosr",score:1204},{id:"u3",name:"Laia Torres",handle:"laiat",score:563},{id:"u4",name:"Andrés Bernal",handle:"andresb",score:2891}];
 const DEMO_FEED=[{u:"Andrés Bernal",a:"ha visto",f:"La Zona de Interés",t:"12 min"},{u:"Marcos Ruiz",a:"ha añadido",f:"Challengers",t:"1h"},{u:"Laia Torres",a:"ha reseñado",f:"Vidas Pasadas",t:"3h"}];
+const RETOS=[
+  {id:"r1",title:"Película de los 70",desc:"Ve una película rodada entre 1970 y 1979",pts:150,icon:"🎞",genre:18},
+  {id:"r2",title:"Sin subtítulos",desc:"Ve algo en versión original sin subtítulos",pts:200,icon:"🌍",genre:null},
+  {id:"r3",title:"Director nuevo",desc:"Ve algo de un director que no hayas visto antes",pts:120,icon:"🎬",genre:null},
+  {id:"r4",title:"Documental",desc:"Ve un documental esta semana",pts:100,icon:"📹",genre:99},
+  {id:"r5",title:"Maratón de serie",desc:"Ve 3 episodios de una serie en un día",pts:180,icon:"📺",genre:null},
+  {id:"r6",title:"Cine de terror",desc:"Atrévete con una película de terror",pts:130,icon:"👻",genre:27},
+];
 const MOODS_POST=["Impactado","Emocionado","Reflexivo","Entretenido","Decepcionado","Sorprendido","Inspirado","Triste"];
 const getBadge=s=>[...BADGES].reverse().find(b=>s>=b.min)||BADGES[0];
 const getNext=s=>BADGES.find(b=>b.min>s);
@@ -404,7 +412,12 @@ async function enrichItem(item){
   }catch{return item;}
 }
 
-async function tmdbDiscover(answers){
+async function tmdbDiscover(answers, watchedHistory){
+  // Weight genres from watched history
+  var histGenres=[];
+  if(watchedHistory&&watchedHistory.length>0){
+    watchedHistory.slice(-10).forEach(function(f){(f.genres||[]).forEach(function(g){histGenres.push(g);});});
+  }
   const genres=(MOOD_GENRES[answers.mood]||[18]).slice(0,2).join(",");
   const page=Math.floor(Math.random()*8)+1;
   const fmt=answers.format||"Lo que sea";
@@ -508,6 +521,7 @@ function App(){
   var _=useState("feed");var socTab=_[0];var setSocTab=_[1];
   var _=useState(null);var toast=_[0];var setToast=_[1];
   var _=useState(false);var showInv=_[0];var setShowInv=_[1];
+  var _=useState(false);var showWrapped=_[0];var setShowWrapped=_[1];
   var _=useState(function(){return LS.get("rack_inv",genCode());});var invCode=_[0];
   var _=useState("");var lH=_[0];var setLH=_[1];
   var _=useState("");var lP=_[0];var setLP=_[1];
@@ -525,14 +539,48 @@ function App(){
   var _=useState([]);var tkFilms=_[0];var setTkFilms=_[1];
   var _=useState(0);var tkIdx=_[0];var setTkIdx=_[1];
   var _=useState(false);var tkLoading=_[0];var setTkLoading=_[1];
+  var _=useState(false);var showSupport=_[0];var setShowSupport=_[1];
+  var _=useState([]);var chatMsgs=_[0];var setChatMsgs=_[1];
+  var _=useState("");var chatInput=_[0];var setChatInput=_[1];
+  var _=useState(false);var chatLoading=_[0];var setChatLoading=_[1];
+  var chatEndRef=useRef(null);
+  var _=useState(function(){return LS.get("rack_retos",{});});var retosComp=_[0];var setRetosComp=_[1];
+  var _=useState(false);var showRetos=_[0];var setShowRetos=_[1];
   var _=useState(function(){return LS.get("rack_streak",{count:0,lastDate:""});});var streak=_[0];var setStreak=_[1];
   var stRef=useRef(null);
   var editNameRef=useRef(null);
+
+  async function sendChat(){
+    if(!chatInput.trim()||chatLoading)return;
+    var msg=chatInput.trim();setChatInput("");
+    var newMsgs=chatMsgs.concat([{role:"user",content:msg}]);
+    setChatMsgs(newMsgs);setChatLoading(true);
+    try{
+      var sysPrompt="Eres el asistente de soporte de Rack, una app de recomendaciones de cine y series. Responde en español, de forma concisa y amable. El usuario se llama "+user.name+". Rack tiene: test de humor para recomendaciones, modo maratón, modo trailer/scroll, sistema de puntos y badges, lista personal, reseñas, retos semanales, y ranking social. Si no sabes algo, deriva al email hola@rack.io.";
+      var res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sysPrompt,messages:newMsgs.map(function(m){return {role:m.role,content:m.content};})})});
+      var d=await res.json();
+      var reply=d.content&&d.content[0]?d.content[0].text:"Lo siento, no pude responder. Escríbenos a hola@rack.io";
+      setChatMsgs(function(p){return p.concat([{role:"assistant",content:reply}]);});
+    }catch{
+      setChatMsgs(function(p){return p.concat([{role:"assistant",content:"Algo fue mal. Escríbenos a hola@rack.io y te ayudamos enseguida."}]);});
+    }
+    setChatLoading(false);
+  }
+
+  function completeReto(reto){
+    if(retosComp[reto.id])return;
+    var week=Math.floor(Date.now()/604800000);
+    setRetosComp(function(p){var n=Object.assign({},p);n[reto.id]=week;return n;});
+    setUser(function(p){return Object.assign({},p,{score:(p.score||0)+reto.pts});});
+    showPts("+"+reto.pts);t_(reto.icon+" Reto completado · +"+reto.pts+" pts");
+  }
 
   useEffect(function(){LS.set("rack_auth",auth);},[auth]);
   useEffect(function(){LS.set("rack_user",user);},[user]);
   useEffect(function(){LS.set("rack_reviews",reviews);},[reviews]);
   useEffect(function(){LS.set("rack_streak",streak);},[streak]);
+  useEffect(function(){LS.set("rack_retos",retosComp);},[retosComp]);
+  useEffect(function(){if(chatEndRef.current)chatEndRef.current.scrollTop=chatEndRef.current.scrollHeight;},[chatMsgs]);
 
   function t_(msg){setToast(msg);setTimeout(function(){setToast(null);},2500);}
   function showPts(pts){setPtsFloat(pts);setTimeout(function(){setPtsFloat(null);},1300);}
@@ -665,7 +713,7 @@ function App(){
     var isM=ans.time==="Modo Maratón"||marathon;
     setMarathon(isM);setLoading(true);setScreen("results");
     try{
-      var r=await tmdbDiscover(ans);
+      var r=await tmdbDiscover(ans, user&&user.watched||[]);
       setFilms(r);
       setTkFilms(r);setTkIdx(0);setTkMode(true);
     }catch{t_("Error al conectar");}
@@ -751,6 +799,142 @@ function App(){
             <button className="btn btn-s" style={{marginTop:8}} onClick={function(){setShowInv(false);}}>Cerrar</button>
           </div>
         </div>
+      )}
+
+      {/* WRAPPED MODAL */}
+      {showWrapped && (
+        <div className="overlay" onClick={function(){setShowWrapped(false);}}>
+          <div className="modal" style={{maxHeight:"88vh",overflowY:"auto"}} onClick={function(e){e.stopPropagation();}}>
+            <div className="modal-handle"/>
+            <div style={{textAlign:"center",marginBottom:20}}>
+              <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,marginBottom:4}}>ra<span style={{color:"var(--acc2)"}}>ck</span></div>
+              <div style={{fontSize:11,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--ylw)"}}>Wrapped 2026</div>
+            </div>
+            {(user.watched||[]).length===0 && (
+              <div style={{textAlign:"center",padding:"24px 0",color:"var(--t3)"}}>
+                <div style={{fontSize:36,marginBottom:12}}>🎬</div>
+                <div style={{fontSize:14}}>Aún no has marcado ninguna película</div>
+                <div style={{fontSize:12,marginTop:6}}>Empieza a ver cosas para ver tu Wrapped</div>
+              </div>
+            )}
+            {(user.watched||[]).length>0 && (function(){
+              var watched=user.watched||[];
+              var genreCount={};
+              watched.forEach(function(f){(f.genres||[]).forEach(function(g){genreCount[g]=(genreCount[g]||0)+1;});});
+              var topGenres=Object.keys(genreCount).sort(function(a,b){return genreCount[b]-genreCount[a];}).slice(0,3);
+              var avgScore=watched.filter(function(f){return f.score;}).reduce(function(a,f,i,arr){return i===arr.length-1?(a+parseFloat(f.score||0))/arr.length:a+parseFloat(f.score||0);},0);
+              var movies=watched.filter(function(f){return f.mediaType==="movie";}).length;
+              var series=watched.filter(function(f){return f.mediaType==="tv";}).length;
+              return (
+                <div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+                    <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.2),rgba(99,102,241,0.05))",border:"1px solid rgba(99,102,241,0.3)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
+                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--acc2)",lineHeight:1}}>{watched.length}</div>
+                      <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>títulos vistos</div>
+                    </div>
+                    <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
+                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--ylw)",lineHeight:1}}>{user.score||0}</div>
+                      <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>puntos ganados</div>
+                    </div>
+                    <div style={{background:"linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.03))",border:"1px solid rgba(34,197,94,0.25)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
+                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--grn)",lineHeight:1}}>{movies}</div>
+                      <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>películas</div>
+                    </div>
+                    <div style={{background:"linear-gradient(135deg,rgba(168,85,247,0.15),rgba(168,85,247,0.03))",border:"1px solid rgba(168,85,247,0.25)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
+                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--prp)",lineHeight:1}}>{series}</div>
+                      <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>series</div>
+                    </div>
+                  </div>
+                  {topGenres.length>0 && (
+                    <div style={{background:"var(--s2)",border:"1px solid var(--b)",borderRadius:14,padding:"14px 16px",marginBottom:12}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--t3)",marginBottom:10}}>Tus géneros favoritos</div>
+                      <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+                        {topGenres.map(function(g,i){return <span key={g} style={{padding:"6px 14px",borderRadius:20,background:i===0?"var(--acc)":i===1?"rgba(99,102,241,0.2)":"var(--s3)",color:i===0?"#fff":"var(--t2)",fontSize:13,fontWeight:600}}>{g}</span>;})}
+                      </div>
+                    </div>
+                  )}
+                  {watched[watched.length-1] && (
+                    <div style={{background:"var(--s2)",border:"1px solid var(--b)",borderRadius:14,padding:"14px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"center"}}>
+                      <div>
+                        <div style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--t3)",marginBottom:4}}>Última vista</div>
+                        <div style={{fontSize:14,fontWeight:600}}>{watched[watched.length-1].titleEs||watched[watched.length-1].title}</div>
+                      </div>
+                    </div>
+                  )}
+                  <button className="btn btn-p" onClick={function(){try{navigator.clipboard.writeText("Mi Rack Wrapped 2026: "+watched.length+" títulos vistos, "+user.score+" puntos. Descúbrelo en https://paulaconsproyectos.github.io/rack/");}catch{}t_("Copiado para compartir");}}>Compartir mi Wrapped</button>
+                </div>
+              );
+            })()}
+            <button className="btn btn-s" style={{marginTop:10}} onClick={function(){setShowWrapped(false);}}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* RETOS MODAL */}
+      {showRetos && (
+        <div className="overlay" onClick={function(){setShowRetos(false);}}>
+          <div className="modal" style={{maxHeight:"88vh",overflowY:"auto"}} onClick={function(e){e.stopPropagation();}}>
+            <div className="modal-handle"/>
+            <div className="modal-title">Retos de la semana</div>
+            <div className="modal-sub">Completa retos para ganar puntos extra</div>
+            {RETOS.map(function(r){
+              var week=Math.floor(Date.now()/604800000);
+              var done=retosComp[r.id]===week;
+              return (
+                <div key={r.id} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 0",borderBottom:"1px solid var(--b)"}}>
+                  <div style={{width:44,height:44,borderRadius:12,background:done?"rgba(34,197,94,0.15)":"var(--s3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:done?"1px solid rgba(34,197,94,0.3)":"1px solid var(--b)"}}>{done?"✓":r.icon}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:2,color:done?"var(--t3)":"var(--t)",textDecoration:done?"line-through":"none"}}>{r.title}</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>{r.desc}</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontSize:13,fontWeight:700,color:done?"var(--grn)":"var(--ylw)"}}>+{r.pts}</div>
+                    {!done && <button onClick={function(){completeReto(r);}} style={{marginTop:4,padding:"5px 10px",borderRadius:20,background:"var(--acc)",color:"#fff",border:"none",fontSize:11,fontWeight:600,cursor:"pointer"}}>Hecho</button>}
+                  </div>
+                </div>
+              );
+            })}
+            <button className="btn btn-s" style={{marginTop:16}} onClick={function(){setShowRetos(false);}}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* AI SUPPORT CHAT */}
+      {showSupport && (
+        <div style={{position:"fixed",bottom:90,right:16,width:320,maxHeight:480,background:"var(--s1)",border:"1px solid var(--b2)",borderRadius:20,boxShadow:"0 16px 48px rgba(0,0,0,.6)",zIndex:300,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          <div style={{padding:"14px 16px",borderBottom:"1px solid var(--b)",display:"flex",alignItems:"center",justifyContent:"space-between",background:"var(--s2)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:"var(--acc)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff"}}>R</div>
+              <div><div style={{fontSize:13,fontWeight:700}}>Soporte Rack</div><div style={{fontSize:10,color:"var(--grn)"}}>● En línea</div></div>
+            </div>
+            <button onClick={function(){setShowSupport(false);}} style={{background:"none",border:"none",color:"var(--t3)",fontSize:18,cursor:"pointer",lineHeight:1}}>✕</button>
+          </div>
+          <div ref={chatEndRef} style={{flex:1,overflowY:"auto",padding:"12px 14px",display:"flex",flexDirection:"column",gap:8}}>
+            {chatMsgs.map(function(m,i){
+              return (
+                <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
+                  <div style={{maxWidth:"80%",padding:"9px 12px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",background:m.role==="user"?"var(--acc)":"var(--s3)",color:m.role==="user"?"#fff":"var(--t)",fontSize:12,lineHeight:1.6}}>{m.content}</div>
+                </div>
+              );
+            })}
+            {chatLoading && (
+              <div style={{display:"flex",justifyContent:"flex-start"}}>
+                <div style={{padding:"9px 14px",borderRadius:"16px 16px 16px 4px",background:"var(--s3)",color:"var(--t3)",fontSize:12}}>Escribiendo...</div>
+              </div>
+            )}
+          </div>
+          <div style={{padding:"10px 12px",borderTop:"1px solid var(--b)",display:"flex",gap:6}}>
+            <input value={chatInput} onChange={function(e){setChatInput(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}} placeholder="Escribe tu pregunta..." style={{flex:1,background:"var(--s3)",border:"1px solid var(--b2)",borderRadius:10,padding:"9px 12px",color:"var(--t)",fontSize:13,outline:"none"}}/>
+            <button onClick={sendChat} disabled={!chatInput.trim()||chatLoading} style={{width:36,height:36,borderRadius:10,background:"var(--acc)",border:"none",color:"#fff",fontSize:14,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",opacity:!chatInput.trim()||chatLoading?0.4:1}}>→</button>
+          </div>
+        </div>
+      )}
+
+      {/* SUPPORT BUBBLE */}
+      {auth==="app" && user && screen!=="quiz" && (
+        <button onClick={function(){setShowSupport(function(p){return !p;});if(!showSupport&&chatMsgs.length===0){setChatMsgs([{role:"assistant",content:"¡Hola "+user.name.split(" ")[0]+"! Soy el asistente de Rack. ¿En qué puedo ayudarte? Puedo resolver dudas sobre el test, los puntos, tu cuenta o cualquier problema técnico."}]);}}} style={{position:"fixed",bottom:90,right:16,width:48,height:48,borderRadius:"50%",background:"var(--acc)",border:"none",boxShadow:"0 4px 20px rgba(99,102,241,0.5)",color:"#fff",fontSize:20,cursor:"pointer",zIndex:showSupport?0:299,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {showSupport?"✕":"💬"}
+        </button>
       )}
 
       {/* TIKTOK / SWIPE MODE */}
@@ -1052,6 +1236,18 @@ function App(){
                 )}
 
                 {/* Invite */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                  <button onClick={function(){setShowRetos(true);}} style={{background:"linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:18,marginBottom:4}}>🏆</div>
+                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Retos</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>Esta semana</div>
+                  </button>
+                  <button onClick={function(){setShowWrapped(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))",border:"1px solid rgba(99,102,241,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:18,marginBottom:4}}>✨</div>
+                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Wrapped</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>Tu año en cine</div>
+                  </button>
+                </div>
                 <div className="invite-row" onClick={function(){setShowInv(true);}}>
                   <div><div className="ir-t">Invitar amigos</div><div className="ir-s">+100 pts con tu código</div></div>
                   <span style={{color:"var(--acc2)"}}>→</span>
@@ -1343,7 +1539,7 @@ function App(){
               <div className="ph"><div className="logo">ra<span>ck</span></div></div>
               <div className="page" style={{paddingTop:0}}>
                 <div className="tab-row">
-                  {[["feed","Feed"],["ranking","Ranking"],["reviews","Reseñas"],["upcoming","Estrenos"]].map(function(item){
+                  {[["feed","Feed"],["ranking","Ranking"],["reviews","Reseñas"],["retos","Retos"],["upcoming","Estrenos"]].map(function(item){
                     return <button key={item[0]} className={"tab-btn"+(socTab===item[0]?" active":"")} onClick={function(){setSocTab(item[0]);}}>{item[1]}</button>;
                   })}
                 </div>
@@ -1389,6 +1585,32 @@ function App(){
                           </div>
                           <p className="rc-txt" style={{marginTop:7}}>{r.text}</p>
                           <button className={"rc-like"+((r.likedBy&&r.likedBy.includes(user.id))?" liked":"")} onClick={function(){toggleLike(r.id);}}>♥ {r.likes||0}</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {socTab==="retos" && (
+                  <div>
+                    <div style={{padding:"10px 0 14px",fontSize:13,color:"var(--t3)",lineHeight:1.6}}>Completa retos para ganar puntos extra. Se renuevan cada semana.</div>
+                    {RETOS.map(function(r){
+                      var week=Math.floor(Date.now()/604800000);
+                      var done=retosComp[r.id]===week;
+                      return (
+                        <div key={r.id} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 0",borderBottom:"1px solid var(--b)"}}>
+                          <div style={{width:48,height:48,borderRadius:13,background:done?"rgba(34,197,94,0.12)":"var(--s2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,border:done?"1px solid rgba(34,197,94,0.3)":"1px solid var(--b)"}}>
+                            {done && <span style={{fontSize:18,color:"var(--grn)"}}>✓</span>}
+                            {!done && r.icon}
+                          </div>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:14,fontWeight:600,marginBottom:3,color:done?"var(--t3)":"var(--t)",textDecoration:done?"line-through":"none"}}>{r.title}</div>
+                            <div style={{fontSize:12,color:"var(--t3)",lineHeight:1.5}}>{r.desc}</div>
+                          </div>
+                          <div style={{textAlign:"right",flexShrink:0}}>
+                            <div style={{fontSize:14,fontWeight:700,color:done?"var(--grn)":"var(--ylw)",marginBottom:4}}>+{r.pts} pts</div>
+                            {!done && <button onClick={function(){completeReto(r);}} style={{padding:"6px 12px",borderRadius:20,background:"var(--acc)",color:"#fff",border:"none",fontSize:12,fontWeight:600,cursor:"pointer"}}>Completar</button>}
+                            {done && <span style={{fontSize:11,color:"var(--grn)",fontWeight:600}}>Completado</span>}
+                          </div>
                         </div>
                       );
                     })}
