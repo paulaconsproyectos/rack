@@ -571,7 +571,7 @@ function App() {
   const [showInv, setShowInv] = useState(false);
   const [invCode] = useState(() => LS.get("rack_inv_code",genCode()));
   const [lH,setLH] = useState(""); const [lP,setLP] = useState("");
-  const [rN,setRN] = useState(""); const [rH,setRH] = useState(""); const [rP,setRP] = useState("");
+  const [rN,setRN] = useState(""); const [rH,setRH] = useState(""); const [rP,setRP] = useState(""); const [rE,setRE] = useState("");
   const [err, setErr] = useState("");
   const stRef = useRef(null);
 
@@ -647,7 +647,7 @@ function App() {
     // Also check demo users
     const saved = LS.get("rack_users",[]);
     if([...DEMO_USERS,...saved].find(u=>u.handle===handle)){setErr("Usuario ya existe");return;}
-    const nu = {id:"u"+Date.now(),name:rN.trim(),handle,password:rP,score:0};
+    const nu = {id:"u"+Date.now(),name:rN.trim(),handle,password:rP,email:rE.trim(),score:0};
     // Save to Supabase
     try { await supa.from("users").insert(nu); } catch(e){}
     LS.set("rack_users",[...saved,nu]);
@@ -790,6 +790,7 @@ function App() {
             <div className="auth-sub">Crea tu perfil de cinéfilo</div>
             {err&&<div className="auth-err">{err}</div>}
             <div className="field"><label>Nombre completo</label><input placeholder="Tu nombre" value={rN} onChange={e=>setRN(e.target.value)}/></div>
+            <div className="field"><label>Email</label><input type="email" placeholder="tu@email.com" value={rE} onChange={e=>setRE(e.target.value)}/></div>
             <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={rH} onChange={e=>setRH(e.target.value)}/></div>
             <div className="field"><label>Contraseña</label><input type="password" placeholder="••••••••" value={rP} onChange={e=>setRP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doReg()}/></div>
             <button className="btn btn-p" style={{marginTop:14}} onClick={doReg}>Crear cuenta</button>
