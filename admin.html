@@ -362,7 +362,7 @@ function renderUsers() {
             const wCount = state.watched.filter(w=>w.user_id===u.id).length;
             const rCount = state.reviews.filter(r=>r.user_id===u.id).length;
             return `<tr>
-              <td><span class="tbl-av">${ini(u.name)}</span>${u.name||"—"}</td>
+              <td>${u.avatar?`<img src="${u.avatar.slice(0,200)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle" onerror="this.style.display='none'"/>`:`<span class="tbl-av">${ini(u.name)}</span>`}${u.name||"—"}</td>
               <td style="font-family:'DM Mono',monospace;color:var(--t3)">@${u.handle||"—"}</td>
               <td style="font-size:11px;color:var(--t3)">${u.email||"—"}</td>
               <td><span class="badge badge-acc">${u.score||0} pts</span></td>
