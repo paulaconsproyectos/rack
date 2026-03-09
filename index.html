@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>Rack</title>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="Rack"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --bg:#0A0A0B;--s1:#111113;--s2:#18181B;--s3:#1F1F23;--s4:#27272C;--s5:#32323A;
+      --b:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.10);--b3:rgba(255,255,255,0.16);
+      --t:#F4F4F5;--t2:#A1A1AA;--t3:#52525B;--t4:#3F3F46;
+      --acc:#6366F1;--acc2:#818CF8;--acc3:rgba(99,102,241,0.15);
+      --grn:#22C55E;--red:#EF4444;--ylw:#F59E0B;
+    }
+    html,body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
+    #root{max-width:430px;margin:0 auto;min-height:100vh;position:relative;}
+    button,input,textarea{font-family:'DM Sans',sans-serif;}
+    ::-webkit-scrollbar{width:0;}
+    ::selection{background:var(--acc3);}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+const TMDB_KEY="10f1051018046e4262a70010b517415c";
+const TMDB_BASE="https://api.themoviedb.org/3";
+const IMG_BASE="https://image.tmdb.org/t/p/w500";
+const IMG_ORIG="https://image.tmdb.org/t/p/original";
+
+const MOOD_GENRES={
+  "Eufórico":[28,12,35],"Melancólico":[18,10749],"Curioso":[99,878,9648],
+  "Relajado":[35,10751,16],"Intenso":[53,80,27],"Romántico":[10749,18,35],
+};
+const BADGES=[
+  {min:0,label:"Espectador",icon:"👁"},{min:100,label:"Aficionado",icon:"🎬"},
+  {min:300,label:"Cinéfilo",icon:"🎞"},{min:600,label:"Auteur",icon:"🎭"},
+  {min:1000,label:"Crítico",icon:"✍️"},{min:2000,label:"Maestro",icon:"🏆"},
+  {min:5000,label:"Leyenda",icon:"⭐"},
+];
+const QUESTIONS=[
+  {id:"mood",q:"¿Cómo estás ahora mismo?",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},
+  {id:"company",q:"¿Con quién ves esto?",opts:["Solo","En pareja","Con amigos","En familia"]},
+  {id:"time",q:"¿Cuánto tiempo tienes?",opts:["Menos de 1h","1–2 horas","Más de 2h","Modo maratón"]},
+  {id:"platform",q:"¿Qué plataformas tienes?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Todo me vale"]},
+  {id:"vibe",q:"¿Qué experiencia buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]},
+];
+const ONBOARDING=[
+  {title:"Descubre tu próxima peli",sub:"Rack analiza tu estado de ánimo y encuentra el cine exacto para este momento.",img:"🎬"},
+  {title:"Recomendaciones reales",sub:"Conectado a TMDB con millones de películas y series actualizadas cada día.",img:"🗂"},
+  {title:"Tu comunidad cinéfila",sub:"Escribe reseñas, sigue a amigos y compite en el ranking de cinéfilos.",img:"🏆"},
+];
+const DEMO_REVIEWS=[
+  {id:"dr1",userId:"u2",userName:"Marcos Ruiz",handle:"marcosr",film:"Dune: Parte Dos",text:"Villeneuve lo vuelve a hacer. La escala visual es simplemente inalcanzable.",stars:5,likes:34,likedBy:[]},
+  {id:"dr2",userId:"u3",userName:"Laia Torres",handle:"laiat",film:"Pobres Criaturas",text:"Yorgos en estado puro. Perturbadora, liberadora, completamente única.",stars:5,likes:28,likedBy:[]},
+  {id:"dr3",userId:"u4",userName:"Andrés Bernal",handle:"andresb",film:"La Zona de Interés",text:"El horror en lo cotidiano. La película más importante de 2023.",stars:5,likes:51,likedBy:[]},
+  {id:"dr4",userId:"u1",userName:"Sofía Martín",handle:"sofiam",film:"Vidas Pasadas",text:"Discreta, devastadora, perfecta.",stars:5,likes:41,likedBy:[]},
+];
+const DEMO_FEED=[
+  {userName:"Andrés Bernal",action:"ha visto",film:"La Zona de Interés",time:"12 min"},
+  {userName:"Marcos Ruiz",action:"ha añadido",film:"Challengers",time:"1h"},
+  {userName:"Laia Torres",action:"ha reseñado",film:"Vidas Pasadas",time:"3h"},
+  {userName:"Sofía Martín",action:"ha visto",film:"Pobres Criaturas",time:"5h"},
+];
+const DEMO_USERS=[
+  {id:"u1",name:"Sofía Martín",handle:"sofiam",score:847,badge:"Auteur"},
+  {id:"u2",name:"Marcos Ruiz",handle:"marcosr",score:1204,badge:"Maestro"},
+  {id:"u3",name:"Laia Torres",handle:"laiat",score:563,badge:"Cinéfila"},
+  {id:"u4",name:"Andrés Bernal",handle:"andresb",score:2891,badge:"Crítico"},
+];
+
+const getBadge=s=>[...BADGES].reverse().find(b=>s>=b.min);
+const getNext=s=>BADGES.find(b=>b.min>s);
+const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const genCode=()=>Math.random().toString(36).substring(2,8).toUpperCase();
+const clamp=(n,a,b)=>Math.min(Math.max(n,a),b);
+
+// localStorage helpers
+const LS={
+  get:(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch{return def;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}},
+};
+
+// TMDB fetch
+async function tmdbDiscover(answers){
+  const genres=(MOOD_GENRES[answers.mood]||[18]).slice(0,2).join(",");
+  const page=Math.floor(Math.random()*8)+1;
+  const [mr,tr]=await Promise.all([
+    fetch(`${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=es-ES&sort_by=vote_average.desc&vote_count.gte=400&with_genres=${genres}&page=${page}`),
+    fetch(`${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&language=es-ES&sort_by=vote_average.desc&vote_count.gte=150&with_genres=${genres}&page=${page}`),
+  ]);
+  const [md,td]=await Promise.all([mr.json(),tr.json()]);
+  const movies=(md.results||[]).slice(0,5).map(m=>({
+    id:m.id,title:m.title,titleEs:m.title,year:m.release_date?.slice(0,4)||"—",
+    type:"Película",poster:m.poster_path?IMG_BASE+m.poster_path:null,
+    backdrop:m.backdrop_path?IMG_ORIG+m.backdrop_path:null,
+    description:m.overview||"",score:m.vote_average?.toFixed(1),
+    platform:answers.platform?.includes("Todo me vale")?"—":answers.platform?.[0]||"—",
+    mediaType:"movie",tmdbId:m.id,genre:"",director:"",duration:"",tags:[],
+  }));
+  const shows=(td.results||[]).slice(0,3).map(m=>({
+    id:m.id,title:m.name,titleEs:m.name,year:m.first_air_date?.slice(0,4)||"—",
+    type:"Serie",poster:m.poster_path?IMG_BASE+m.poster_path:null,
+    backdrop:m.backdrop_path?IMG_ORIG+m.backdrop_path:null,
+    description:m.overview||"",score:m.vote_average?.toFixed(1),
+    platform:answers.platform?.includes("Todo me vale")?"—":answers.platform?.[0]||"—",
+    mediaType:"tv",tmdbId:m.id,genre:"",director:"",duration:"",tags:[],
+  }));
+  const all=[...movies,...shows].slice(0,8);
+  const detailed=await Promise.all(all.map(async item=>{
+    try{
+      const r=await fetch(`${TMDB_BASE}/${item.mediaType}/${item.tmdbId}?api_key=${TMDB_KEY}&language=es-ES&append_to_response=credits`);
+      const d=await r.json();
+      return{...item,
+        genre:d.genres?.[0]?.name||"",
+        director:item.mediaType==="movie"?(d.credits?.crew?.find(c=>c.job==="Director")?.name||""):(d.created_by?.[0]?.name||""),
+        duration:item.mediaType==="movie"?(d.runtime?`${Math.floor(d.runtime/60)}h ${d.runtime%60}min`:""):(d.number_of_seasons?`${d.number_of_seasons} temp.`:""),
+        tags:(d.genres||[]).slice(0,3).map(g=>g.name),
+      };
+    }catch{return item;}
+  }));
+  return detailed;
+}
+
+async function tmdbSearch(query){
+  const r=await fetch(`${TMDB_BASE}/search/multi?api_key=${TMDB_KEY}&language=es-ES&query=${encodeURIComponent(query)}&page=1`);
+  const d=await r.json();
+  return(d.results||[]).filter(m=>m.media_type==="movie"||m.media_type==="tv").slice(0,12).map(m=>({
+    id:m.id,title:m.title||m.name,titleEs:m.title||m.name,
+    year:(m.release_date||m.first_air_date||"").slice(0,4),
+    type:m.media_type==="movie"?"Película":"Serie",
+    poster:m.poster_path?IMG_BASE+m.poster_path:null,
+    backdrop:m.backdrop_path?IMG_ORIG+m.backdrop_path:null,
+    description:m.overview||"",score:m.vote_average?.toFixed(1),
+    platform:"—",mediaType:m.media_type,tmdbId:m.id,genre:"",director:"",duration:"",tags:[],
+  }));
+}
+
+// ── CSS ─────────────────────────────────────────────────────────────────
+const CSS=`
+.app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);overflow-x:hidden;}
+button{cursor:pointer;}
+
+/* ONBOARDING */
+.ob{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
+.ob-slides{flex:1;position:relative;overflow:hidden;}
+.ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;gap:24px;transition:opacity .4s,transform .4s;}
+.ob-slide.active{opacity:1;transform:translateX(0);}
+.ob-slide.left{opacity:0;transform:translateX(-40px);}
+.ob-slide.right{opacity:0;transform:translateX(40px);}
+.ob-icon{font-size:72px;line-height:1;margin-bottom:8px;filter:grayscale(0);}
+.ob-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--t);letter-spacing:-0.02em;}
+.ob-logo span{color:var(--acc2);}
+.ob-title{font-size:26px;font-weight:600;text-align:center;line-height:1.25;letter-spacing:-0.02em;}
+.ob-sub{font-size:15px;color:var(--t2);text-align:center;line-height:1.65;max-width:280px;font-weight:300;}
+.ob-dots{display:flex;gap:6px;justify-content:center;padding:16px 0;}
+.ob-dot{width:6px;height:6px;border-radius:3px;background:var(--s5);transition:all .3s;}
+.ob-dot.active{width:20px;background:var(--acc);}
+.ob-bottom{padding:24px 32px 48px;display:flex;flex-direction:column;gap:10px;}
+
+/* LANDING */
+.land{min-height:100vh;display:flex;flex-direction:column;}
+.land-hero{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:52px 28px 36px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,0.18) 0%,transparent 70%),var(--bg);
+  min-height:55vh;position:relative;overflow:hidden;}
+.land-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.025) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.025) 40px);}
+.land-logo{font-family:'DM Serif Display',serif;font-size:64px;letter-spacing:-0.03em;line-height:1;margin-bottom:12px;position:relative;}
+.land-logo span{color:var(--acc2);}
+.land-tagline{font-size:16px;color:var(--t2);line-height:1.6;margin-bottom:0;max-width:260px;font-weight:300;position:relative;}
+.land-bottom{padding:28px 28px 52px;display:flex;flex-direction:column;gap:10px;}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:16px;background:var(--acc);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;letter-spacing:-0.01em;transition:all .2s;position:relative;overflow:hidden;}
+.btn-primary:hover{background:var(--acc2);transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+.btn-secondary{width:100%;padding:15px;background:var(--s2);color:var(--t2);border:1px solid var(--b2);border-radius:12px;font-size:15px;font-weight:500;transition:all .2s;}
+.btn-secondary:hover{background:var(--s3);color:var(--t);border-color:var(--b3);}
+.btn-ghost{background:none;border:none;color:var(--t3);font-size:13px;padding:0;transition:color .2s;}
+.btn-ghost:hover{color:var(--t2);}
+
+/* AUTH */
+.auth-page{min-height:100vh;padding:0 28px 48px;display:flex;flex-direction:column;}
+.auth-top{padding:56px 0 40px;display:flex;align-items:center;gap:16px;}
+.back-btn{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);transition:all .2s;}
+.back-btn:hover{background:var(--s3);color:var(--t);}
+.auth-ttl{font-size:28px;font-weight:700;letter-spacing:-0.03em;margin-bottom:4px;}
+.auth-sub{font-size:14px;color:var(--t3);margin-bottom:32px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;}
+.field input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:14px 16px;color:var(--t);font-size:15px;outline:none;transition:all .2s;}
+.field input:focus{border-color:var(--acc);background:var(--s3);box-shadow:0 0 0 3px var(--acc3);}
+.field input::placeholder{color:var(--t4);}
+.auth-err{font-size:13px;color:var(--red);margin-bottom:14px;padding:10px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;}
+.demo-box{margin-top:14px;padding:12px 14px;background:var(--s2);border:1px solid var(--b);border-radius:10px;}
+.demo-box p{font-size:12px;color:var(--t3);line-height:1.6;}
+.demo-box strong{color:var(--t2);}
+.auth-hint{font-size:13px;color:var(--t3);text-align:center;margin-top:20px;}
+.auth-hint button{background:none;border:none;color:var(--acc2);font-size:13px;font-weight:500;}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(10,10,11,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--b);padding:8px 0 28px;z-index:100;display:flex;justify-content:space-around;}
+.nb{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--t3);font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;transition:color .2s;border-radius:10px;}
+.nb.active{color:var(--acc2);}
+.nb-icon{font-size:20px;line-height:1;transition:transform .2s;}
+.nb.active .nb-icon{transform:scale(1.1);}
+
+/* PAGE */
+.page{padding:0 20px 100px;}
+.page-header{padding:56px 20px 20px;display:flex;justify-content:space-between;align-items:center;}
+.page-logo{font-family:'DM Serif Display',serif;font-size:24px;letter-spacing:-0.02em;}
+.page-logo span{color:var(--acc2);}
+.section-title{font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t3);margin-bottom:14px;margin-top:28px;}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--b);border-radius:16px;overflow:hidden;margin-bottom:12px;}
+.card-glass{background:rgba(255,255,255,0.03);border:1px solid var(--b2);border-radius:16px;padding:16px;margin-bottom:10px;backdrop-filter:blur(10px);}
+
+/* HOME */
+.home-hero{padding:56px 20px 0;}
+.greet-small{font-size:13px;color:var(--t3);font-weight:400;margin-bottom:4px;}
+.greet-big{font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:20px;line-height:1.1;}
+.greet-big span{color:var(--acc2);}
+.quiz-cta{background:linear-gradient(135deg,var(--acc),#8B5CF6);border:none;border-radius:16px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:20px;box-shadow:0 8px 32px rgba(99,102,241,0.3);transition:all .2s;}
+.quiz-cta:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(99,102,241,0.4);}
+.qcta-l{text-align:left;}
+.qcta-title{font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px;}
+.qcta-sub{font-size:13px;opacity:.8;font-weight:300;}
+.qcta-icon{font-size:36px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:16px 12px;text-align:center;}
+.stat-n{font-family:'DM Serif Display',serif;font-size:28px;color:var(--t);line-height:1;}
+.stat-l{font-size:10px;color:var(--t3);font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-top:4px;}
+.invite-card{background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.invite-card:hover{background:linear-gradient(135deg,rgba(99,102,241,0.18),rgba(139,92,246,0.12));}
+.ic-l{flex:1;}
+.ic-title{font-size:13px;font-weight:600;color:var(--acc2);margin-bottom:2px;}
+.ic-sub{font-size:12px;color:var(--t3);}
+.ic-arrow{font-size:18px;color:var(--acc2);}
+
+/* SEARCH */
+.search-wrap{padding:56px 20px 0;margin-bottom:0;}
+.search-box{position:relative;margin-bottom:20px;}
+.search-input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:14px;padding:14px 44px 14px 44px;color:var(--t);font-size:15px;outline:none;transition:all .2s;}
+.search-input:focus{border-color:var(--acc);background:var(--s3);box-shadow:0 0 0 3px var(--acc3);}
+.search-input::placeholder{color:var(--t4);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:17px;color:var(--t3);pointer-events:none;}
+.search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--s4);border:none;color:var(--t3);width:22px;height:22px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center;}
+
+/* FILM GRID */
+.film-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.film-thumb{background:var(--s1);border:1px solid var(--b);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s;}
+.film-thumb:hover{transform:translateY(-2px);border-color:var(--b2);}
+.film-thumb img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;}
+.film-thumb-empty{width:100%;aspect-ratio:2/3;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:36px;}
+.film-thumb-info{padding:10px 10px 12px;}
+.fti-title{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fti-meta{font-size:11px;color:var(--t3);display:flex;align-items:center;gap:6px;}
+.fti-score{color:var(--ylw);font-weight:600;}
+
+/* FILM LIST (results) */
+.film-list-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--b);cursor:pointer;transition:opacity .2s;}
+.film-list-item:hover{opacity:.75;}
+.fli-poster{width:56px;height:84px;border-radius:8px;object-fit:cover;background:var(--s3);flex-shrink:0;}
+.fli-poster-empty{width:56px;height:84px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.fli-info{flex:1;min-width:0;padding-top:2px;}
+.fli-title{font-size:15px;font-weight:600;letter-spacing:-0.01em;margin-bottom:3px;line-height:1.3;}
+.fli-meta{font-size:12px;color:var(--t3);margin-bottom:6px;}
+.fli-desc{font-size:12px;color:var(--t2);line-height:1.5;font-weight:300;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.fli-actions{display:flex;gap:6px;margin-top:8px;}
+.pill-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:none;transition:all .15s;letter-spacing:.02em;}
+.pill-btn.acc{background:var(--acc3);color:var(--acc2);}
+.pill-btn.acc:hover{background:var(--acc);color:#fff;}
+.pill-btn.done{background:rgba(34,197,94,0.12);color:var(--grn);cursor:default;}
+.pill-btn.neu{background:var(--s3);color:var(--t2);}
+.pill-btn.neu:hover{background:var(--s4);color:var(--t);}
+
+/* DETAIL */
+.det-backdrop{width:100%;height:240px;object-fit:cover;display:block;}
+.det-backdrop-empty{width:100%;height:200px;background:linear-gradient(135deg,var(--s2),var(--s3));display:flex;align-items:center;justify-content:center;font-size:64px;}
+.det-content{padding:0 20px 100px;}
+.det-over-backdrop{position:relative;margin-top:-40px;border-radius:20px 20px 0 0;background:var(--bg);padding:24px 20px 0;}
+.det-row{display:flex;gap:14px;margin-bottom:20px;}
+.det-poster-sm{width:80px;height:120px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid var(--b2);}
+.det-poster-empty{width:80px;height:120px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;}
+.det-meta-col{flex:1;padding-top:4px;}
+.det-type-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--acc3);color:var(--acc2);margin-bottom:8px;}
+.det-title{font-size:22px;font-weight:700;letter-spacing:-0.02em;line-height:1.2;margin-bottom:6px;}
+.det-info{font-size:12px;color:var(--t3);line-height:1.7;}
+.score-pills{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.score-pill{padding:8px 14px;border-radius:10px;background:var(--s2);border:1px solid var(--b);text-align:center;}
+.sp-n{font-family:'DM Serif Display',serif;font-size:20px;color:var(--ylw);}
+.sp-l{font-size:9px;color:var(--t3);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-top:1px;}
+.det-desc{font-size:14px;color:var(--t2);line-height:1.75;margin-bottom:20px;font-weight:300;}
+.det-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:28px;}
+.det-btn{padding:13px;border:none;border-radius:12px;font-size:13px;font-weight:600;transition:all .2s;}
+.det-btn.p{background:var(--acc);color:#fff;}
+.det-btn.p:hover{background:var(--acc2);}
+.det-btn.s{background:var(--s2);color:var(--t2);border:1px solid var(--b2);}
+.det-btn.s:hover{background:var(--s3);color:var(--t);}
+.det-btn.done{opacity:.5;cursor:default;}
+
+/* REVIEW FORM */
+.rev-section{background:var(--s1);border:1px solid var(--b);border-radius:16px;padding:18px;margin-bottom:20px;}
+.rev-label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t3);margin-bottom:12px;}
+.stars{display:flex;gap:6px;margin-bottom:14px;}
+.star{background:none;border:none;font-size:24px;color:var(--s5);transition:color .15s;line-height:1;padding:0;}
+.star.on{color:var(--ylw);}
+.rev-ta{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--t);resize:none;height:88px;outline:none;transition:all .2s;font-weight:300;}
+.rev-ta:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc3);}
+.rev-ta::placeholder{color:var(--t3);}
+.rev-sub{width:100%;padding:13px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;margin-top:10px;transition:all .2s;}
+.rev-sub:disabled{opacity:.25;cursor:not-allowed;}
+.rev-sub:not(:disabled):hover{background:var(--acc2);}
+
+/* REVIEW CARDS */
+.rc{padding:14px 0;border-bottom:1px solid var(--b);}
+.rc-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.rc-av{width:30px;height:30px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--t2);flex-shrink:0;}
+.rc-user-info{display:flex;align-items:center;gap:8px;}
+.rc-name{font-size:13px;font-weight:600;}
+.rc-handle{font-size:11px;color:var(--t3);}
+.rc-stars{font-size:11px;color:var(--ylw);letter-spacing:1px;}
+.rc-txt{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:10px;font-weight:300;}
+.rc-like{background:var(--s2);border:1px solid var(--b);border-radius:20px;font-size:11px;font-weight:500;color:var(--t3);padding:4px 12px;transition:all .15s;}
+.rc-like:hover{border-color:var(--acc2);color:var(--acc2);}
+.rc-like.liked{background:var(--acc3);border-color:var(--acc);color:var(--acc2);}
+.empty-state{padding:48px 0;text-align:center;color:var(--t3);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-txt{font-size:14px;}
+
+/* QUIZ */
+.quiz-page{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
+.quiz-head{padding:56px 20px 24px;display:flex;align-items:center;gap:16px;}
+.quiz-progress{flex:1;height:3px;background:var(--s3);border-radius:2px;overflow:hidden;}
+.quiz-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+.q-exit{background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--t3);font-size:12px;font-weight:500;padding:6px 12px;transition:all .2s;}
+.q-exit:hover{background:var(--s3);color:var(--t2);}
+.quiz-body{padding:8px 20px 40px;flex:1;}
+.q-step{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);margin-bottom:10px;}
+.q-question{font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:32px;}
+.opts-grid{display:flex;flex-direction:column;gap:8px;}
+.multi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opt-btn{padding:14px 18px;border:1.5px solid var(--b2);border-radius:12px;background:var(--s1);text-align:left;font-size:14px;color:var(--t2);transition:all .15s;display:flex;align-items:center;justify-content:space-between;font-weight:400;}
+.opt-btn:hover{border-color:var(--b3);color:var(--t);background:var(--s2);}
+.opt-btn.sel{border-color:var(--acc);background:var(--acc3);color:var(--t);}
+.opt-check{width:18px;height:18px;border-radius:5px;border:1.5px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;opacity:.4;}
+.opt-btn.sel .opt-check{opacity:1;color:var(--acc2);border-color:var(--acc2);background:var(--acc3);}
+.quiz-next-btn{margin-top:24px;width:100%;padding:15px;background:var(--acc);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;transition:all .2s;}
+.quiz-next-btn:disabled{opacity:.25;cursor:not-allowed;}
+.quiz-next-btn:not(:disabled):hover{background:var(--acc2);}
+
+/* LOADING */
+.loading-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;background:var(--bg);}
+.loading-spinner{width:36px;height:36px;border:2px solid var(--s4);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-txt{font-size:15px;color:var(--t2);font-weight:300;}
+
+/* RESULTS */
+.res-header{padding:56px 20px 20px;}
+.res-label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--acc2);margin-bottom:6px;}
+.res-title{font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:0;}
+
+/* PROFILE */
+.prof-header{padding:56px 20px 24px;}
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin-bottom:14px;}
+.prof-name{font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px;}
+.prof-handle{font-size:13px;color:var(--t3);margin-bottom:8px;}
+.prof-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--acc3);color:var(--acc2);font-size:12px;font-weight:600;}
+.score-block{background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.06));border:1px solid rgba(99,102,241,0.2);border-radius:16px;padding:20px;margin-bottom:16px;}
+.score-big{font-family:'DM Serif Display',serif;font-size:56px;color:var(--acc2);line-height:1;margin-bottom:4px;}
+.score-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:16px;}
+.prog-bar{height:3px;background:var(--s4);border-radius:2px;margin-bottom:8px;position:relative;}
+.prog-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .6s;}
+.prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);}
+
+/* SOCIAL */
+.tab-row{display:flex;gap:4px;background:var(--s2);border-radius:12px;padding:4px;margin-bottom:20px;}
+.tab-btn{flex:1;padding:9px;border:none;border-radius:9px;font-size:12px;font-weight:600;color:var(--t3);background:transparent;transition:all .2s;}
+.tab-btn.active{background:var(--s4);color:var(--t);}
+.activity-item{padding:14px 0;border-bottom:1px solid var(--b);display:flex;gap:10px;align-items:flex-start;}
+.act-av{width:32px;height:32px;border-radius:50%;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--t3);}
+.act-body{flex:1;}
+.act-text{font-size:13px;color:var(--t2);line-height:1.5;}
+.act-text strong{color:var(--t);font-weight:600;}
+.act-text em{color:var(--acc2);font-style:normal;font-weight:500;}
+.act-time{font-size:11px;color:var(--t4);margin-top:2px;}
+.rank-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--b);}
+.rank-num{font-family:'DM Serif Display',serif;font-size:18px;color:var(--t3);width:24px;text-align:center;flex-shrink:0;}
+.rank-num.gold{color:var(--ylw);}
+.rank-av{width:36px;height:36px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--t2);flex-shrink:0;}
+.rank-info{flex:1;}
+.rank-name{font-size:14px;font-weight:600;margin-bottom:1px;}
+.rank-badge{font-size:11px;color:var(--t3);}
+.rank-score{font-family:'DM Serif Display',serif;font-size:20px;color:var(--acc2);}
+.rank-pts{font-size:10px;color:var(--t3);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(4px);}
+.modal{background:var(--s1);border-top:1px solid var(--b2);border-radius:24px 24px 0 0;padding:28px 24px 48px;width:100%;max-width:430px;margin:0 auto;}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--s5);margin:0 auto 20px;}
+.modal-title{font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px;}
+.modal-sub{font-size:14px;color:var(--t2);margin-bottom:24px;line-height:1.6;font-weight:300;}
+.code-display{background:var(--s3);border:1px solid var(--b2);border-radius:14px;padding:20px;text-align:center;margin-bottom:20px;}
+.code-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
+.code-val{font-family:'DM Serif Display',serif;font-size:42px;letter-spacing:.12em;color:var(--acc2);}
+
+/* WATCHLIST ITEM */
+.wl-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b);}
+.wl-poster{width:44px;height:66px;border-radius:7px;object-fit:cover;background:var(--s3);flex-shrink:0;}
+.wl-poster-empty{width:44px;height:66px;border-radius:7px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.wl-title{font-size:14px;font-weight:600;margin-bottom:2px;line-height:1.3;}
+.wl-meta{font-size:11px;color:var(--t3);}
+.wl-pts{font-size:13px;color:var(--grn);font-weight:600;margin-left:auto;}
+
+/* LOGOUT */
+.logout-btn{width:100%;padding:13px;background:transparent;color:var(--t3);border:1px solid var(--b);border-radius:12px;font-size:14px;font-weight:500;transition:all .2s;margin-top:28px;}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* TOAST */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--s2);color:var(--t);border:1px solid var(--b2);border-radius:20px;padding:10px 18px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;animation:toastIn .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:none;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+/* BACK BTN */
+.page-back{display:flex;align-items:center;gap:10px;padding:56px 20px 20px;}
+.back-circle{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);cursor:pointer;border:none;transition:all .2s;}
+.back-circle:hover{background:var(--s3);}
+`;
+
+// ── MAIN APP ─────────────────────────────────────────────────────────────────
+function App(){
+  // Auth
+  const [auth,setAuth]=useState(()=>LS.get("rack_auth","onboarding"));
+  const [user,setUser]=useState(()=>LS.get("rack_user",null));
+  const [obStep,setObStep]=useState(0);
+  const [authMode,setAuthMode]=useState("login");
+
+  // App state
+  const [screen,setScreen]=useState("home");
+  const [films,setFilms]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [selectedFilm,setSelectedFilm]=useState(null);
+  const [prevScreen,setPrevScreen]=useState("home");
+
+  // Quiz
+  const [quizStep,setQuizStep]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [multi,setMulti]=useState([]);
+
+  // Search
+  const [searchQ,setSearchQ]=useState("");
+  const [searchResults,setSearchResults]=useState([]);
+  const [searching,setSearching]=useState(false);
+  const searchTimer=useRef(null);
+
+  // Social/reviews
+  const [reviews,setReviews]=useState(()=>LS.get("rack_reviews",DEMO_REVIEWS));
+  const [revText,setRevText]=useState("");
+  const [revStars,setRevStars]=useState(0);
+  const [tab,setTab]=useState("feed");
+
+  // UI
+  const [toast,setToast]=useState(null);
+  const [showInvite,setShowInvite]=useState(false);
+  const [copied,setCopied]=useState(false);
+  const [inviteCode]=useState(()=>LS.get("rack_invite",genCode()));
+
+  // Auth forms
+  const [lHandle,setLHandle]=useState("");
+  const [lPass,setLPass]=useState("");
+  const [rName,setRName]=useState("");
+  const [rHandle,setRHandle]=useState("");
+  const [rPass,setRPass]=useState("");
+  const [err,setErr]=useState("");
+
+  // Persist
+  useEffect(()=>LS.set("rack_auth",auth),[auth]);
+  useEffect(()=>LS.set("rack_user",user),[user]);
+  useEffect(()=>LS.set("rack_reviews",reviews),[reviews]);
+  useEffect(()=>LS.set("rack_invite",inviteCode),[inviteCode]);
+
+  const toast_=msg=>{setToast(msg);setTimeout(()=>setToast(null),2600);};
+
+  // Onboarding
+  const nextOb=()=>{
+    if(obStep<ONBOARDING.length-1){setObStep(s=>s+1);}
+    else{setAuth("landing");}
+  };
+
+  // Auth
+  const doLogin=()=>{
+    if(!lHandle.trim()||!lPass.trim()){setErr("Rellena todos los campos");return;}
+    // check saved users
+    const saved=LS.get("rack_users",[]);
+    const allUsers=[...DEMO_USERS.map(u=>({...u,password:"1234"})),...saved];
+    const found=allUsers.find(u=>u.handle===lHandle.toLowerCase().trim()&&u.password===lPass);
+    if(!found){setErr("Usuario o contraseña incorrectos");return;}
+    const fullUser={...found,watched:LS.get(`rack_watched_${found.id}`,[]),watchlist:LS.get(`rack_wl_${found.id}`,[])};
+    setUser(fullUser);setAuth("app");setErr("");
+  };
+  const doRegister=()=>{
+    if(!rName.trim()||!rHandle.trim()||!rPass.trim()){setErr("Rellena todos los campos");return;}
+    const saved=LS.get("rack_users",[]);
+    const allUsers=[...DEMO_USERS,...saved];
+    if(allUsers.find(u=>u.handle===rHandle.toLowerCase().trim())){setErr("Ese nombre de usuario ya existe");return;}
+    const nu={id:"u"+Date.now(),name:rName.trim(),handle:rHandle.toLowerCase().trim(),password:rPass,score:0,badge:"Espectador"};
+    LS.set("rack_users",[...saved,nu]);
+    setUser({...nu,watched:[],watchlist:[]});setAuth("app");setErr("");
+  };
+  const doLogout=()=>{
+    if(user){LS.set(`rack_watched_${user.id}`,user.watched||[]);LS.set(`rack_wl_${user.id}`,user.watchlist||[]);}
+    setUser(null);setAuth("landing");setScreen("home");setFilms([]);
+  };
+
+  // Save watched/watchlist on change
+  useEffect(()=>{
+    if(user?.id){LS.set(`rack_watched_${user.id}`,user.watched||[]);LS.set(`rack_wl_${user.id}`,user.watchlist||[]);}
+  },[user?.watched,user?.watchlist]);
+
+  // Quiz
+  const q=QUESTIONS[quizStep];
+  const pickOpt=val=>{
+    if(q.multi){setMulti(p=>p.includes(val)?p.filter(v=>v!==val):[...p,val]);return;}
+    const a={...answers,[q.id]:val};setAnswers(a);
+    if(quizStep<QUESTIONS.length-1)setTimeout(()=>setQuizStep(s=>s+1),200);
+    else doFetch(a);
+  };
+  const nextMulti=()=>{
+    const a={...answers,[q.id]:multi};setAnswers(a);
+    if(quizStep<QUESTIONS.length-1){setMulti([]);setQuizStep(s=>s+1);}else doFetch(a);
+  };
+  const exitQuiz=()=>{setQuizStep(0);setAnswers({});setMulti([]);setScreen("home");};
+  const goQuiz=()=>{setScreen("quiz");setQuizStep(0);setAnswers({});setMulti([]);};
+
+  const doFetch=async ans=>{
+    setLoading(true);setScreen("results");
+    try{const r=await tmdbDiscover(ans);setFilms(r);}
+    catch{toast_("Error al cargar películas");}
+    setLoading(false);
+  };
+
+  // Search
+  useEffect(()=>{
+    clearTimeout(searchTimer.current);
+    if(!searchQ.trim()){setSearchResults([]);return;}
+    setSearching(true);
+    searchTimer.current=setTimeout(async()=>{
+      try{const r=await tmdbSearch(searchQ);setSearchResults(r);}catch{}
+      setSearching(false);
+    },500);
+  },[searchQ]);
+
+  // Film actions
+  const isW=f=>!!(user?.watched||[]).find(w=>w.id===f.id);
+  const isL=f=>!!(user?.watchlist||[]).find(w=>w.id===f.id);
+  const markW=f=>{
+    if(!user||isW(f))return;
+    const pts=Math.round((parseFloat(f.score)||5)*10);
+    setUser(p=>({...p,watched:[...(p.watched||[]),f],score:p.score+pts}));
+    toast_(`+${pts} puntos`);
+  };
+  const addL=f=>{
+    if(!user||isL(f))return;
+    setUser(p=>({...p,watchlist:[...(p.watchlist||[]),f]}));
+    toast_("Guardada en tu lista");
+  };
+
+  // Reviews
+  const submitRev=f=>{
+    if(!revText.trim()||!revStars)return;
+    const r={id:"r"+Date.now(),userId:user.id,userName:user.name,handle:user.handle,film:f.titleEs||f.title,text:revText,stars:revStars,likes:0,likedBy:[]};
+    setReviews(p=>[r,...p]);
+    setUser(p=>({...p,score:p.score+50}));
+    setRevText("");setRevStars(0);
+    toast_("+50 puntos");
+  };
+  const toggleLike=id=>{
+    if(!user)return;
+    setReviews(p=>p.map(r=>{
+      if(r.id!==id)return r;
+      const liked=r.likedBy.includes(user.id);
+      return{...r,likes:liked?r.likes-1:r.likes+1,likedBy:liked?r.likedBy.filter(x=>x!==user.id):[...r.likedBy,user.id]};
+    }));
+  };
+
+  const copyInvite=()=>{
+    try{navigator.clipboard.writeText(`Únete a Rack con mi código: ${inviteCode} — paulaconsproyectos.github.io/rack`);}catch{}
+    setCopied(true);setTimeout(()=>setCopied(false),2500);toast_("Copiado al portapapeles");
+  };
+
+  const goDetail=(f,from)=>{setPrevScreen(from||screen);setSelectedFilm(f);setScreen("detail");};
+
+  const badge=user?getBadge(user.score):null;
+  const nextB=user?getNext(user.score):null;
+  const prog=badge&&nextB?((user.score-badge.min)/(nextB.min-badge.min))*100:100;
+  const filmRevs=selectedFilm?reviews.filter(r=>r.film===(selectedFilm.titleEs||selectedFilm.title)):[];
+
+  const allUsers=[...DEMO_USERS,...LS.get("rack_users",[])];
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  return(
+    <div className="app">
+      <style>{CSS}</style>
+      {toast&&<div className="toast">{toast}</div>}
+
+      {/* INVITE MODAL */}
+      {showInvite&&(
+        <div className="overlay" onClick={()=>setShowInvite(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-handle"/>
+            <div className="modal-title">Invita a tus amigos</div>
+            <div className="modal-sub">Comparte tu código. Ambos ganáis puntos cinéfilos cuando se registren.</div>
+            <div className="code-display">
+              <div className="code-lbl">Tu código personal</div>
+              <div className="code-val">{inviteCode}</div>
+            </div>
+            <button className="btn-primary" onClick={copyInvite}>{copied?"✓ Copiado":"Copiar enlace de invitación"}</button>
+            <button className="btn-secondary" style={{marginTop:8}} onClick={()=>setShowInvite(false)}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ ONBOARDING ══════════════════════════════════════════ */}
+      {auth==="onboarding"&&(
+        <div className="ob">
+          <div className="ob-slides">
+            {/* slide 0: logo */}
+            <div className={`ob-slide ${obStep===0?"active":obStep>0?"left":"right"}`}>
+              <div className="ob-logo">ra<span>ck</span></div>
+              <div className="ob-sub" style={{marginTop:8}}>La app de cine para los que de verdad aman el cine.</div>
+            </div>
+            {ONBOARDING.map((sl,i)=>(
+              <div key={i} className={`ob-slide ${obStep===i+1?"active":obStep>i+1?"left":"right"}`}>
+                <div className="ob-icon">{sl.img}</div>
+                <div className="ob-title">{sl.title}</div>
+                <div className="ob-sub">{sl.sub}</div>
+              </div>
+            ))}
+          </div>
+          <div className="ob-dots">
+            {[0,...ONBOARDING.map((_,i)=>i+1)].map(i=>(
+              <div key={i} className={`ob-dot${obStep===i?" active":""}`}/>
+            ))}
+          </div>
+          <div className="ob-bottom">
+            <button className="btn-primary" onClick={nextOb}>
+              {obStep<ONBOARDING.length?"Continuar":"Empezar"}
+            </button>
+            {obStep<ONBOARDING.length&&(
+              <button className="btn-ghost" style={{textAlign:"center",padding:"8px"}} onClick={()=>setAuth("landing")}>Saltar</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══ LANDING ═════════════════════════════════════════════ */}
+      {auth==="landing"&&(
+        <div className="land">
+          <div className="land-hero">
+            <div className="land-logo">ra<span>ck</span></div>
+            <p className="land-tagline">El cine exacto para este momento.</p>
+          </div>
+          <div className="land-bottom">
+            <button className="btn-primary" onClick={()=>{setAuthMode("register");setAuth("auth");}}>Crear cuenta</button>
+            <button className="btn-secondary" onClick={()=>{setAuthMode("login");setAuth("auth");}}>Iniciar sesión</button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ AUTH ════════════════════════════════════════════════ */}
+      {auth==="auth"&&(
+        <div className="auth-page">
+          <div className="auth-top">
+            <button className="back-btn" onClick={()=>{setAuth("landing");setErr("");}}>←</button>
+          </div>
+          {authMode==="login"?(
+            <>
+              <div className="auth-ttl">Bienvenido de vuelta</div>
+              <div className="auth-sub">Entra en tu cuenta de Rack</div>
+              {err&&<div className="auth-err">{err}</div>}
+              <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={lHandle} onChange={e=>setLHandle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+              <div className="field"><label>Contraseña</label><input type="password" placeholder="••••••••" value={lPass} onChange={e=>setLPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+              <div className="demo-box"><p>Prueba: <strong>sofiam</strong>, <strong>marcosr</strong>, <strong>laiat</strong> o <strong>andresb</strong> — contraseña: <strong>1234</strong></p></div>
+              <button className="btn-primary" style={{marginTop:20}} onClick={doLogin}>Entrar</button>
+              <div className="auth-hint">¿No tienes cuenta? <button onClick={()=>{setAuthMode("register");setErr("");}}>Regístrate</button></div>
+            </>
+          ):(
+            <>
+              <div className="auth-ttl">Únete a Rack</div>
+              <div className="auth-sub">Crea tu perfil de cinéfilo</div>
+              {err&&<div className="auth-err">{err}</div>}
+              <div className="field"><label>Nombre completo</label><input placeholder="Tu nombre" value={rName} onChange={e=>setRName(e.target.value)}/></div>
+              <div className="field"><label>Nombre de usuario</label><input placeholder="tu_usuario" value={rHandle} onChange={e=>setRHandle(e.target.value)}/></div>
+              <div className="field"><label>Contraseña</label><input type="password" placeholder="••••••••" value={rPass} onChange={e=>setRPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()}/></div>
+              <button className="btn-primary" style={{marginTop:12}} onClick={doRegister}>Crear cuenta</button>
+              <div className="auth-hint">¿Ya tienes cuenta? <button onClick={()=>{setAuthMode("login");setErr("");}}>Inicia sesión</button></div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ══ APP ═════════════════════════════════════════════════ */}
+      {auth==="app"&&user&&<>
+
+        {/* HOME */}
+        {screen==="home"&&(
+          <>
+            <div className="home-hero">
+              <div className="greet-small">Buenas,</div>
+              <div className="greet-big">{user.name.split(" ")[0]} <span>👋</span></div>
+              <button className="quiz-cta" onClick={goQuiz}>
+                <div className="qcta-l">
+                  <div className="qcta-title">¿Qué veo hoy?</div>
+                  <div className="qcta-sub">Test de 5 preguntas · resultados personalizados</div>
+                </div>
+                <div className="qcta-icon">🎬</div>
+              </button>
+              {films.length>0&&(
+                <button className="btn-secondary" style={{marginBottom:20}} onClick={()=>setScreen("results")}>Ver últimas recomendaciones</button>
+              )}
+            </div>
+            <div className="page" style={{paddingTop:8}}>
+              <div className="stats-row">
+                <div className="stat-card"><div className="stat-n">{user.score}</div><div className="stat-l">Puntos</div></div>
+                <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
+                <div className="stat-card"><div className="stat-n">{reviews.filter(r=>r.userId===user.id).length}</div><div className="stat-l">Reseñas</div></div>
+              </div>
+              <div className="invite-card" onClick={()=>setShowInvite(true)}>
+                <div className="ic-l">
+                  <div className="ic-title">Invitar amigos</div>
+                  <div className="ic-sub">Gana puntos cuando se registren con tu código</div>
+                </div>
+                <div className="ic-arrow">→</div>
+              </div>
+              {(user.watchlist||[]).length>0&&<>
+                <div className="section-title">Mi lista</div>
+                {(user.watchlist||[]).slice(0,3).map((f,i)=>(
+                  <div key={i} className="wl-item" onClick={()=>goDetail(f,"home")} style={{cursor:"pointer"}}>
+                    {f.poster?<img className="wl-poster" src={f.poster} alt="" loading="lazy"/>:<div className="wl-poster-empty">🎬</div>}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div className="wl-title">{f.titleEs||f.title}</div>
+                      <div className="wl-meta">{f.type} · {f.year}</div>
+                    </div>
+                  </div>
+                ))}
+              </>}
+            </div>
+          </>
+        )}
+
+        {/* SEARCH */}
+        {screen==="search"&&(
+          <>
+            <div className="search-wrap">
+              <div className="page-logo" style={{marginBottom:20}}>ra<span style={{color:"var(--acc2)"}}>ck</span></div>
+              <div className="search-box">
+                <span className="search-icon">🔍</span>
+                <input className="search-input" placeholder="Busca películas o series..." value={searchQ} onChange={e=>setSearchQ(e.target.value)} autoFocus/>
+                {searchQ&&<button className="search-clear" onClick={()=>{setSearchQ("");setSearchResults([])}}>✕</button>}
+              </div>
+            </div>
+            <div className="page" style={{paddingTop:0}}>
+              {searching&&<div style={{textAlign:"center",padding:"40px 0",color:"var(--t3)"}}>Buscando...</div>}
+              {!searching&&searchResults.length>0&&(
+                <>
+                  <div className="section-title">{searchResults.length} resultados</div>
+                  {searchResults.map((f,i)=>(
+                    <div key={i} className="film-list-item" onClick={()=>goDetail(f,"search")}>
+                      {f.poster?<img className="fli-poster" src={f.poster} alt="" loading="lazy"/>:<div className="fli-poster-empty">🎬</div>}
+                      <div className="fli-info">
+                        <div className="fli-title">{f.titleEs||f.title}</div>
+                        <div className="fli-meta">{f.type} · {f.year} {f.score>0?`· ⭐ ${f.score}`:""}</div>
+                        <div className="fli-desc">{f.description}</div>
+                        <div className="fli-actions" onClick={e=>e.stopPropagation()}>
+                          <button className={`pill-btn ${isL(f)?"done":"neu"}`} onClick={()=>addL(f)}>{isL(f)?"✓ Lista":"+ Lista"}</button>
+                          <button className={`pill-btn ${isW(f)?"done":"acc"}`} onClick={()=>markW(f)}>{isW(f)?"✓ Vista":"Marcar vista"}</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+              {!searching&&searchQ&&searchResults.length===0&&(
+                <div className="empty-state"><div className="empty-icon">🔎</div><div className="empty-txt">Sin resultados para "{searchQ}"</div></div>
+              )}
+              {!searchQ&&(
+                <div className="empty-state"><div className="empty-icon">🍿</div><div className="empty-txt">Busca cualquier película o serie</div></div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* QUIZ */}
+        {screen==="quiz"&&(
+          <div className="quiz-page">
+            <div className="quiz-head">
+              <div className="quiz-progress"><div className="quiz-fill" style={{width:`${((quizStep)/QUESTIONS.length)*100}%`}}/></div>
+              <button className="q-exit" onClick={exitQuiz}>Salir</button>
+            </div>
+            <div className="quiz-body">
+              <div className="q-step">{quizStep+1} de {QUESTIONS.length}</div>
+              <h2 className="q-question">{q.q}</h2>
+              {q.multi?(
+                <>
+                  <div className="multi-grid">
+                    {q.opts.map(o=>(
+                      <button key={o} className={`opt-btn${multi.includes(o)?" sel":""}`} onClick={()=>pickOpt(o)}>
+                        {o}<span className="opt-check">{multi.includes(o)?"✓":""}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button className="quiz-next-btn" onClick={nextMulti} disabled={multi.length===0}>Continuar →</button>
+                </>
+              ):(
+                <div className="opts-grid">
+                  {q.opts.map(o=>(
+                    <button key={o} className={`opt-btn${answers[q.id]===o?" sel":""}`} onClick={()=>pickOpt(o)}>{o}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* LOADING */}
+        {screen==="results"&&loading&&(
+          <div className="loading-page">
+            <div className="loading-spinner"/>
+            <div className="loading-txt">Buscando en la cinemateca...</div>
+          </div>
+        )}
+
+        {/* RESULTS */}
+        {screen==="results"&&!loading&&(
+          <>
+            <div className="res-header">
+              <div className="res-label">{films.length} recomendaciones · solo para ti</div>
+              <div className="res-title">Para este momento</div>
+            </div>
+            <div className="page" style={{paddingTop:0}}>
+              <div className="film-grid">
+                {films.map((f,i)=>(
+                  <div key={i} className="film-thumb" onClick={()=>goDetail(f,"results")}>
+                    {f.poster?<img src={f.poster} alt={f.title} loading="lazy"/>:<div className="film-thumb-empty">🎬</div>}
+                    <div className="film-thumb-info">
+                      <div className="fti-title">{f.titleEs||f.title}</div>
+                      <div className="fti-meta">
+                        <span className="fti-score">⭐ {f.score}</span>
+                        <span>{f.year}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button className="btn-primary" style={{marginTop:20}} onClick={goQuiz}>Nuevo test</button>
+            </div>
+          </>
+        )}
+
+        {/* DETAIL */}
+        {screen==="detail"&&selectedFilm&&(
+          <>
+            <div className="page-back">
+              <button className="back-circle" onClick={()=>setScreen(prevScreen)}>←</button>
+              <span style={{fontSize:13,color:"var(--t3)"}}>Volver</span>
+            </div>
+            <div className="det-content" style={{paddingTop:0}}>
+              {selectedFilm.backdrop
+                ?<img className="det-backdrop" src={selectedFilm.backdrop} alt="" style={{marginTop:-20,borderRadius:"16px 16px 0 0"}}/>
+                :<div className="det-backdrop-empty" style={{borderRadius:"16px 16px 0 0"}}>🎬</div>}
+              <div className="det-row" style={{marginTop:16}}>
+                {selectedFilm.poster
+                  ?<img className="det-poster-sm" src={selectedFilm.poster} alt=""/>
+                  :<div className="det-poster-empty">🎬</div>}
+                <div className="det-meta-col">
+                  <div className="det-type-badge">{selectedFilm.type}</div>
+                  <div className="det-title">{selectedFilm.titleEs||selectedFilm.title}</div>
+                  <div className="det-info">
+                    {selectedFilm.director&&<div>{selectedFilm.director}</div>}
+                    <div>{selectedFilm.year}{selectedFilm.duration&&` · ${selectedFilm.duration}`}</div>
+                    {selectedFilm.genre&&<div>{selectedFilm.genre}</div>}
+                  </div>
+                </div>
+              </div>
+              <div className="score-pills">
+                {selectedFilm.score>0&&<div className="score-pill"><div className="sp-n">⭐ {selectedFilm.score}</div><div className="sp-l">TMDB</div></div>}
+                <div className="score-pill"><div className="sp-n" style={{fontSize:14,paddingTop:4}}>{selectedFilm.platform}</div><div className="sp-l">Plataforma</div></div>
+              </div>
+              {selectedFilm.description&&<p className="det-desc">{selectedFilm.description}</p>}
+              <div className="det-btns">
+                <button className={`det-btn p${isW(selectedFilm)?" done":""}`} onClick={()=>markW(selectedFilm)}>{isW(selectedFilm)?"✓ Ya vista":"Marcar como vista"}</button>
+                <button className={`det-btn s${isL(selectedFilm)?" done":""}`} onClick={()=>addL(selectedFilm)}>{isL(selectedFilm)?"✓ En lista":"+ Mi lista"}</button>
+              </div>
+              <div className="section-title">Tu reseña</div>
+              <div className="rev-section">
+                <div className="stars">{[1,2,3,4,5].map(s=><button key={s} className={`star${s<=revStars?" on":""}`} onClick={()=>setRevStars(s)}>★</button>)}</div>
+                <textarea className="rev-ta" placeholder="¿Qué te pareció? El cine necesita tu voz..." value={revText} onChange={e=>setRevText(e.target.value)}/>
+                <button className="rev-sub" disabled={!revText.trim()||!revStars} onClick={()=>submitRev(selectedFilm)}>Publicar reseña</button>
+              </div>
+              {filmRevs.length>0&&<>
+                <div className="section-title">Reseñas · {filmRevs.length}</div>
+                {filmRevs.map(r=>(
+                  <div key={r.id} className="rc">
+                    <div className="rc-h">
+                      <div className="rc-user-info">
+                        <div className="rc-av">{ini(r.userName)}</div>
+                        <div><div className="rc-name">{r.userName}</div><div className="rc-handle">@{r.handle}</div></div>
+                      </div>
+                      <div className="rc-stars">{"★".repeat(r.stars)}</div>
+                    </div>
+                    <p className="rc-txt">{r.text}</p>
+                    <button className={`rc-like${r.likedBy.includes(user.id)?" liked":""}`} onClick={()=>toggleLike(r.id)}>♥ {r.likes}</button>
+                  </div>
+                ))}
+              </>}
+              {filmRevs.length===0&&<div className="empty-state"><div className="empty-icon">✍️</div><div className="empty-txt">Sé el primero en reseñar</div></div>}
+            </div>
+          </>
+        )}
+
+        {/* SOCIAL */}
+        {screen==="social"&&(
+          <>
+            <div className="page-header"><div className="page-logo">ra<span style={{color:"var(--acc2)"}}>ck</span></div></div>
+            <div className="page" style={{paddingTop:0}}>
+              <div className="tab-row">
+                {["feed","ranking","reseñas"].map(t=><button key={t} className={`tab-btn${tab===t?" active":""}`} onClick={()=>setTab(t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+              </div>
+              {tab==="feed"&&DEMO_FEED.map((a,i)=>(
+                <div key={i} className="activity-item">
+                  <div className="act-av">{a.userName.split(" ").map(w=>w[0]).join("").slice(0,2)}</div>
+                  <div className="act-body">
+                    <div className="act-text"><strong>{a.userName}</strong> {a.action} <em>{a.film}</em></div>
+                    <div className="act-time">hace {a.time}</div>
+                  </div>
+                </div>
+              ))}
+              {tab==="ranking"&&[...allUsers,{id:user.id,name:user.name,score:user.score,badge:badge?.label}]
+                .filter((u,i,arr)=>arr.findIndex(x=>x.id===u.id)===i)
+                .sort((a,b)=>b.score-a.score)
+                .map((u,i)=>(
+                <div key={u.id} className="rank-row" style={u.id===user.id?{background:"var(--s2)",borderRadius:12,padding:"14px 12px",marginBottom:2}:{}}>
+                  <div className={`rank-num${i===0?" gold":""}`}>{i+1}</div>
+                  <div className="rank-av">{ini(u.name)}</div>
+                  <div className="rank-info">
+                    <div className="rank-name">{u.name}{u.id===user.id?" (tú)":""}</div>
+                    <div className="rank-badge">{u.badge||getBadge(u.score)?.label}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div className="rank-score">{u.score}</div>
+                    <div className="rank-pts">pts</div>
+                  </div>
+                </div>
+              ))}
+              {tab==="reseñas"&&reviews.map(r=>(
+                <div key={r.id} className="rc" style={{paddingTop:16}}>
+                  <div style={{fontSize:10,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--acc2)",marginBottom:8}}>{r.film}</div>
+                  <div className="rc-h">
+                    <div className="rc-user-info">
+                      <div className="rc-av">{ini(r.userName)}</div>
+                      <div><div className="rc-name">{r.userName}</div><div className="rc-handle">@{r.handle}</div></div>
+                    </div>
+                    <div className="rc-stars">{"★".repeat(r.stars)}</div>
+                  </div>
+                  <p className="rc-txt" style={{marginTop:8}}>{r.text}</p>
+                  <button className={`rc-like${r.likedBy.includes(user.id)?" liked":""}`} onClick={()=>toggleLike(r.id)}>♥ {r.likes}</button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* PROFILE */}
+        {screen==="profile"&&(
+          <>
+            <div className="prof-header">
+              <div className="prof-avatar">{ini(user.name)}</div>
+              <div className="prof-name">{user.name}</div>
+              <div className="prof-handle">@{user.handle}</div>
+              <div className="prof-badge" style={{marginTop:8}}><span>{badge?.icon}</span><span>{badge?.label}</span></div>
+            </div>
+            <div className="page" style={{paddingTop:0}}>
+              <div className="score-block">
+                <div className="score-big">{user.score}</div>
+                <div className="score-lbl">Puntos cinéfilos</div>
+                <div className="prog-bar"><div className="prog-fill" style={{width:`${clamp(prog,0,100)}%`}}/></div>
+                <div className="prog-labels"><span>{badge?.label}</span>{nextB&&<span>{nextB.label} · {nextB.min-user.score} pts</span>}</div>
+              </div>
+              <div className="stats-row">
+                <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
+                <div className="stat-card"><div className="stat-n">{reviews.filter(r=>r.userId===user.id).length}</div><div className="stat-l">Reseñas</div></div>
+                <div className="stat-card"><div className="stat-n">{(user.watchlist||[]).length}</div><div className="stat-l">Lista</div></div>
+              </div>
+              <div className="invite-card" onClick={()=>setShowInvite(true)}>
+                <div className="ic-l"><div className="ic-title">Tu código de invitación</div><div className="ic-sub" style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:"var(--acc2)",marginTop:4}}>{inviteCode}</div></div>
+                <div className="ic-arrow">→</div>
+              </div>
+              {(user.watched||[]).length>0&&<>
+                <div className="section-title">Películas vistas</div>
+                {(user.watched||[]).map((f,i)=>(
+                  <div key={i} className="wl-item" onClick={()=>goDetail(f,"profile")} style={{cursor:"pointer"}}>
+                    {f.poster?<img className="wl-poster" src={f.poster} alt="" loading="lazy"/>:<div className="wl-poster-empty">🎬</div>}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div className="wl-title">{f.titleEs||f.title}</div>
+                      <div className="wl-meta">{f.type} · {f.year}</div>
+                    </div>
+                    <div className="wl-pts">+{Math.round((parseFloat(f.score)||5)*10)}</div>
+                  </div>
+                ))}
+              </>}
+              {(user.watchlist||[]).length>0&&<>
+                <div className="section-title">Mi lista</div>
+                {(user.watchlist||[]).map((f,i)=>(
+                  <div key={i} className="wl-item" onClick={()=>goDetail(f,"profile")} style={{cursor:"pointer"}}>
+                    {f.poster?<img className="wl-poster" src={f.poster} alt="" loading="lazy"/>:<div className="wl-poster-empty">🎬</div>}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div className="wl-title">{f.titleEs||f.title}</div>
+                      <div className="wl-meta">{f.type} · {f.year}</div>
+                    </div>
+                  </div>
+                ))}
+              </>}
+              <button className="logout-btn" onClick={doLogout}>Cerrar sesión</button>
+            </div>
+          </>
+        )}
+
+        {/* NAV */}
+        {screen!=="quiz"&&(
+          <nav className="nav">
+            {[
+              {s:"home",l:"Inicio",ic:"🏠"},
+              {s:"search",l:"Buscar",ic:"🔍"},
+              {s:"results",l:"Para ti",ic:"✨",dis:films.length===0,fn:()=>films.length>0&&setScreen("results")},
+              {s:"social",l:"Social",ic:"👥"},
+              {s:"profile",l:"Perfil",ic:"👤"},
+            ].map(({s,l,ic,dis,fn})=>(
+              <button key={s}
+                className={`nb${(screen===s||(s==="results"&&screen==="detail"&&prevScreen==="results"))?" active":""}`}
+                style={{opacity:dis?0.3:1}}
+                onClick={dis?undefined:(fn||(()=>setScreen(s)))}>
+                <div className="nb-icon">{ic}</div>
+                <span>{l}</span>
+              </button>
+            ))}
+          </nav>
+        )}
+      </>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
