@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Rack</title>
+<title>Zine Club</title>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#09090B"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#09090B;--s1:#0F0F12;--s2:#18181B;--s3:#1F1F24;--s4:#27272C;--s5:#3F3F46;
-  --b:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.10);--b3:rgba(255,255,255,0.18);
-  --t:#F4F4F5;--t2:#A1A1AA;--t3:#71717A;--t4:#52525B;
-  --acc:#6366F1;--acc2:#818CF8;--acc3:rgba(99,102,241,0.15);--acc4:rgba(99,102,241,0.08);
-  --grn:#22C55E;--red:#EF4444;--ylw:#F59E0B;--prp:#A855F7;--blu:#3B82F6;--org:#F97316;
+  --bg:#07070F;--s1:#0D0D18;--s2:#12121E;--s3:#181826;--s4:#1E1E2E;--s5:#30304A;
+  --b:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.09);--b3:rgba(255,255,255,0.16);
+  --t:#E8E8F4;--t2:#8080A0;--t3:#505068;--t4:#353550;
+  --acc:#E8E8F4;--acc2:#F0F0FA;--acc3:rgba(232,232,244,0.10);--acc4:rgba(232,232,244,0.05);
+  --grn:#5A9E7A;--red:#A85A5A;--ylw:#6868A8;--prp:#7878C8;--blu:#5878C8;--org:#8878A8;
 }
 html,body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
 #root{width:100%;min-height:100vh;}
@@ -36,10 +36,10 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .fade-in{animation:fadeIn .25s ease;}
 .skel{background:linear-gradient(90deg,var(--s2) 25%,var(--s3) 50%,var(--s2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:10px;}
-.app{width:100%;min-height:100vh;background:var(--bg);}
+.app{width:100%;min-height:100vh;background:var(--bg);position:relative;}
 .page{padding:0 18px 110px;}
 .ph{padding:52px 18px 14px;display:flex;justify-content:space-between;align-items:center;}
-.logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t);}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:22px;color:var(--t);}
 .logo span{color:var(--acc2);}
 .sec{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:11px;margin-top:22px;}
 /* ONBOARDING */
@@ -49,7 +49,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .ob-slide.active{opacity:1;transform:translateX(0);}
 .ob-slide.prev{opacity:0;transform:translateX(-32px);}
 .ob-slide.next{opacity:0;transform:translateX(32px);}
-.ob-logo{font-family:'DM Serif Display',serif;font-size:56px;color:var(--t);}
+.ob-logo{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;}
 .ob-logo span{color:var(--acc2);}
 .ob-title{font-size:24px;font-weight:700;text-align:center;line-height:1.2;letter-spacing:-0.02em;}
 .ob-sub{font-size:14px;color:var(--t2);text-align:center;line-height:1.7;max-width:280px;font-weight:300;}
@@ -60,7 +60,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 /* LANDING */
 .land{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% -10%,rgba(99,102,241,0.22) 0%,transparent 65%),var(--bg);}
 .land-hero{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:80px 28px 40px;}
-.land-logo{font-family:'DM Serif Display',serif;font-size:72px;letter-spacing:-0.03em;line-height:1;margin-bottom:10px;color:var(--t);}
+.land-logo{font-family:'Barlow Condensed',sans-serif;font-size:72px;letter-spacing:-0.03em;line-height:1;margin-bottom:10px;color:var(--t);}
 .land-logo span{color:var(--acc2);}
 .land-tag{font-size:16px;color:var(--t2);max-width:260px;line-height:1.6;font-weight:300;}
 .land-bottom{padding:24px 28px 52px;display:flex;flex-direction:column;gap:10px;}
@@ -86,7 +86,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .auth-hint{font-size:13px;color:var(--t3);text-align:center;margin-top:16px;}
 .auth-hint button{background:none;border:none;color:var(--acc2);font-size:13px;font-weight:500;cursor:pointer;}
 /* NAV */
-.nav{position:fixed;bottom:0;left:0;width:100%;background:rgba(9,9,11,0.94);backdrop-filter:blur(28px);border-top:1px solid var(--b);padding:6px 0 26px;z-index:100;display:flex;justify-content:space-around;}
+.nav{position:fixed;bottom:0;left:0;width:100%;z-index:100;background:rgba(9,9,11,0.94);backdrop-filter:blur(28px);border-top:1px solid var(--b);padding:6px 0 26px;z-index:100;display:flex;justify-content:space-around;}
 .nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--t4);font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:6px 10px;border-radius:10px;transition:color .2s;min-width:52px;cursor:pointer;}
 .nb.active{color:var(--acc2);}
 .nb-ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
@@ -96,11 +96,11 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .greet-sm{font-size:12px;color:var(--t3);margin-bottom:2px;}
 .greet-lg{font-size:30px;font-weight:700;letter-spacing:-0.03em;line-height:1.1;margin-bottom:16px;}
 .quiz-cta{background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;box-shadow:0 8px 28px rgba(99,102,241,0.3);cursor:pointer;}
-.marathon-cta{background:linear-gradient(135deg,#78350F,#B45309);border:none;border-radius:14px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;cursor:pointer;}
+.marathon-cta{background:linear-gradient(135deg,#1A1A35,#1A1A35);border:none;border-radius:14px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;cursor:pointer;}
 .trailer-cta{width:100%;padding:14px 18px;background:var(--s2);border:1px solid var(--b2);border-radius:14px;display:flex;align-items:center;justify-content:space-between;color:var(--t);margin-bottom:10px;cursor:pointer;}
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
 .stat-card{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:14px 10px;text-align:center;}
-.stat-n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;}
+.stat-n{font-family:'Barlow Condensed',sans-serif;font-size:26px;line-height:1;}
 .stat-l{font-size:9px;color:var(--t3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-top:3px;}
 .potw-card{border-radius:14px;overflow:hidden;margin-bottom:10px;position:relative;cursor:pointer;}
 .potw-bg{width:100%;height:170px;object-fit:cover;display:block;}
@@ -112,8 +112,8 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .ir-s{font-size:11px;color:var(--t3);}
 .notif-ban{background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .notif-ban-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;flex-shrink:0;cursor:pointer;}
-.streak-card{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05));border:1px solid rgba(245,158,11,0.25);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-.streak-n{font-family:'DM Serif Display',serif;font-size:34px;color:var(--ylw);line-height:1;}
+.streak-card{background:linear-gradient(135deg,rgba(136,136,200,0.15),rgba(136,136,200,0.05));border:1px solid rgba(136,136,200,0.25);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.streak-n{font-family:'Barlow Condensed',sans-serif;font-size:34px;color:var(--ylw);line-height:1;}
 .streak-label{font-size:13px;font-weight:700;margin-bottom:2px;}
 .streak-sub{font-size:11px;color:var(--t3);}
 /* QUIZ */
@@ -218,7 +218,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .det-tagline{font-size:13px;color:var(--acc2);font-style:italic;font-weight:300;margin-bottom:12px;}
 .scores-row{display:flex;gap:6px;margin-bottom:14px;}
 .spill{padding:9px 12px;border-radius:9px;background:var(--s2);border:1px solid var(--b);text-align:center;min-width:58px;}
-.spill-n{font-family:'DM Serif Display',serif;font-size:19px;color:var(--ylw);line-height:1;}
+.spill-n{font-family:'Barlow Condensed',sans-serif;font-size:19px;color:var(--ylw);line-height:1;}
 .spill-l{font-size:9px;color:var(--t3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:1px;}
 .det-desc{font-size:13px;color:var(--t2);line-height:1.75;margin-bottom:14px;font-weight:300;}
 .det-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:18px;}
@@ -275,13 +275,13 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .act-time{font-size:10px;color:var(--t4);margin-top:1px;}
 .rank-row{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid var(--b);}
 .rank-row.me{background:var(--acc4);border-radius:10px;padding:11px 10px;}
-.rank-n{font-family:'DM Serif Display',serif;font-size:17px;color:var(--t3);width:20px;text-align:center;flex-shrink:0;}
+.rank-n{font-family:'Barlow Condensed',sans-serif;font-size:17px;color:var(--t3);width:20px;text-align:center;flex-shrink:0;}
 .rank-n.gold{color:var(--ylw);}
 .rank-av{width:32px;height:32px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--t2);flex-shrink:0;}
 .rank-info{flex:1;}
 .rank-name{font-size:13px;font-weight:600;margin-bottom:1px;}
 .rank-badge{font-size:10px;color:var(--t3);}
-.rank-score{font-family:'DM Serif Display',serif;font-size:18px;color:var(--acc2);}
+.rank-score{font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--acc2);}
 .up-item{display:flex;gap:9px;padding:11px 0;border-bottom:1px solid var(--b);}
 .up-p{width:42px;height:63px;border-radius:7px;object-fit:cover;flex-shrink:0;}
 .up-pe{width:42px;height:63px;border-radius:7px;background:var(--s3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -299,7 +299,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .prof-handle{font-size:12px;color:var(--t3);margin-bottom:7px;}
 .prof-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:var(--acc3);color:var(--acc2);font-size:11px;font-weight:600;}
 .score-blk{background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(124,58,237,0.06));border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:16px;margin-bottom:12px;}
-.score-big{font-family:'DM Serif Display',serif;font-size:50px;color:var(--acc2);line-height:1;margin-bottom:2px;}
+.score-big{font-family:'Barlow Condensed',sans-serif;font-size:50px;color:var(--acc2);line-height:1;margin-bottom:2px;}
 .score-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:12px;}
 .prog-bar{height:3px;background:var(--s4);border-radius:2px;margin-bottom:6px;position:relative;overflow:hidden;}
 .prog-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;}
@@ -319,7 +319,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .stream-lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:10px;margin-top:20px;}
 .stream-links{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
 .share-row{display:flex;gap:6px;margin-bottom:18px;}
-.pts-float{position:fixed;font-family:'DM Serif Display',serif;font-size:22px;color:var(--grn);font-weight:700;pointer-events:none;z-index:999;animation:floatPts 1.2s ease forwards;top:45%;left:50%;transform:translateX(-50%);}
+.pts-float{position:fixed;font-family:'Barlow Condensed',sans-serif;font-size:22px;color:var(--grn);font-weight:700;pointer-events:none;z-index:999;animation:floatPts 1.2s ease forwards;top:45%;left:50%;transform:translateX(-50%);}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--s2);color:var(--t);border:1px solid var(--b2);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;animation:tin .22s ease;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(6px);}
 .modal{background:var(--s1);border-top:1px solid var(--b2);border-radius:22px 22px 0 0;padding:22px 22px 48px;width:100%;max-width:430px;margin:0 auto;}
@@ -328,8 +328,33 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .modal-sub{font-size:13px;color:var(--t2);margin-bottom:18px;line-height:1.6;}
 .code-box{background:var(--s3);border:1px solid var(--b2);border-radius:11px;padding:16px;text-align:center;margin-bottom:16px;}
 .code-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;}
-.code-val{font-family:'DM Serif Display',serif;font-size:38px;letter-spacing:.1em;color:var(--acc2);}
+.code-val{font-family:'Barlow Condensed',sans-serif;font-size:38px;letter-spacing:.1em;color:var(--acc2);}
 .stream-sec{margin-bottom:18px;}
+/* CINEMATIC GRADIENT */
+body{background:#07070F;}
+.app::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -5%, rgba(100,100,220,0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 15% 50%, rgba(80,80,180,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 50%, rgba(80,80,180,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(40,40,100,0.10) 0%, transparent 60%);
+}
+.app>*{position:relative;z-index:1;}
+.nav{z-index:100 !important;}
+/* Vignette on edges — like film frame */
+.app::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:radial-gradient(ellipse 110% 100% at 50% 50%, transparent 50%, rgba(2,2,8,0.85) 100%);
+}
 /* SHARE CARD */
 .share-card-wrap{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 .share-card{width:300px;background:linear-gradient(145deg,#0F0F12,#1a1a2e);border-radius:20px;overflow:hidden;border:1px solid rgba(99,102,241,0.3);}
@@ -341,9 +366,9 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .share-card-meta{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px;}
 .share-card-desc{font-size:11px;color:rgba(255,255,255,.6);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;}
 .share-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);}
-.share-card-rack{font-family:'DM Serif Display',serif;font-size:15px;color:rgba(255,255,255,.4);}
+.share-card-rack{font-family:'Barlow Condensed',sans-serif;font-size:15px;color:rgba(255,255,255,.4);}
 .share-card-rack span{color:#818CF8;}
-.share-card-score{font-size:13px;color:#F59E0B;font-weight:700;}
+.share-card-score{font-size:13px;color:#8888C8;font-weight:700;}
 /* COLLAB LISTS */
 .clist-item{background:var(--s2);border:1px solid var(--b);border-radius:13px;padding:14px 16px;margin-bottom:10px;cursor:pointer;}
 .clist-name{font-size:15px;font-weight:700;margin-bottom:4px;}
@@ -354,6 +379,8 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 </style>
 </head>
 <body>
+<svg style="position:fixed;width:0;height:0"><filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feBlend in="SourceGraphic" mode="multiply"/></filter></svg>
+<div style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.025;filter:url(#grain);background:#fff;"></div>
 <div id="root"></div>
 <script type="text/babel">
 const {useState,useEffect,useRef} = React;
@@ -366,12 +393,12 @@ const IMG="https://image.tmdb.org/t/p/w500";
 const ORIG="https://image.tmdb.org/t/p/original";
 const MOOD_GENRES={"Eufórico":[28,12,35],"Melancólico":[18,10749,9648],"Curioso":[99,878,9648],"Relajado":[35,10751,16],"Intenso":[53,80,27],"Romántico":[10749,18,35]};
 const BADGES=[{min:0,label:"Espectador"},{min:100,label:"Aficionado"},{min:300,label:"Cinéfilo"},{min:600,label:"Auteur"},{min:1000,label:"Crítico"},{min:2000,label:"Maestro"},{min:5000,label:"Leyenda"}];
-const PLATFORMS={"Netflix":{color:"#E50914",url:"https://www.netflix.com/search?q="},"HBO Max":{color:"#B012FF",url:"https://www.max.com/search?q="},"Disney+":{color:"#0063E5",url:"https://www.disneyplus.com/search?q="},"Prime Video":{color:"#00A8E1",url:"https://www.amazon.es/s?k="},"Filmin":{color:"#F5A623",url:"https://www.filmin.es/buscar?query="},"Apple TV+":{color:"#555",url:"https://tv.apple.com/search?term="},"Movistar+":{color:"#019FE3",url:"https://ver.movistar.es/search?q="}};
+const PLATFORMS={"Netflix":{color:"#E50914",url:"https://www.netflix.com/search?q="},"HBO Max":{color:"#B012FF",url:"https://www.max.com/search?q="},"Disney+":{color:"#0063E5",url:"https://www.disneyplus.com/search?q="},"Prime Video":{color:"#00A8E1",url:"https://www.amazon.es/s?k="},"Filmin":{color:"#8888C8",url:"https://www.filmin.es/buscar?query="},"Apple TV+":{color:"#555",url:"https://tv.apple.com/search?term="},"Movistar+":{color:"#019FE3",url:"https://ver.movistar.es/search?q="}};
 const QUESTIONS=[
-  {id:"mood",q:"¿Cómo estás ahora mismo?",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},
+  {id:"format",q:"¿Película o serie?",opts:["Película","Serie","Me da igual"]},
+  {id:"mood",q:"¿Cómo estás ahora?",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},
   {id:"time",q:"¿Cuánto tiempo tienes?",opts:["Menos de 1h","1–2 horas","Más de 2h","Modo Maratón"]},
-  {id:"format",q:"¿Qué formato prefieres?",opts:["Película","Serie","Lo que sea"]},
-  {id:"vibe",q:"¿Qué experiencia buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]},
+  {id:"vibe",q:"¿Qué buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]},
   {id:"platform",q:"¿En qué plataformas estás?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Movistar+","Todo me vale"]},
 ];
 const DEMO_REVIEWS=[
@@ -403,6 +430,7 @@ const IcoStar=()=><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9
 const IcoUsers=()=><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const IcoUser=()=><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 const IcoCal=()=><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+const IcoFilm=()=><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="2" y1="17" x2="7" y2="17"/></svg>;
 
 async function enrichItem(item){
   try{
@@ -490,7 +518,7 @@ async function tmdbUpcoming(){
 function TypePill(props){
   var item=props.item;
   if(!item)return null;
-  if(item.mediaType==="movie")return React.createElement("span",{className:"type-pill",style:{background:"rgba(99,102,241,0.15)",color:"var(--acc2)"}},"Película");
+  if(item.mediaType==="movie")return React.createElement("span",{className:"type-pill",style:{background:"rgba(99,102,241,0.15)",color:"var(--t2)"}},"Película");
   var t=item.seriesType||"Serie";
   var styles={"Miniserie":{bg:"rgba(168,85,247,0.15)",col:"var(--prp)"},"Serie corta":{bg:"rgba(59,130,246,0.15)",col:"var(--blu)"},"Serie larga":{bg:"rgba(249,115,22,0.15)",col:"var(--org)"},"Serie":{bg:"rgba(59,130,246,0.15)",col:"var(--blu)"}};
   var st=styles[t]||styles["Serie"];
@@ -519,8 +547,8 @@ function StreamLinks(props){
 
 
 function App(){
-  var _=useState(function(){return LS.get("rack_auth","onboarding");});var auth=_[0];var setAuth=_[1];
-  var _=useState(function(){return LS.get("rack_user",null);});var user=_[0];var setUser=_[1];
+  var _=useState(function(){return LS.get("zc_auth","onboarding");});var auth=_[0];var setAuth=_[1];
+  var _=useState(function(){return LS.get("zc_user",null);});var user=_[0];var setUser=_[1];
   var _=useState(0);var obStep=_[0];var setObStep=_[1];
   var _=useState("login");var authMode=_[0];var setAuthMode=_[1];
   var _=useState("home");var screen=_[0];var setScreen=_[1];
@@ -538,14 +566,14 @@ function App(){
   var _=useState("");var searchQ=_[0];var setSearchQ=_[1];
   var _=useState([]);var searchRes=_[0];var setSearchRes=_[1];
   var _=useState(false);var searching=_[0];var setSearching=_[1];
-  var _=useState(function(){return LS.get("rack_sh",[]);});var searchHistory=_[0];var setSearchHistory=_[1];
+  var _=useState(function(){return LS.get("zc_sh",[]);});var searchHistory=_[0];var setSearchHistory=_[1];
   var _=useState("all");var ptab=_[0];var setPtab=_[1];
   var _=useState([]);var platRes=_[0];var setPlatRes=_[1];
   var _=useState(false);var loadingPlat=_[0];var setLoadingPlat=_[1];
   var _=useState([]);var upcoming=_[0];var setUpcoming=_[1];
-  var _=useState(function(){return LS.get("rack_notif",false);});var notif=_[0];var setNotif=_[1];
-  var _=useState(function(){return LS.get("rack_notifF",{});});var notifF=_[0];var setNotifF=_[1];
-  var _=useState(function(){return LS.get("rack_reviews",DEMO_REVIEWS);});var reviews=_[0];var setReviews=_[1];
+  var _=useState(function(){return LS.get("zc_notif",false);});var notif=_[0];var setNotif=_[1];
+  var _=useState(function(){return LS.get("zc_notifF",{});});var notifF=_[0];var setNotifF=_[1];
+  var _=useState(function(){return LS.get("zc_reviews",DEMO_REVIEWS);});var reviews=_[0];var setReviews=_[1];
   var _=useState("");var revTxt=_[0];var setRevTxt=_[1];
   var _=useState(0);var revSt=_[0];var setRevSt=_[1];
   var _=useState(null);var postMood=_[0];var setPostMood=_[1];
@@ -553,7 +581,7 @@ function App(){
   var _=useState(null);var toast=_[0];var setToast=_[1];
   var _=useState(false);var showInv=_[0];var setShowInv=_[1];
   var _=useState(false);var showWrapped=_[0];var setShowWrapped=_[1];
-  var _=useState(function(){return LS.get("rack_inv",genCode());});var invCode=_[0];
+  var _=useState(function(){return LS.get("zc_inv",genCode());});var invCode=_[0];
   var _=useState("");var lH=_[0];var setLH=_[1];
   var _=useState("");var lP=_[0];var setLP=_[1];
   var _=useState("");var rN=_[0];var setRN=_[1];
@@ -571,10 +599,11 @@ function App(){
   var _=useState(0);var tkIdx=_[0];var setTkIdx=_[1];
   var _=useState(false);var tkLoading=_[0];var setTkLoading=_[1];
   var _=useState(null);var tkPlaying=_[0];var setTkPlaying=_[1];
+  var _=useState("vistas");var mpTab=_[0];var setMpTab=_[1];
   var _=useState(false);var showShareCard=_[0];var setShowShareCard=_[1];
   var _=useState(false);var generatingImg=_[0];var setGeneratingImg=_[1];
   var _=useState(false);var showCollabLists=_[0];var setShowCollabLists=_[1];
-  var _=useState(function(){return LS.get("rack_clists",[]);});var collabLists=_[0];var setCollabLists=_[1];
+  var _=useState(function(){return LS.get("zc_clists",[]);});var collabLists=_[0];var setCollabLists=_[1];
   var _=useState(null);var activeList=_[0];var setActiveList=_[1];
   var _=useState(false);var showNewList=_[0];var setShowNewList=_[1];
   var _=useState("");var newListName=_[0];var setNewListName=_[1];
@@ -585,9 +614,9 @@ function App(){
   var _=useState("");var chatInput=_[0];var setChatInput=_[1];
   var _=useState(false);var chatLoading=_[0];var setChatLoading=_[1];
   var chatEndRef=useRef(null);
-  var _=useState(function(){return LS.get("rack_retos",{});});var retosComp=_[0];var setRetosComp=_[1];
+  var _=useState(function(){return LS.get("zc_retos",{});});var retosComp=_[0];var setRetosComp=_[1];
   var _=useState(false);var showRetos=_[0];var setShowRetos=_[1];
-  var _=useState(function(){return LS.get("rack_streak",{count:0,lastDate:""});});var streak=_[0];var setStreak=_[1];
+  var _=useState(function(){return LS.get("zc_streak",{count:0,lastDate:""});});var streak=_[0];var setStreak=_[1];
   var stRef=useRef(null);
   var editNameRef=useRef(null);
 
@@ -602,7 +631,7 @@ function App(){
       if(q.match(/punt|score|nivel|badge|xp/))
         reply="Los puntos se ganan marcando películas como vistas (×10 tu puntuación TMDB), publicando reseñas (+50 pts), completando retos semanales y manteniendo la racha diaria. Los niveles van de Espectador hasta Leyenda.";
       else if(q.match(/test|quiz|humor|recomiend|recomendaci/))
-        reply="El test de humor tiene 6 preguntas sobre tu estado de ánimo, formato, compañía, tiempo disponible, plataformas y lo que buscas. Al terminar te muestra recomendaciones personalizadas y las abre en modo scroll con tráiler.";
+        reply="El mood test tiene 6 preguntas sobre tu estado de ánimo, formato, compañía, tiempo disponible, plataformas y lo que buscas. Al terminar te muestra recomendaciones personalizadas y las abre en modo scroll con tráiler.";
       else if(q.match(/trailer|tiktok|scroll|modo/))
         reply="El Modo Trailer es un feed vertical tipo TikTok donde puedes deslizar entre trailers. Puedes acceder desde el botón 'Trailers' en el inicio, o al terminar el test. Desliza hacia arriba para pasar al siguiente.";
       else if(q.match(/maratón|marato|sesion|sesión/))
@@ -626,13 +655,13 @@ function App(){
       else if(q.match(/plataforma|netflix|hbo|disney|prime|filmin/))
         reply="En el buscador puedes filtrar por plataforma con las pestañas de arriba (Netflix, HBO Max, Disney+…). En la ficha de cada título también aparecen los links directos a donde verlo.";
       else if(q.match(/bug|error|fallo|funciona|roto|problema/))
-        reply="Vaya, lo sentimos. Prueba a recargar la página. Si el problema persiste, escríbenos a hola@rack.io con una descripción de lo que pasó y te ayudamos lo antes posible.";
+        reply="Vaya, lo sentimos. Prueba a recargar la página. Si el problema persiste, escríbenos a hola@zineclub.io con una descripción de lo que pasó y te ayudamos lo antes posible.";
       else if(q.match(/graci|gracias|ok|bien|perfecto|genial/))
         reply="¡De nada! Si tienes más dudas, aquí estaré. Disfruta del cine 🎬";
       else if(q.match(/hola|buenas|hey|ola/))
         reply="¡Hola! ¿En qué puedo ayudarte? Puedo explicarte cómo funcionan los puntos, el test, los retos, tu lista… o cualquier otra cosa de Rack.";
       else
-        reply="No estoy seguro de cómo ayudarte con eso. Puedo resolver dudas sobre el test, puntos y niveles, retos, tu lista, reseñas o problemas técnicos. Para cualquier otra cosa escríbenos a hola@rack.io y te respondemos en menos de 24h.";
+        reply="No estoy seguro de cómo ayudarte con eso. Puedo resolver dudas sobre el test, puntos y niveles, retos, tu lista, reseñas o problemas técnicos. Para cualquier otra cosa escríbenos a hola@zineclub.io y te respondemos en menos de 24h.";
       setChatMsgs(function(p){return p.concat([{role:"assistant",content:reply}]);});
       setChatLoading(false);
     }, 600);
@@ -646,10 +675,10 @@ function App(){
       var dataUrl=canvas.toDataURL("image/png");
       if(navigator.share){
         var blob=await(await fetch(dataUrl)).blob();
-        var file=new File([blob],"rack-"+((sel&&(sel.titleEs||sel.title))||"film").replace(/\s/g,"-")+".png",{type:"image/png"});
+        var file=new File([blob],"zc-"+((sel&&(sel.titleEs||sel.title))||"film").replace(/\s/g,"-")+".png",{type:"image/png"});
         await navigator.share({files:[file],title:(sel&&(sel.titleEs||sel.title))||"Rack",text:"Mi recomendación en Rack"});
       } else {
-        var a=document.createElement("a");a.href=dataUrl;a.download="rack-card.png";a.click();
+        var a=document.createElement("a");a.href=dataUrl;a.download="zc-card.png";a.click();
         t_("Imagen guardada");
       }
     }catch(e){t_("Error al generar imagen");}
@@ -695,12 +724,12 @@ function App(){
     showPts("+"+reto.pts);t_(reto.icon+" Reto completado · +"+reto.pts+" pts");
   }
 
-  useEffect(function(){LS.set("rack_auth",auth);},[auth]);
-  useEffect(function(){LS.set("rack_user",user);},[user]);
-  useEffect(function(){LS.set("rack_reviews",reviews);},[reviews]);
-  useEffect(function(){LS.set("rack_streak",streak);},[streak]);
-  useEffect(function(){LS.set("rack_retos",retosComp);},[retosComp]);
-  useEffect(function(){LS.set("rack_clists",collabLists);},[collabLists]);
+  useEffect(function(){LS.set("zc_auth",auth);},[auth]);
+  useEffect(function(){LS.set("zc_user",user);},[user]);
+  useEffect(function(){LS.set("zc_reviews",reviews);},[reviews]);
+  useEffect(function(){LS.set("zc_streak",streak);},[streak]);
+  useEffect(function(){LS.set("zc_retos",retosComp);},[retosComp]);
+  useEffect(function(){LS.set("zc_clists",collabLists);},[collabLists]);
   useEffect(function(){if(chatEndRef.current)chatEndRef.current.scrollTop=chatEndRef.current.scrollHeight;},[chatMsgs]);
 
   function t_(msg){setToast(msg);setTimeout(function(){setToast(null);},2500);}
@@ -742,7 +771,7 @@ function App(){
     stRef.current=setTimeout(async function(){
       try{
         var r=await tmdbSearch(searchQ);setSearchRes(r);
-        if(searchQ.trim().length>2){var h=[searchQ].concat(searchHistory.filter(function(x){return x!==searchQ;})).slice(0,8);setSearchHistory(h);LS.set("rack_sh",h);}
+        if(searchQ.trim().length>2){var h=[searchQ].concat(searchHistory.filter(function(x){return x!==searchQ;})).slice(0,8);setSearchHistory(h);LS.set("zc_sh",h);}
       }catch{}
       setSearching(false);
     },450);
@@ -772,16 +801,16 @@ function App(){
     try{
       var res=await sb.from("users").select("*").eq("handle",lH.toLowerCase().trim()).eq("password",lP).single();
       if(res.data&&!res.error){
-        var av=LS.get("rack_av_"+res.data.id,res.data.avatar||null);
-        setUser(Object.assign({},res.data,{watched:LS.get("rack_w_"+res.data.id,[]),watchlist:LS.get("rack_l_"+res.data.id,[]),avatar:av}));
+        var av=LS.get("zc_av_"+res.data.id,res.data.avatar||null);
+        setUser(Object.assign({},res.data,{watched:LS.get("zc_w_"+res.data.id,[]),watchlist:LS.get("zc_l_"+res.data.id,[]),avatar:av}));
         setAuth("app");setErr("");updateStreak();return;
       }
     }catch{}
-    var saved=LS.get("rack_users",[]);
+    var saved=LS.get("zc_users",[]);
     var all=DEMO_USERS.map(function(u){return Object.assign({},u,{password:"1234"});}).concat(saved);
     var found=all.find(function(u){return u.handle===lH.toLowerCase().trim()&&u.password===lP;});
     if(!found){setErr("Usuario o contraseña incorrectos");return;}
-    setUser(Object.assign({},found,{watched:LS.get("rack_w_"+found.id,[]),watchlist:LS.get("rack_l_"+found.id,[]),avatar:null}));
+    setUser(Object.assign({},found,{watched:LS.get("zc_w_"+found.id,[]),watchlist:LS.get("zc_l_"+found.id,[]),avatar:null}));
     setAuth("app");setErr("");updateStreak();
   }
 
@@ -789,11 +818,11 @@ function App(){
     if(!rN.trim()||!rH.trim()||!rP.trim()){setErr("Rellena todos los campos");return;}
     var handle=rH.toLowerCase().trim();
     try{var res=await sb.from("users").select("id").eq("handle",handle).single();if(res.data){setErr("Usuario ya existe");return;}}catch{}
-    var saved=LS.get("rack_users",[]);
+    var saved=LS.get("zc_users",[]);
     if(DEMO_USERS.concat(saved).find(function(u){return u.handle===handle;})){setErr("Usuario ya existe");return;}
     var nu={id:"u"+Date.now(),name:rN.trim(),handle:handle,password:rP,email:rE.trim(),score:0};
     try{await sb.from("users").insert(nu);}catch{}
-    LS.set("rack_users",saved.concat([nu]));
+    LS.set("zc_users",saved.concat([nu]));
     setUser(Object.assign({},nu,{watched:[],watchlist:[],avatar:null}));setAuth("app");setErr("");updateStreak();
     // Welcome email via Supabase edge (best effort)
     try{sb.functions.invoke("welcome-email",{body:{email:rE.trim(),name:rN.trim()}}).catch(function(){});}catch{}
@@ -832,7 +861,7 @@ function App(){
 
   async function doFetch(ans, isRetry){
     var isM=ans.time==="Modo Maratón"||marathon;
-    setMarathon(isM);setLoading(true);setScreen("results");setRefineMode(false);
+    setMarathon(isM);setLoading(true);setScreen("moodtest");setRefineMode(false);
     try{
       var r=await tmdbDiscover(ans, user&&user.watched||[]);
       setFilms(r);
@@ -887,7 +916,7 @@ function App(){
     reader.onload=function(ev){
       var dataUrl=ev.target.result;
       setUser(function(p){return Object.assign({},p,{avatar:dataUrl});});
-      LS.set("rack_av_"+user.id,dataUrl);t_("Foto actualizada");
+      LS.set("zc_av_"+user.id,dataUrl);t_("Foto actualizada");
     };
     reader.readAsDataURL(file);
   }
@@ -905,7 +934,7 @@ function App(){
   var nextB=user?getNext(user.score||0):null;
   var prog=badge&&nextB?clamp(((user.score-badge.min)/(nextB.min-badge.min))*100,0,100):100;
   var filmRevs=sel?reviews.filter(function(r){return r.film===(sel.titleEs||sel.title);}):[];
-  var allUsers=DEMO_USERS.concat(LS.get("rack_users",[]));
+  var allUsers=DEMO_USERS.concat(LS.get("zc_users",[]));
 
   return (
     <div className="app">
@@ -924,6 +953,7 @@ function App(){
             <button className="btn btn-s" style={{marginTop:8}} onClick={function(){setShowInv(false);}}>Cerrar</button>
           </div>
         </div>
+      </div>
       )}
 
       {/* WRAPPED MODAL */}
@@ -932,7 +962,7 @@ function App(){
           <div className="modal" style={{maxHeight:"88vh",overflowY:"auto"}} onClick={function(e){e.stopPropagation();}}>
             <div className="modal-handle"/>
             <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,marginBottom:4}}>ra<span style={{color:"var(--acc2)"}}>ck</span></div>
+              <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:42,marginBottom:4}}>Zine Club</div>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--ylw)"}}>Wrapped 2026</div>
             </div>
             {(user.watched||[]).length===0 && (
@@ -954,19 +984,19 @@ function App(){
                 <div>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
                     <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.2),rgba(99,102,241,0.05))",border:"1px solid rgba(99,102,241,0.3)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
-                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--acc2)",lineHeight:1}}>{watched.length}</div>
+                      <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:42,color:"var(--t2)",lineHeight:1}}>{watched.length}</div>
                       <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>títulos vistos</div>
                     </div>
-                    <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
-                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--ylw)",lineHeight:1}}>{user.score||0}</div>
+                    <div style={{background:"linear-gradient(135deg,rgba(136,136,200,0.2),rgba(136,136,200,0.05))",border:"1px solid rgba(136,136,200,0.3)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
+                      <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:42,color:"var(--ylw)",lineHeight:1}}>{user.score||0}</div>
                       <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>puntos ganados</div>
                     </div>
                     <div style={{background:"linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.03))",border:"1px solid rgba(34,197,94,0.25)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
-                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--grn)",lineHeight:1}}>{movies}</div>
+                      <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:42,color:"var(--grn)",lineHeight:1}}>{movies}</div>
                       <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>películas</div>
                     </div>
                     <div style={{background:"linear-gradient(135deg,rgba(168,85,247,0.15),rgba(168,85,247,0.03))",border:"1px solid rgba(168,85,247,0.25)",borderRadius:14,padding:"16px 12px",textAlign:"center"}}>
-                      <div style={{fontFamily:"'DM Serif Display',serif",fontSize:42,color:"var(--prp)",lineHeight:1}}>{series}</div>
+                      <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:42,color:"var(--prp)",lineHeight:1}}>{series}</div>
                       <div style={{fontSize:10,color:"var(--t3)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginTop:4}}>series</div>
                     </div>
                   </div>
@@ -986,13 +1016,14 @@ function App(){
                       </div>
                     </div>
                   )}
-                  <button className="btn btn-p" onClick={function(){try{navigator.clipboard.writeText("Mi Rack Wrapped 2026: "+watched.length+" títulos vistos, "+user.score+" puntos. Descúbrelo en https://paulaconsproyectos.github.io/rack/");}catch{}t_("Copiado para compartir");}}>Compartir mi Wrapped</button>
+                  <button className="btn btn-p" onClick={function(){try{navigator.clipboard.writeText("Mi Zine Club Wrapped 2026: "+watched.length+" títulos vistos, "+user.score+" puntos. Descúbrelo en https://paulaconsproyectos.github.io/rack/");}catch{}t_("Copiado para compartir");}}>Compartir mi Wrapped</button>
                 </div>
               );
             })()}
             <button className="btn btn-s" style={{marginTop:10}} onClick={function(){setShowWrapped(false);}}>Cerrar</button>
           </div>
         </div>
+      </div>
       )}
 
       {/* RETOS MODAL */}
@@ -1014,7 +1045,7 @@ function App(){
                   </div>
                   <div style={{textAlign:"right",flexShrink:0}}>
                     <div style={{fontSize:13,fontWeight:700,color:done?"var(--grn)":"var(--ylw)"}}>+{r.pts}</div>
-                    {!done && <button onClick={function(){completeReto(r);}} style={{marginTop:4,padding:"5px 10px",borderRadius:20,background:"var(--acc)",color:"#fff",border:"none",fontSize:11,fontWeight:600,cursor:"pointer"}}>Hecho</button>}
+                    {!done && <button onClick={function(){completeReto(r);}} style={{marginTop:4,padding:"5px 10px",borderRadius:20,background:"var(--acc)",color:"#07070F",border:"none",fontSize:11,fontWeight:600,cursor:"pointer"}}>Hecho</button>}
                   </div>
                 </div>
               );
@@ -1022,6 +1053,7 @@ function App(){
             <button className="btn btn-s" style={{marginTop:16}} onClick={function(){setShowRetos(false);}}>Cerrar</button>
           </div>
         </div>
+      </div>
       )}
 
       {/* SHARE CARD MODAL */}
@@ -1037,13 +1069,13 @@ function App(){
               <div className="share-card-meta">{sel.director&&sel.director+" · "}{sel.year}{sel.genres&&sel.genres[0]?" · "+sel.genres[0]:""}</div>
               <div className="share-card-desc">{sel.description}</div>
               <div className="share-card-footer">
-                <div className="share-card-rack">ra<span>ck</span></div>
+                <div className="share-card-rack">Zine Club</div>
                 {sel.score && <div className="share-card-score">⭐ {sel.score}</div>}
               </div>
             </div>
           </div>
           <div style={{marginTop:20,display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:300}}>
-            <button onClick={generateShareImage} disabled={generatingImg} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",opacity:generatingImg?0.6:1}}>
+            <button onClick={generateShareImage} disabled={generatingImg} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",opacity:generatingImg?0.6:1}}>
               {generatingImg?"Generando...":"Compartir imagen"}
             </button>
             <button onClick={function(){setShowShareCard(false);}} style={{width:"100%",padding:"12px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:12,fontSize:14,cursor:"pointer"}}>Cerrar</button>
@@ -1061,7 +1093,7 @@ function App(){
                 <div className="modal-title">Listas colaborativas</div>
                 <div className="modal-sub">Crea listas con amigos y añadid películas juntos</div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-                  <button onClick={function(){setShowNewList("create");}} style={{padding:"13px",background:"var(--acc3)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:12,color:"var(--acc2)",fontSize:13,fontWeight:600,cursor:"pointer"}}>+ Nueva lista</button>
+                  <button onClick={function(){setShowNewList("create");}} style={{padding:"13px",background:"var(--acc3)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:12,color:"var(--t2)",fontSize:13,fontWeight:600,cursor:"pointer"}}>+ Nueva lista</button>
                   <button onClick={function(){setShowNewList("join");}} style={{padding:"13px",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:12,color:"var(--t2)",fontSize:13,fontWeight:600,cursor:"pointer"}}>Unirse con código</button>
                 </div>
                 {collabLists.length===0 && (
@@ -1077,7 +1109,7 @@ function App(){
                       <div className="clist-meta">
                         <span>{l.films.length} películas</span>
                         <span>{l.members.length} miembros</span>
-                        <span style={{color:"var(--acc2)",fontWeight:600}}>#{l.code}</span>
+                        <span style={{color:"var(--t2)",fontWeight:600}}>#{l.code}</span>
                       </div>
                       <div className="clist-members">
                         {l.members.slice(0,5).map(function(m,i){return <div key={i} className="clist-av">{(m.name||"?")[0].toUpperCase()}</div>;})}
@@ -1091,7 +1123,7 @@ function App(){
               <div>
                 <div className="modal-title">Nueva lista</div>
                 <div className="field" style={{marginTop:12}}><label>Nombre de la lista</label><input placeholder="Ej: Pelis del finde" value={newListName} onChange={function(e){setNewListName(e.target.value);}} style={{width:"100%",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:10,padding:"13px 15px",color:"var(--t)",fontSize:15,outline:"none"}}/></div>
-                <button onClick={createCollabList} disabled={!newListName.trim()} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8,opacity:!newListName.trim()?0.3:1}}>Crear lista</button>
+                <button onClick={createCollabList} disabled={!newListName.trim()} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8,opacity:!newListName.trim()?0.3:1}}>Crear lista</button>
                 <button onClick={function(){setShowNewList(false);}} style={{width:"100%",padding:"12px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:12,fontSize:13,cursor:"pointer"}}>Cancelar</button>
               </div>
             )}
@@ -1100,7 +1132,7 @@ function App(){
                 <div className="modal-title">Unirse a una lista</div>
                 <div className="modal-sub">Pide el código a tu amigo</div>
                 <div className="field"><label>Código de lista</label><input placeholder="ABC123" value={newListCode} onChange={function(e){setNewListCode(e.target.value.toUpperCase());}} style={{width:"100%",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:10,padding:"13px 15px",color:"var(--t)",fontSize:18,fontWeight:700,letterSpacing:".1em",outline:"none",textAlign:"center"}}/></div>
-                <button onClick={joinCollabList} disabled={!newListCode.trim()} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8,opacity:!newListCode.trim()?0.3:1}}>Unirse</button>
+                <button onClick={joinCollabList} disabled={!newListCode.trim()} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8,opacity:!newListCode.trim()?0.3:1}}>Unirse</button>
                 <button onClick={function(){setShowNewList(false);}} style={{width:"100%",padding:"12px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:12,fontSize:13,cursor:"pointer"}}>Cancelar</button>
               </div>
             )}
@@ -1113,7 +1145,7 @@ function App(){
                     {activeList.members.slice(0,5).map(function(m,i){return <div key={i} className="clist-av">{(m.name||"?")[0].toUpperCase()}</div>;})}
                   </div>
                   <span style={{fontSize:11,color:"var(--t3)"}}>{activeList.members.length} miembros</span>
-                  <button onClick={function(){try{navigator.clipboard.writeText(activeList.code);}catch{}t_("Código copiado: "+activeList.code);}} style={{marginLeft:"auto",background:"var(--acc3)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:8,padding:"5px 10px",color:"var(--acc2)",fontSize:11,fontWeight:700,cursor:"pointer"}}>#{activeList.code}</button>
+                  <button onClick={function(){try{navigator.clipboard.writeText(activeList.code);}catch{}t_("Código copiado: "+activeList.code);}} style={{marginLeft:"auto",background:"var(--acc3)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:8,padding:"5px 10px",color:"var(--t2)",fontSize:11,fontWeight:700,cursor:"pointer"}}>#{activeList.code}</button>
                 </div>
                 {activeList.films.length===0 && (
                   <div style={{textAlign:"center",padding:"20px 0",color:"var(--t3)",fontSize:13}}>Sin películas aún. Añade desde la ficha de cualquier título.</div>
@@ -1126,7 +1158,7 @@ function App(){
                       <div style={{flex:1}}>
                         <div style={{fontSize:13,fontWeight:600,marginBottom:2}}>{f.titleEs||f.title}</div>
                         <div style={{fontSize:11,color:"var(--t3)",marginBottom:2}}>{f.year}</div>
-                        <div style={{fontSize:10,color:"var(--acc2)"}}>Añadida por {f.addedBy}</div>
+                        <div style={{fontSize:10,color:"var(--t2)"}}>Añadida por {f.addedBy}</div>
                       </div>
                     </div>
                   );
@@ -1135,6 +1167,8 @@ function App(){
             )}
           </div>
         </div>
+      </div>
+      </div>
       )}
 
       {/* AI SUPPORT CHAT */}
@@ -1170,7 +1204,7 @@ function App(){
 
       {/* SUPPORT BUBBLE */}
       {auth==="app" && user && screen!=="quiz" && (
-        <button onClick={function(){setShowSupport(function(p){return !p;});if(!showSupport&&chatMsgs.length===0){setChatMsgs([{role:"assistant",content:"¡Hola "+user.name.split(" ")[0]+"! Soy el asistente de Rack. ¿En qué puedo ayudarte? Puedo resolver dudas sobre el test, los puntos, tu cuenta o cualquier problema técnico."}]);}}} style={{position:"fixed",bottom:90,right:16,width:48,height:48,borderRadius:"50%",background:"var(--acc)",border:"none",boxShadow:"0 4px 20px rgba(99,102,241,0.5)",color:"#fff",fontSize:20,cursor:"pointer",zIndex:showSupport?0:299,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <button onClick={function(){setShowSupport(function(p){return !p;});if(!showSupport&&chatMsgs.length===0){setChatMsgs([{role:"assistant",content:"¡Hola "+user.name.split(" ")[0]+"! Soy el asistente de Zine Club. ¿En qué puedo ayudarte? Puedo resolver dudas sobre el test, los puntos, tu cuenta o cualquier problema técnico."}]);}}} style={{position:"fixed",bottom:90,right:16,width:48,height:48,borderRadius:"50%",background:"var(--acc)",border:"none",boxShadow:"0 4px 20px rgba(99,102,241,0.5)",color:"#fff",fontSize:20,cursor:"pointer",zIndex:showSupport?0:299,display:"flex",alignItems:"center",justifyContent:"center"}}>
           {showSupport?"✕":"💬"}
         </button>
       )}
@@ -1217,7 +1251,7 @@ function App(){
                       <div className="tk-meta">{f.year}{f.score?" · ⭐"+f.score:""}{f.genres&&f.genres[0]?" · "+f.genres[0]:""}</div>
                       <div className="tk-desc">{f.description}</div>
                       <div className="tk-row">
-                        <button className="tk-btn" style={{background:"var(--acc)",color:"#fff"}} onClick={function(){setTkMode(false);goDetail(f,"results");}}>Ver ficha</button>
+                        <button className="tk-btn" style={{background:"var(--acc)",color:"#07070F"}} onClick={function(){setTkMode(false);goDetail(f,"moodtest");}}>Ver ficha</button>
                         <button className="tk-btn" style={{background:"rgba(255,255,255,0.15)",color:"#fff",border:"1px solid rgba(255,255,255,0.2)"}} onClick={function(){addL(f);}}>+ Lista</button>
                       </div>
                     </div>
@@ -1261,6 +1295,11 @@ function App(){
             </div>
           )}
         </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
       )}
 
       {/* ONBOARDING */}
@@ -1268,10 +1307,10 @@ function App(){
         <div className="ob">
           <div className="ob-slides">
             <div className={"ob-slide "+(obStep===0?"active":obStep>0?"prev":"next")}>
-              <div className="ob-logo">ra<span>ck</span></div>
+              <div className="ob-logo">Zine Club</div>
               <div className="ob-sub" style={{marginTop:6}}>El cine exacto para este momento.</div>
             </div>
-            {[{title:"Descubre tu próxima peli",sub:"Test de humor en 30 segundos."},{title:"Películas y series",sub:"Distingue formatos automáticamente."},{title:"Modo Maratón",sub:"¿Tienes todo el día? Rack te arma una sesión épica."},{title:"Modo Trailer",sub:"Desliza trailers. Decide qué ver al instante."}].map(function(sl,i){
+            {[{title:"Descubre tu próxima peli",sub:"Mood Test en 30 segundos."},{title:"Películas y series",sub:"Distingue formatos automáticamente."},{title:"Modo Maratón",sub:"¿Tienes todo el día? Rack te arma una sesión épica."},{title:"Modo Trailer",sub:"Desliza trailers. Decide qué ver al instante."}].map(function(sl,i){
               return (
                 <div key={i} className={"ob-slide "+(obStep===i+1?"active":obStep>i+1?"prev":"next")}>
                   <div className="ob-title">{sl.title}</div>
@@ -1290,13 +1329,14 @@ function App(){
             {obStep<4 && <button className="btn-ghost" onClick={function(){setAuth("landing");}}>Saltar</button>}
           </div>
         </div>
+      </div>
       )}
 
       {/* LANDING */}
       {auth==="landing" && (
         <div className="land">
           <div className="land-hero">
-            <div className="land-logo">ra<span>ck</span></div>
+            <div className="land-logo">Zine Club</div>
             <p className="land-tag">El cine exacto para este momento.</p>
           </div>
           <div className="land-bottom">
@@ -1336,7 +1376,7 @@ function App(){
               <div className="field"><label>Contraseña</label><input type="password" placeholder="••••••••" value={rP} onChange={function(e){setRP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doReg();}}/></div>
               <button className="btn btn-p" style={{marginTop:14}} onClick={doReg}>Crear cuenta</button>
               <div className="auth-hint">¿Ya tienes cuenta? <button onClick={function(){setAuthMode("login");setErr("");}}>Inicia sesión</button></div>
-              <div style={{marginTop:16,fontSize:11,color:"var(--t3)",textAlign:"center",lineHeight:1.6}}>Al registrarte aceptas los <a href="legal.html" style={{color:"var(--acc2)"}}>Términos de uso</a> y la <a href="legal.html" style={{color:"var(--acc2)"}}>Política de privacidad</a>.</div>
+              <div style={{marginTop:16,fontSize:11,color:"var(--t3)",textAlign:"center",lineHeight:1.6}}>Al registrarte aceptas los <a href="legal.html" style={{color:"var(--t2)"}}>Términos de uso</a> y la <a href="legal.html" style={{color:"var(--t2)"}}>Política de privacidad</a>.</div>
             </div>
           )}
           {authMode==="reset" && (
@@ -1367,97 +1407,55 @@ function App(){
       {/* APP */}
       {auth==="app" && user && (
         <div>
-          {/* HOME */}
+                    {/* HOME */}
           {screen==="home" && (
-            <div style={{paddingBottom:100}}>
-              {/* HERO con backdrop de potw */}
-              <div style={{position:"relative",height:320,overflow:"hidden",marginBottom:0}}>
-                {potw && potw.backdrop && <img src={potw.backdrop} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",filter:"brightness(0.45)"}} loading="lazy"/>}
-                {(!potw||!potw.backdrop) && <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)"}}/>}
-                <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(9,9,11,0.3) 0%,transparent 40%,rgba(9,9,11,0.95) 100%)"}}/>
-                {/* Header */}
-                <div style={{position:"absolute",top:0,left:0,right:0,padding:"52px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginBottom:1}}>Buenas,</div>
-                    <div style={{fontSize:22,fontWeight:700,letterSpacing:"-0.02em",color:"#fff"}}>{user.name.split(" ")[0]}</div>
+            <div style={{minHeight:"100vh"}}>
+              {/* HERO */}
+              {potw && potw.backdrop && (
+                <div style={{position:"relative",height:260,overflow:"hidden"}}>
+                  <img src={potw.backdrop} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt=""/>
+                  <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom, rgba(7,7,15,0.2) 0%, rgba(7,7,15,0.95) 85%)"}}/>
+                  <div style={{position:"absolute",bottom:20,left:18,right:18}}>
+                    <div style={{fontSize:10,letterSpacing:"0.14em",textTransform:"uppercase",color:"var(--t3)",marginBottom:4,fontFamily:"Barlow Condensed,sans-serif"}}>Peli de la semana</div>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:26,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",lineHeight:1.0,marginBottom:6}}>{potw.titleEs||potw.title}</div>
+                    <div style={{fontSize:12,color:"var(--t3)",fontWeight:300}}>{potw.year}{potw.genres&&potw.genres[0]?" · "+potw.genres[0]:""}</div>
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    {streak.count>1 && (
-                      <div style={{background:"rgba(245,158,11,0.2)",border:"1px solid rgba(245,158,11,0.4)",borderRadius:20,padding:"5px 10px",display:"flex",alignItems:"center",gap:5}}>
-                        <span style={{fontFamily:"'DM Serif Display',serif",fontSize:16,color:"var(--ylw)"}}>{streak.count}</span>
-                        <span style={{fontSize:10,color:"rgba(245,158,11,0.8)",fontWeight:600}}>días</span>
-                      </div>
-                    )}
-                    <div style={{background:"rgba(99,102,241,0.25)",border:"1px solid rgba(99,102,241,0.4)",borderRadius:20,padding:"5px 11px"}}>
-                      <span style={{fontFamily:"'DM Serif Display',serif",fontSize:15,color:"var(--acc2)"}}>{user.score||0}</span>
-                      <span style={{fontSize:10,color:"var(--acc2)",marginLeft:3,fontWeight:600}}>pts</span>
+                </div>
+              )}
+              {(!potw||!potw.backdrop) && (
+                <div style={{height:120}}/>
+              )}
+
+              <div style={{padding:"0 18px 100px"}}>
+
+                {/* MAIN CTA */}
+                <div style={{marginBottom:24,marginTop:potw&&potw.backdrop?0:20}}>
+                  <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:38,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",lineHeight:1.0,marginBottom:4}}>¿Qué veo hoy?</div>
+                  <div style={{fontSize:13,color:"var(--t3)",fontWeight:300,marginBottom:16,letterSpacing:"0.01em"}}>Responde 5 preguntas. Te damos la recomendación exacta.</div>
+                  <button onClick={function(){goQuiz(false);}} style={{width:"100%",padding:"16px 20px",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+                    <div style={{textAlign:"left"}}>
+                      <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:20,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase"}}>Mood Test</div>
+                      <div style={{fontSize:12,fontWeight:300,opacity:0.6,marginTop:1}}>Película · Serie · Estado de ánimo · Tiempo · Plataforma</div>
                     </div>
-                  </div>
-                </div>
-                {/* Trending info */}
-                {potw && (
-                  <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"0 20px 20px"}}>
-                    <div style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--ylw)",marginBottom:4}}>Trending esta semana</div>
-                    <div style={{fontSize:19,fontWeight:700,color:"#fff",marginBottom:10,lineHeight:1.2}}>{potw.titleEs||potw.title}{potw.score?" · ⭐"+potw.score:""}</div>
-                    <button onClick={function(){goDetail(potw,"home");}} style={{padding:"8px 18px",background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:20,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",backdropFilter:"blur(8px)"}}>Ver ficha →</button>
-                  </div>
-                )}
-              </div>
-
-              {/* ACCIONES PRINCIPALES */}
-              <div style={{padding:"0 16px",marginTop:16}}>
-                {/* Quiz - acción principal */}
-                <button onClick={function(){goQuiz(false);}} style={{width:"100%",background:"linear-gradient(135deg,#4F46E5,#7C3AED)",border:"none",borderRadius:20,padding:"22px 22px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,cursor:"pointer",boxShadow:"0 8px 32px rgba(99,102,241,0.35)"}}>
-                  <div style={{textAlign:"left"}}>
-                    <div style={{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:"-0.02em",marginBottom:3}}>¿Qué veo hoy?</div>
-                    <div style={{fontSize:13,color:"rgba(255,255,255,0.65)",fontWeight:300}}>Test de humor · 30 segundos</div>
-                  </div>
-                  <div style={{width:48,height:48,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>→</div>
-                </button>
-
-                {/* Segunda fila */}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-                  <button onClick={function(){setShowRetos(true);}} style={{background:"linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:20,marginBottom:4}}>🏆</div>
-                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Retos</div>
-                    <div style={{fontSize:11,color:"var(--t3)"}}>Esta semana</div>
-                  </button>
-                  <button onClick={function(){setShowWrapped(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))",border:"1px solid rgba(99,102,241,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:20,marginBottom:4}}>✨</div>
-                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Wrapped</div>
-                    <div style={{fontSize:11,color:"var(--t3)"}}>Tu año en cine</div>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#07070F" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </button>
                 </div>
 
-                {/* Notif banner si no activado */}
-                {!notif && (
-                  <div className="notif-ban" style={{marginBottom:10}}>
-                    <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:"var(--acc2)",marginBottom:1}}>Activa las notificaciones</div><div style={{fontSize:11,color:"var(--t3)"}}>Estrenos según tus gustos</div></div>
-                    <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
-                  </div>
-                )}
-
-                {/* Stats rápidas */}
-                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:14}}>
-                  <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
-                  <div className="stat-card"><div className="stat-n">{(user.watchlist||[]).length}</div><div className="stat-l">Lista</div></div>
-                  <div className="stat-card"><div className="stat-n">{reviews.filter(function(r){return r.userId===user.id;}).length}</div><div className="stat-l">Reseñas</div></div>
-                </div>
-
-                {/* Últimas recomendaciones en horizontal scroll */}
+                {/* LAST RESULT */}
                 {films.length>0 && (
-                  <div style={{marginBottom:14}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                      <div className="sec" style={{margin:0}}>Últimas recomendaciones</div>
-                      <button onClick={function(){setTkFilms(films);setTkIdx(0);setTkMode(true);}} style={{background:"none",border:"none",color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Ver todo →</button>
+                  <div style={{marginBottom:24}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                      <div className="sec" style={{margin:0}}>Última recomendación</div>
+                      <button onClick={function(){setScreen("moodtest");}} style={{background:"none",border:"none",color:"var(--t3)",fontSize:11,fontWeight:400,cursor:"pointer",letterSpacing:"0.06em",textTransform:"uppercase",fontFamily:"Barlow Condensed,sans-serif"}}>Ver todo →</button>
                     </div>
-                    <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4}}>
-                      {films.slice(0,6).map(function(f,i){
+                    <div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:4}}>
+                      {films.slice(0,4).map(function(f,i){
                         return (
-                          <div key={i} style={{flexShrink:0,width:100,cursor:"pointer"}} onClick={function(){goDetail(f,"home");}}>
-                            {f.poster && <img src={f.poster} style={{width:100,height:150,borderRadius:10,objectFit:"cover",display:"block",marginBottom:5}} alt="" loading="lazy"/>}
-                            {!f.poster && <div style={{width:100,height:150,borderRadius:10,background:"var(--s3)",marginBottom:5}}/>}
-                            <div style={{fontSize:11,fontWeight:600,color:"var(--t2)",lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{f.titleEs||f.title}</div>
+                          <div key={i} style={{flexShrink:0,width:110,cursor:"pointer"}} onClick={function(){goDetail(f,"home");}}>
+                            <div style={{width:110,height:160,borderRadius:10,overflow:"hidden",marginBottom:6,background:"var(--s3)"}}>
+                              {f.poster && <img src={f.poster} style={{width:"100%",height:"100%",objectFit:"cover"}} alt="" loading="lazy"/>}
+                            </div>
+                            <div style={{fontSize:11,fontWeight:500,lineHeight:1.3,color:"var(--t2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{f.titleEs||f.title}</div>
                           </div>
                         );
                       })}
@@ -1465,42 +1463,75 @@ function App(){
                   </div>
                 )}
 
-                {/* Mi lista horizontal */}
-                {(user.watchlist||[]).length>0 && (
-                  <div style={{marginBottom:14}}>
-                    <div className="sec">Mi lista</div>
-                    <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4}}>
-                      {(user.watchlist||[]).slice(0,8).map(function(f,i){
-                        return (
-                          <div key={i} style={{flexShrink:0,width:80,cursor:"pointer"}} onClick={function(){goDetail(f,"home");}}>
-                            {f.poster && <img src={f.poster} style={{width:80,height:120,borderRadius:9,objectFit:"cover",display:"block",marginBottom:4}} alt="" loading="lazy"/>}
-                            {!f.poster && <div style={{width:80,height:120,borderRadius:9,background:"var(--s3)",marginBottom:4}}/>}
-                            <div style={{fontSize:10,color:"var(--t3)",lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{f.titleEs||f.title}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                {/* STREAK + STATS */}
+                {user && (
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:24}}>
+                    {[
+                      {label:"Racha",value:(user.streak||0)+" días",icon:"🔥"},
+                      {label:"Vistas",value:(user.watched||[]).length,icon:"👁"},
+                      {label:"Puntos",value:user.score||0,icon:"⭐"},
+                    ].map(function(s,i){
+                      return (
+                        <div key={i} style={{background:"rgba(13,13,25,0.7)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid var(--b2)",borderRadius:12,padding:"14px 12px",textAlign:"center"}}>
+                          <div style={{fontSize:18,marginBottom:4}}>{s.icon}</div>
+                          <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:22,fontWeight:600,letterSpacing:"0.02em",lineHeight:1}}>{s.value}</div>
+                          <div style={{fontSize:10,color:"var(--t3)",marginTop:3,letterSpacing:"0.08em",textTransform:"uppercase",fontFamily:"Barlow Condensed,sans-serif"}}>{s.label}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
-                {/* Invite */}
-                <div className="invite-row" onClick={function(){setShowInv(true);}}>
-                  <div><div className="ir-t">Invitar amigos</div><div className="ir-s">+100 pts con tu código</div></div>
-                  <span style={{color:"var(--acc2)"}}>→</span>
+                {/* QUICK ACTIONS */}
+                <div className="sec">Acceso rápido</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:24}}>
+                  <button onClick={function(){goQuiz(true);}} style={{background:"rgba(13,13,25,0.7)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid var(--b2)",borderRadius:12,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:13,fontWeight:500,letterSpacing:"0.08em",textTransform:"uppercase",color:"var(--t3)",marginBottom:4}}>Modo</div>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:20,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",color:"var(--t)"}}>Maratón</div>
+                    <div style={{fontSize:11,color:"var(--t3)",fontWeight:300,marginTop:2}}>Hasta 12 títulos</div>
+                  </button>
+                  <button onClick={openTiktok} style={{background:"rgba(13,13,25,0.7)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid var(--b2)",borderRadius:12,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:13,fontWeight:500,letterSpacing:"0.08em",textTransform:"uppercase",color:"var(--t3)",marginBottom:4}}>Modo</div>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:20,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",color:"var(--t)"}}>Trailers</div>
+                    <div style={{fontSize:11,color:"var(--t3)",fontWeight:300,marginTop:2}}>Desliza y decide</div>
+                  </button>
                 </div>
 
-                {(user.watchlist||[]).length===0 && (user.watched||[]).length===0 && films.length===0 && (
-                  <div style={{textAlign:"center",padding:"24px 0",color:"var(--t3)",fontSize:13}}>Haz el test para empezar a descubrir cine</div>
+                {/* WEEK CHALLENGE */}
+                {user && (
+                  <div style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                      <div className="sec" style={{margin:0}}>Reto de la semana</div>
+                      <button onClick={function(){setShowRetos(true);}} style={{background:"none",border:"none",color:"var(--t3)",fontSize:11,cursor:"pointer",letterSpacing:"0.06em",textTransform:"uppercase",fontFamily:"Barlow Condensed,sans-serif"}}>Ver todos →</button>
+                    </div>
+                    {RETOS.slice(0,1).map(function(r){
+                      var done=retosComp[r.id];
+                      return (
+                        <div key={r.id} style={{background:"rgba(13,13,25,0.7)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid var(--b2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+                          <div style={{fontSize:24,flexShrink:0}}>{r.emoji}</div>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:14,fontWeight:500,marginBottom:2,color:done?"var(--t3)":"var(--t)",textDecoration:done?"line-through":"none"}}>{r.title}</div>
+                            <div style={{fontSize:11,color:"var(--t3)",fontWeight:300}}>{r.desc}</div>
+                          </div>
+                          <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:13,fontWeight:600,letterSpacing:"0.06em",color:"var(--t3)",textTransform:"uppercase",flexShrink:0}}>+{r.pts}pts</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
+
               </div>
             </div>
+          </div>
+          </div>
           )}
 
           {/* SEARCH */}
+
           {screen==="search" && (
             <div>
               <div className="search-hd">
-                <div className="logo" style={{marginBottom:14}}>ra<span>ck</span></div>
+                <div className="logo" style={{marginBottom:14}}>Zine Club</div>
                 <div className="search-box">
                   <span className="si-ic">↳</span>
                   <input className="search-input" placeholder="Busca películas o series..." value={searchQ} onChange={function(e){setSearchQ(e.target.value);}} autoFocus/>
@@ -1540,7 +1571,7 @@ function App(){
                             <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"1px solid var(--b)",cursor:"pointer"}} onClick={function(){setSearchQ(h);}}>
                               <span style={{fontSize:12,color:"var(--t3)"}}>↺</span>
                               <span style={{fontSize:13,color:"var(--t2)"}}>{h}</span>
-                              <button style={{marginLeft:"auto",background:"none",border:"none",color:"var(--t4)",fontSize:12,cursor:"pointer"}} onClick={function(e){e.stopPropagation();var nh=searchHistory.filter(function(x){return x!==h;});setSearchHistory(nh);LS.set("rack_sh",nh);}}>✕</button>
+                              <button style={{marginLeft:"auto",background:"none",border:"none",color:"var(--t4)",fontSize:12,cursor:"pointer"}} onClick={function(e){e.stopPropagation();var nh=searchHistory.filter(function(x){return x!==h;});setSearchHistory(nh);LS.set("zc_sh",nh);}}>✕</button>
                             </div>
                           );
                         })}
@@ -1610,9 +1641,10 @@ function App(){
                 )}
               </div>
             </div>
+          </div>
           )}
 
-          {/* LOADING */}
+          {/* LOADING */
           {screen==="results" && loading && (
             <div className="loading-page">
               <div className="spinner"/>
@@ -1648,7 +1680,7 @@ function App(){
                         })}
                       </div>
                     </div>
-                    <button onClick={function(){doFetch(Object.assign({},answers,refineAnswers),true);}} disabled={!refineAnswers.decade&&!refineAnswers.origin} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",opacity:(!refineAnswers.decade&&!refineAnswers.origin)?0.3:1}}>Buscar de nuevo →</button>
+                    <button onClick={function(){doFetch(Object.assign({},answers,refineAnswers),true);}} disabled={!refineAnswers.decade&&!refineAnswers.origin} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",opacity:(!refineAnswers.decade&&!refineAnswers.origin)?0.3:1}}>Buscar de nuevo →</button>
                     <button onClick={function(){setRefineMode(false);doFetch(Object.assign({},answers,{decade:"Sin preferencia",origin:"Sin preferencia"}),true);}} style={{width:"100%",padding:"12px",background:"none",border:"none",color:"var(--t3)",fontSize:13,cursor:"pointer",marginTop:6}}>Dame cualquier cosa</button>
                   </div>
                 )}
@@ -1664,7 +1696,7 @@ function App(){
                     <div className="fgrid">
                       {films.map(function(f,i){
                         return (
-                          <div key={i} className="fthumb" onClick={function(){goDetail(f,"results");}}>
+                          <div key={i} className="fthumb" onClick={function(){goDetail(f,"moodtest");}}>
                             {f.poster && <img src={f.poster} alt="" loading="lazy"/>}
                             {!f.poster && <div className="fthumb-e">—</div>}
                             <div className="fthumb-info">
@@ -1681,9 +1713,10 @@ function App(){
                 )}
               </div>
             </div>
+          </div>
           )}
 
-          {/* DETAIL */}
+          {/* DETAIL */
           {screen==="detail" && sel && (
             <div>
               <button className="det-back" onClick={function(){setScreen(prev);}}>←</button>
@@ -1795,12 +1828,14 @@ function App(){
                 </div>
               </div>
             </div>
+          </div>
+          </div>
           )}
 
-          {/* SOCIAL */}
+          {/* SOCIAL */
           {screen==="social" && (
             <div>
-              <div className="ph"><div className="logo">ra<span>ck</span></div></div>
+              <div className="ph"><div className="logo">Zine Club</div></div>
               <div className="page" style={{paddingTop:0}}>
                 <div className="tab-row">
                   {[["feed","Actividad"],["ranking","Ranking"],["reviews","Reseñas"],["retos","Retos"]].map(function(item){
@@ -1842,7 +1877,7 @@ function App(){
                     {reviews.map(function(r){
                       return (
                         <div key={r.id} className="rc" style={{paddingTop:13}}>
-                          <div style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--acc2)",marginBottom:6}}>{r.film}</div>
+                          <div style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--t2)",marginBottom:6}}>{r.film}</div>
                           <div className="rc-h">
                             <div className="rc-ui"><div className="rc-av">{ini(r.userName)}</div><div><div className="rc-name">{r.userName}</div><div className="rc-handle">@{r.handle}</div></div></div>
                             <div className="rc-stars">{"★".repeat(r.stars||0)}</div>
@@ -1872,7 +1907,7 @@ function App(){
                           </div>
                           <div style={{textAlign:"right",flexShrink:0}}>
                             <div style={{fontSize:14,fontWeight:700,color:done?"var(--grn)":"var(--ylw)",marginBottom:4}}>+{r.pts} pts</div>
-                            {!done && <button onClick={function(){completeReto(r);}} style={{padding:"6px 12px",borderRadius:20,background:"var(--acc)",color:"#fff",border:"none",fontSize:12,fontWeight:600,cursor:"pointer"}}>Completar</button>}
+                            {!done && <button onClick={function(){completeReto(r);}} style={{padding:"6px 12px",borderRadius:20,background:"var(--acc)",color:"#07070F",border:"none",fontSize:12,fontWeight:600,cursor:"pointer"}}>Completar</button>}
                             {done && <span style={{fontSize:11,color:"var(--grn)",fontWeight:600}}>Completado</span>}
                           </div>
                         </div>
@@ -1885,50 +1920,44 @@ function App(){
             </div>
           )}
 
-          {/* DISCOVER */}
-          {screen==="discover" && (
+          {/* MOOD TEST */}
+          {screen==="moodtest" && (
             <div>
               <div style={{padding:"52px 18px 14px"}}>
-                <div style={{fontSize:28,fontWeight:700,letterSpacing:"-0.03em",marginBottom:4}}>Descubrir</div>
-                <div style={{fontSize:13,color:"var(--t3)",fontWeight:300}}>Tu próxima película favorita está aquí</div>
+                <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:36,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",marginBottom:4}}>Mood Test</div>
+                <div style={{fontSize:13,color:"var(--t3)",fontWeight:300}}>Tu recomendación exacta en 5 preguntas</div>
               </div>
               <div className="page" style={{paddingTop:0}}>
-                <button onClick={function(){goQuiz(false);}} style={{width:"100%",background:"linear-gradient(135deg,#4F46E5,#7C3AED)",border:"none",borderRadius:16,padding:"18px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,cursor:"pointer"}}>
+                <button onClick={function(){goQuiz(false);}} style={{width:"100%",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:12,padding:"18px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,cursor:"pointer"}}>
                   <div style={{textAlign:"left"}}>
-                    <div style={{fontSize:16,fontWeight:700,color:"#fff",marginBottom:2}}>Test de humor</div>
-                    <div style={{fontSize:12,color:"rgba(255,255,255,0.65)",fontWeight:300}}>5 preguntas · recomendaciones personalizadas</div>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:22,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",color:"#07070F"}}>Empezar Mood Test</div>
+                    <div style={{fontSize:12,fontWeight:300,opacity:0.55,marginTop:1}}>Película o serie · Estado · Tiempo · Vibe · Plataforma</div>
                   </div>
-                  <div style={{fontSize:22,color:"#fff",opacity:.8}}>→</div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#07070F" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-                  <button onClick={function(){goQuiz(true);}} style={{background:"linear-gradient(135deg,rgba(120,53,15,0.5),rgba(180,83,9,0.3))",border:"1px solid rgba(180,83,9,0.4)",borderRadius:14,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:22,marginBottom:6}}>🎬</div>
-                    <div style={{fontSize:14,fontWeight:700,color:"var(--t)"}}>Maratón</div>
-                    <div style={{fontSize:11,color:"var(--t3)"}}>Hasta 12 títulos</div>
-                  </button>
-                  <button onClick={openTiktok} style={{background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:14,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:22,marginBottom:6}}>▶</div>
-                    <div style={{fontSize:14,fontWeight:700,color:"var(--t)"}}>Trailers</div>
-                    <div style={{fontSize:11,color:"var(--t3)"}}>Desliza y decide</div>
-                  </button>
-                </div>
+                <button onClick={function(){goQuiz(true);}} style={{width:"100%",background:"rgba(13,13,25,0.7)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid var(--b2)",borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,cursor:"pointer"}}>
+                  <div style={{textAlign:"left"}}>
+                    <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:18,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase",color:"var(--t)"}}>Modo Maratón</div>
+                    <div style={{fontSize:12,color:"var(--t3)",fontWeight:300,marginTop:1}}>Hasta 12 títulos de una vez</div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
                 {films.length===0 && (
-                  <div style={{textAlign:"center",padding:"40px 0",color:"var(--t3)"}}>
-                    <div style={{fontSize:36,marginBottom:12}}>🎬</div>
-                    <div style={{fontSize:14,marginBottom:16}}>Haz el test para ver tus recomendaciones</div>
-                    <button className="empty-cta" onClick={function(){goQuiz(false);}}>Empezar test</button>
+                  <div style={{textAlign:"center",padding:"32px 0",color:"var(--t3)"}}>
+                    <div style={{fontSize:11,letterSpacing:"0.14em",textTransform:"uppercase",fontFamily:"Barlow Condensed,sans-serif"}}>Sin recomendaciones aún</div>
+                    <div style={{fontSize:12,marginTop:6,fontWeight:300}}>Haz el test para empezar</div>
                   </div>
                 )}
                 {films.length>0 && (
                   <div>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                       <div className="sec" style={{margin:0}}>Últimas recomendaciones</div>
-                      <button onClick={function(){setTkFilms(films);setTkIdx(0);setTkMode(true);}} style={{background:"none",border:"none",color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Ver en scroll →</button>
+                      <button onClick={function(){setTkFilms(films);setTkIdx(0);setTkMode(true);}} style={{background:"none",border:"none",color:"var(--t3)",fontSize:11,cursor:"pointer",letterSpacing:"0.06em",textTransform:"uppercase",fontFamily:"Barlow Condensed,sans-serif"}}>Ver trailers →</button>
                     </div>
                     <div className="fgrid">
                       {films.map(function(f,i){
                         return (
-                          <div key={i} className="fthumb" onClick={function(){goDetail(f,"discover");}}>
+                          <div key={i} className="fthumb" onClick={function(){goDetail(f,"moodtest");}}>
                             {f.poster && <img src={f.poster} alt="" loading="lazy"/>}
                             {!f.poster && <div className="fthumb-e">—</div>}
                             <div className="fthumb-info">
@@ -1940,7 +1969,7 @@ function App(){
                         );
                       })}
                     </div>
-                    <button className="btn btn-s" style={{marginTop:14}} onClick={function(){goQuiz(false);}}>Nuevo test</button>
+                    <button className="btn btn-s" style={{marginTop:14}} onClick={function(){goQuiz(false);}}>Nuevo Mood Test</button>
                   </div>
                 )}
               </div>
@@ -1957,7 +1986,7 @@ function App(){
               <div className="page" style={{paddingTop:0}}>
                 {!notif && (
                   <div className="notif-ban" style={{marginBottom:16}}>
-                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Activa las notificaciones</div><div style={{fontSize:11,color:"var(--t3)"}}>Entérate de cada estreno</div></div>
+                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--t2)",marginBottom:2}}>Activa las notificaciones</div><div style={{fontSize:11,color:"var(--t3)"}}>Entérate de cada estreno</div></div>
                     <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
                   </div>
                 )}
@@ -1969,10 +1998,10 @@ function App(){
                       {!f.poster && <div style={{width:60,height:90,borderRadius:9,background:"var(--s3)",flexShrink:0}}/>}
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{fontSize:14,fontWeight:700,marginBottom:3,lineHeight:1.3}}>{f.titleEs||f.title}</div>
-                        <div style={{fontSize:12,color:"var(--acc2)",fontWeight:600,marginBottom:5}}>{f.releaseDate||f.year}</div>
+                        <div style={{fontSize:12,color:"var(--t2)",fontWeight:600,marginBottom:5}}>{f.releaseDate||f.year}</div>
                         <div style={{fontSize:12,color:"var(--t3)",lineHeight:1.5,marginBottom:8,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{f.description}</div>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <div className={"tog-track"+(notifF[f.id]?" on":"")} onClick={function(){var nf=Object.assign({},notifF);if(nf[f.id])delete nf[f.id];else nf[f.id]=true;setNotifF(nf);LS.set("rack_notifF",nf);t_(notifF[f.id]?"Aviso cancelado":"Te avisaremos del estreno");}}>
+                          <div className={"tog-track"+(notifF[f.id]?" on":"")} onClick={function(){var nf=Object.assign({},notifF);if(nf[f.id])delete nf[f.id];else nf[f.id]=true;setNotifF(nf);LS.set("zc_notifF",nf);t_(notifF[f.id]?"Aviso cancelado":"Te avisaremos del estreno");}}>
                             <div className="tog-thumb"/>
                           </div>
                           <span style={{fontSize:12,color:"var(--t3)"}}>{notifF[f.id]?"Avisarme activado":"Avisarme"}</span>
@@ -1983,6 +2012,130 @@ function App(){
                 })}
               </div>
             </div>
+          </div>
+          </div>
+          </div>
+          )}
+
+          {/* MIS PELIS */}
+          {screen==="mypelis" && (
+            <div>
+              <div style={{padding:"52px 18px 14px"}}>
+                <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:36,fontWeight:700,letterSpacing:"0.04em",textTransform:"uppercase",marginBottom:4}}>Mis Películas</div>
+                <div style={{fontSize:13,color:"var(--t3)",fontWeight:300}}>Tu historial, lista y comunidad</div>
+              </div>
+              <div className="page" style={{paddingTop:0}}>
+                {/* SUB TABS */}
+                <div style={{display:"flex",gap:0,marginBottom:20,background:"var(--s2)",borderRadius:10,padding:3}}>
+                  {[["vistas","Vistas"],["lista","Lista"],["ranking","Ranking"],["resenas","Reseñas"]].map(function(t){
+                    return (
+                      <button key={t[0]} onClick={function(){setMpTab(t[0]);}} style={{flex:1,padding:"8px 4px",borderRadius:8,background:mpTab===t[0]?"var(--s4)":"transparent",border:"none",color:mpTab===t[0]?"var(--t)":"var(--t3)",fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:"Barlow Condensed,sans-serif",letterSpacing:"0.06em",textTransform:"uppercase",transition:"all .15s"}}>{t[1]}</button>
+                    );
+                  })}
+                </div>
+
+                {/* VISTAS */}
+                {mpTab==="vistas" && (
+                  <div>
+                    {(!user||!user.watched||user.watched.length===0) && (
+                      <div style={{textAlign:"center",padding:"40px 0",color:"var(--t3)"}}>
+                        <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:14,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6}}>Sin películas vistas</div>
+                        <div style={{fontSize:12,fontWeight:300}}>Marca títulos como vistos desde su ficha</div>
+                      </div>
+                    )}
+                    <div className="fgrid">
+                      {(user&&user.watched||[]).map(function(f,i){
+                        return (
+                          <div key={i} className="fthumb" onClick={function(){goDetail(f,"mypelis");}}>
+                            {f.poster && <img src={f.poster} alt="" loading="lazy"/>}
+                            {!f.poster && <div className="fthumb-e">—</div>}
+                            <div className="fthumb-info">
+                              <div className="fti-t">{f.titleEs||f.title}</div>
+                              <div className="fti-m"><span>{f.year}</span></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* LISTA */}
+                {mpTab==="lista" && (
+                  <div>
+                    {(!user||!user.watchlist||user.watchlist.length===0) && (
+                      <div style={{textAlign:"center",padding:"40px 0",color:"var(--t3)"}}>
+                        <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:14,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6}}>Lista vacía</div>
+                        <div style={{fontSize:12,fontWeight:300}}>Guarda títulos para ver más tarde</div>
+                      </div>
+                    )}
+                    {(user&&user.watchlist||[]).map(function(f,i){
+                      return (
+                        <div key={i} style={{display:"flex",gap:12,padding:"12px 0",borderBottom:"1px solid var(--b)"}}>
+                          {f.poster && <img src={f.poster} style={{width:52,height:78,borderRadius:8,objectFit:"cover",flexShrink:0}} alt="" loading="lazy"/>}
+                          {!f.poster && <div style={{width:52,height:78,borderRadius:8,background:"var(--s3)",flexShrink:0}}/>}
+                          <div style={{flex:1,minWidth:0}} onClick={function(){goDetail(f,"mypelis");}}>
+                            <div style={{fontSize:14,fontWeight:500,marginBottom:3,lineHeight:1.3}}>{f.titleEs||f.title}</div>
+                            <div style={{fontSize:12,color:"var(--t3)",fontWeight:300}}>{f.year}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* RANKING */}
+                {mpTab==="ranking" && (
+                  <div>
+                    <div style={{marginBottom:16}}>
+                      {[].concat(allUsers).sort(function(a,b){return (b.score||0)-(a.score||0);}).slice(0,20).map(function(u,i){
+                        var isMe=user&&u.id===user.id;
+                        return (
+                          <div key={u.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 0",borderBottom:"1px solid var(--b)",background:isMe?"rgba(232,232,244,0.04)":"transparent",borderRadius:isMe?8:0,paddingLeft:isMe?8:0}}>
+                            <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:16,fontWeight:600,letterSpacing:"0.04em",color:i<3?"var(--acc)":"var(--t3)",width:24,textAlign:"center"}}>{i+1}</div>
+                            <div style={{width:36,height:36,borderRadius:"50%",background:"var(--s3)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:600}}>{(u.name||"?")[0].toUpperCase()}</div>
+                            <div style={{flex:1}}>
+                              <div style={{fontSize:14,fontWeight:500}}>{u.name}{isMe&&<span style={{fontSize:10,color:"var(--t3)",marginLeft:6,letterSpacing:"0.06em",fontFamily:"Barlow Condensed,sans-serif",textTransform:"uppercase"}}> tú</span>}</div>
+                              <div style={{fontSize:11,color:"var(--t3)",fontWeight:300}}>@{u.handle}</div>
+                            </div>
+                            <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:16,fontWeight:600,letterSpacing:"0.04em"}}>{u.score||0}<span style={{fontSize:10,color:"var(--t3)",marginLeft:2,textTransform:"uppercase",letterSpacing:"0.06em"}}>pts</span></div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* RESEÑAS */}
+                {mpTab==="resenas" && (
+                  <div>
+                    {reviews.length===0 && (
+                      <div style={{textAlign:"center",padding:"40px 0",color:"var(--t3)"}}>
+                        <div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:14,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:6}}>Sin reseñas</div>
+                        <div style={{fontSize:12,fontWeight:300}}>Las reseñas de la comunidad aparecerán aquí</div>
+                      </div>
+                    )}
+                    {reviews.map(function(r,i){
+                      return (
+                        <div key={i} style={{padding:"14px 0",borderBottom:"1px solid var(--b)"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                            <div style={{width:28,height:28,borderRadius:"50%",background:"var(--s4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,flexShrink:0}}>{(r.user_name||"?")[0].toUpperCase()}</div>
+                            <div>
+                              <div style={{fontSize:13,fontWeight:500}}>{r.user_name}</div>
+                              <div style={{fontSize:10,color:"var(--t3)",fontWeight:300}}>@{r.handle}</div>
+                            </div>
+                            <div style={{marginLeft:"auto",fontSize:13,color:"var(--t2)"}}>{"★".repeat(r.stars||0)}</div>
+                          </div>
+                          <div style={{fontSize:12,color:"var(--t2)",fontWeight:500,marginBottom:4}}>{r.film}</div>
+                          <div style={{fontSize:13,color:"var(--t)",lineHeight:1.6,fontWeight:300}}>{r.text}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           )}
 
           {/* PROFILE */}
@@ -1998,9 +2151,9 @@ function App(){
                 </div>
                 {editProf && (
                   <div>
-                    <input ref={editNameRef} defaultValue={user.name} style={{background:"var(--s2)",border:"1px solid var(--acc)",borderRadius:8,padding:"8px 12px",color:"var(--t)",fontSize:15,marginBottom:8,width:"100%",outline:"none"}}/>
+                    <input ref={editNameRef} defaultValue={user.name} style={{background:"var(--s2)",border:"1px solid rgba(237,233,227,0.25)",borderRadius:8,padding:"8px 12px",color:"var(--t)",fontSize:15,marginBottom:8,width:"100%",outline:"none"}}/>
                     <div style={{display:"flex",gap:6,marginBottom:12}}>
-                      <button style={{flex:1,padding:"9px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer"}} onClick={saveProfile}>Guardar</button>
+                      <button style={{flex:1,padding:"9px",background:"var(--acc)",color:"#07070F",border:"none",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer"}} onClick={saveProfile}>Guardar</button>
                       <button style={{flex:1,padding:"9px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:9,fontSize:13,cursor:"pointer"}} onClick={function(){setEditProf(false);}}>Cancelar</button>
                     </div>
                   </div>
@@ -2029,8 +2182,8 @@ function App(){
                   <div className="stat-card"><div className="stat-n">{(user.watchlist||[]).length}</div><div className="stat-l">Lista</div></div>
                 </div>
                 <div className="invite-row" onClick={function(){setShowInv(true);}}>
-                  <div><div className="ir-t">Código de invitación</div><div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:"var(--acc2)",marginTop:3}}>{invCode}</div></div>
-                  <span style={{color:"var(--acc2)"}}>→</span>
+                  <div><div className="ir-t">Código de invitación</div><div style={{fontFamily:"Barlow Condensed,sans-serif",fontSize:18,color:"var(--t2)",marginTop:3}}>{invCode}</div></div>
+                  <span style={{color:"var(--t2)"}}>→</span>
                 </div>
                 {(user.watched||[]).length===0 && (user.watchlist||[]).length===0 && (
                   <div className="empty"><div className="empty-t">Aún no has marcado nada</div><button className="empty-cta" onClick={function(){goQuiz(false);}}>Descubrir ahora</button></div>
@@ -2073,12 +2226,15 @@ function App(){
                 </div>
               </div>
             </div>
+          </div>
+          </div>
+          </div>
           )}
 
-          {/* NAV */}
+          {/* NAV */
           {screen!=="quiz" && (
             <nav className="nav">
-              {[{s:"home",l:"Inicio",I:IcoHome},{s:"search",l:"Buscar",I:IcoSearch},{s:"discover",l:"Descubrir",I:IcoStar},{s:"estrenos",l:"Estrenos",I:IcoCal},{s:"profile",l:"Perfil",I:IcoUser}].map(function(item){
+              {[{s:"home",l:"Inicio",I:IcoHome},{s:"mypelis",l:"Mis pelis",I:IcoFilm},{s:"moodtest",l:"Mood Test",I:IcoStar},{s:"estrenos",l:"Estrenos",I:IcoCal},{s:"profile",l:"Perfil",I:IcoUser}].map(function(item){
                 return (
                   <button key={item.s} className={"nb"+(screen===item.s?" active":"")} onClick={function(){setScreen(item.s);}}>
                     <div className="nb-ic"><item.I/></div>
