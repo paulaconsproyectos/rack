@@ -26,126 +26,278 @@ html,body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;m
 #root{max-width:430px;margin:0 auto;min-height:100vh;}
 button,input,textarea{font-family:'DM Sans',sans-serif;}
 ::-webkit-scrollbar{width:0;}
-::selection{background:var(--acc3);}
   </style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react">
-const {useState,useEffect,useRef}=React;
-const TMDB_KEY="10f1051018046e4262a70010b517415c";
-const B="https://api.themoviedb.org/3";
-const IMG="https://image.tmdb.org/t/p/w500";
-const ORIG="https://image.tmdb.org/t/p/original";
-const MOOD_GENRES={"Euforico":[28,12,35],"Melancolico":[18,10749,9648],"Curioso":[99,878,9648],"Relajado":[35,10751,16],"Intenso":[53,80,27],"Romantico":[10749,18,35]};
-const MOOD_MAP={"Eufórico":"Euforico","Melancólico":"Melancolico","Curioso":"Curioso","Relajado":"Relajado","Intenso":"Intenso","Romántico":"Romantico"};
-const BADGES=[{min:0,label:"Espectador",icon:"👁"},{min:100,label:"Aficionado",icon:"🎬"},{min:300,label:"Cinéfilo",icon:"🎞"},{min:600,label:"Auteur",icon:"🎭"},{min:1000,label:"Crítico",icon:"✍️"},{min:2000,label:"Maestro",icon:"🏆"},{min:5000,label:"Leyenda",icon:"⭐"}];
-const PLATFORMS={"Netflix":{color:"#E50914",icon:"N",url:"https://www.netflix.com/search?q=",aff:""},"HBO Max":{color:"#B012FF",icon:"H",url:"https://www.max.com/search?q=",aff:""},"Disney+":{color:"#0063E5",icon:"D+",url:"https://www.disneyplus.com/search?q=",aff:""},"Prime Video":{color:"#00A8E1",icon:"P",url:"https://www.amazon.es/s?k=",aff:"&tag=rack-21"},"Filmin":{color:"#F5A623",icon:"F",url:"https://www.filmin.es/buscar?query=",aff:""},"Apple TV+":{color:"#555",icon:"🍎",url:"https://tv.apple.com/search?term=",aff:""},"Movistar+":{color:"#019FE3",icon:"M+",url:"https://ver.movistar.es/search?q=",aff:""}};
-const QUESTIONS=[{id:"mood",q:"¿Cómo estás ahora mismo?",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},{id:"format",q:"¿Qué formato prefieres?",opts:["Película","Miniserie","Serie corta","Serie larga","Lo que sea"]},{id:"company",q:"¿Con quién ves esto?",opts:["Solo/a","En pareja","Con amigos","En familia"]},{id:"time",q:"¿Cuánto tiempo tienes?",opts:["Menos de 1h","1–2 horas","Más de 2h","🍿 Modo Maratón"]},{id:"platform",q:"¿Qué plataformas tienes?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Movistar+","Todo me vale"]},{id:"vibe",q:"¿Qué experiencia buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]}];
-const ONBOARDING=[{icon:"🎬",title:"Descubre tu próxima peli",sub:"Test de humor en 30 segundos. Rack encuentra el cine exacto para ti."},{icon:"📺",title:"Películas, series y más",sub:"Distingue entre películas, miniseries, series cortas y largas automáticamente."},{icon:"🍿",title:"Modo Maratón",sub:"¿Tienes todo el día? Rack te arma una sesión épica completa."},{icon:"🔔",title:"Notificaciones de estrenos",sub:"Te avisamos de los estrenos que encajan con tus gustos."}];
-const DEMO_REVIEWS=[{id:"dr1",userId:"u2",userName:"Marcos Ruiz",handle:"marcosr",film:"Dune: Parte Dos",text:"Villeneuve lo vuelve a hacer. La escala visual es inalcanzable.",stars:5,likes:34,likedBy:[]},{id:"dr2",userId:"u3",userName:"Laia Torres",handle:"laiat",film:"Pobres Criaturas",text:"Yorgos en estado puro. Perturbadora, liberadora, completamente única.",stars:5,likes:28,likedBy:[]},{id:"dr3",userId:"u4",userName:"Andrés Bernal",handle:"andresb",film:"La Zona de Interés",text:"El horror en lo cotidiano. La película más importante del año.",stars:5,likes:51,likedBy:[]}];
-const DEMO_USERS=[{id:"u1",name:"Sofía Martín",handle:"sofiam",score:847},{id:"u2",name:"Marcos Ruiz",handle:"marcosr",score:1204},{id:"u3",name:"Laia Torres",handle:"laiat",score:563},{id:"u4",name:"Andrés Bernal",handle:"andresb",score:2891}];
-const DEMO_FEED=[{u:"Andrés Bernal",a:"ha visto",f:"La Zona de Interés",t:"12 min"},{u:"Marcos Ruiz",a:"ha añadido",f:"Challengers",t:"1h"},{u:"Laia Torres",a:"ha reseñado",f:"Vidas Pasadas",t:"3h"},{u:"Sofía Martín",a:"completó una maratón",f:"3 películas",t:"5h"}];
-const getBadge=s=>[...BADGES].reverse().find(b=>s>=b.min)||BADGES[0];
-const getNext=s=>BADGES.find(b=>b.min>s);
-const ini=n=>(n||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-const genCode=()=>Math.random().toString(36).substring(2,8).toUpperCase();
-const clamp=(n,a,b)=>Math.min(Math.max(n,a),b);
-const enc=s=>encodeURIComponent(s||"");
-const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d;}catch{return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}};
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
 
-async function enrichItem(item){
-  try{
-    const r=await fetch(`${B}/${item.mediaType}/${item.tmdbId}?api_key=${TMDB_KEY}&language=es-ES&append_to_response=credits,watch/providers`);
-    const d=await r.json();
-    const prov=d["watch/providers"]?.results?.ES;
-    const streaming=(prov?.flatrate||[]).map(p=>p.provider_name);
-    let seriesType="Serie";
-    if(item.mediaType==="tv"){
-      const eps=d.number_of_episodes||0,seas=d.number_of_seasons||1;
-      if(seas===1&&eps<=8)seriesType="Miniserie";
-      else if(seas<=3)seriesType="Serie corta";
-      else seriesType="Serie larga";
+const TMDB_KEY = "10f1051018046e4262a70010b517415c";
+const B = "https://api.themoviedb.org/3";
+const IMG = "https://image.tmdb.org/t/p/w500";
+const ORIG = "https://image.tmdb.org/t/p/original";
+
+const MOOD_GENRES = {
+  "Eufórico":[28,12,35],"Melancólico":[18,10749,9648],"Curioso":[99,878,9648],
+  "Relajado":[35,10751,16],"Intenso":[53,80,27],"Romántico":[10749,18,35],
+};
+const BADGES = [
+  {min:0,label:"Espectador",icon:"👁"},{min:100,label:"Aficionado",icon:"🎬"},
+  {min:300,label:"Cinéfilo",icon:"🎞"},{min:600,label:"Auteur",icon:"🎭"},
+  {min:1000,label:"Crítico",icon:"✍️"},{min:2000,label:"Maestro",icon:"🏆"},
+  {min:5000,label:"Leyenda",icon:"⭐"},
+];
+const PLATFORMS = {
+  "Netflix":{color:"#E50914",icon:"N",url:"https://www.netflix.com/search?q="},
+  "HBO Max":{color:"#B012FF",icon:"H",url:"https://www.max.com/search?q="},
+  "Disney+":{color:"#0063E5",icon:"D+",url:"https://www.disneyplus.com/search?q="},
+  "Prime Video":{color:"#00A8E1",icon:"P",url:"https://www.amazon.es/s?k="},
+  "Filmin":{color:"#F5A623",icon:"F",url:"https://www.filmin.es/buscar?query="},
+  "Apple TV+":{color:"#555",icon:"🍎",url:"https://tv.apple.com/search?term="},
+  "Movistar+":{color:"#019FE3",icon:"M+",url:"https://ver.movistar.es/search?q="},
+};
+const QUESTIONS = [
+  {id:"mood",q:"¿Cómo estás ahora mismo?",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},
+  {id:"format",q:"¿Qué formato prefieres?",opts:["Película","Miniserie","Serie corta","Serie larga","Lo que sea"]},
+  {id:"company",q:"¿Con quién ves esto?",opts:["Solo/a","En pareja","Con amigos","En familia"]},
+  {id:"time",q:"¿Cuánto tiempo tienes?",opts:["Menos de 1h","1–2 horas","Más de 2h","🍿 Modo Maratón"]},
+  {id:"platform",q:"¿Qué plataformas tienes?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Movistar+","Todo me vale"]},
+  {id:"vibe",q:"¿Qué experiencia buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]},
+];
+const ONBOARDING = [
+  {icon:"🎬",title:"Descubre tu próxima peli",sub:"Test de humor en 30 segundos. Rack encuentra el cine exacto para ti."},
+  {icon:"📺",title:"Películas, series y más",sub:"Distingue entre películas, miniseries, series cortas y largas automáticamente."},
+  {icon:"🍿",title:"Modo Maratón",sub:"¿Tienes todo el día? Rack te arma una sesión épica completa."},
+  {icon:"🔔",title:"Notificaciones de estrenos",sub:"Te avisamos cuando llega algo que encaja con tus gustos."},
+];
+const DEMO_REVIEWS = [
+  {id:"dr1",userId:"u2",userName:"Marcos Ruiz",handle:"marcosr",film:"Dune: Parte Dos",text:"Villeneuve lo vuelve a hacer. La escala visual es inalcanzable.",stars:5,likes:34,likedBy:[]},
+  {id:"dr2",userId:"u3",userName:"Laia Torres",handle:"laiat",film:"Pobres Criaturas",text:"Yorgos en estado puro. Perturbadora, liberadora, completamente única.",stars:5,likes:28,likedBy:[]},
+  {id:"dr3",userId:"u4",userName:"Andrés Bernal",handle:"andresb",film:"La Zona de Interés",text:"El horror en lo cotidiano. La película más importante del año.",stars:5,likes:51,likedBy:[]},
+];
+const DEMO_USERS = [
+  {id:"u1",name:"Sofía Martín",handle:"sofiam",score:847},
+  {id:"u2",name:"Marcos Ruiz",handle:"marcosr",score:1204},
+  {id:"u3",name:"Laia Torres",handle:"laiat",score:563},
+  {id:"u4",name:"Andrés Bernal",handle:"andresb",score:2891},
+];
+const DEMO_FEED = [
+  {u:"Andrés Bernal",a:"ha visto",f:"La Zona de Interés",t:"12 min"},
+  {u:"Marcos Ruiz",a:"ha añadido",f:"Challengers",t:"1h"},
+  {u:"Laia Torres",a:"ha reseñado",f:"Vidas Pasadas",t:"3h"},
+  {u:"Sofía Martín",a:"completó una maratón",f:"3 películas",t:"5h"},
+];
+
+const getBadge = s => [...BADGES].reverse().find(b => s >= b.min) || BADGES[0];
+const getNext = s => BADGES.find(b => b.min > s);
+const ini = n => (n||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const genCode = () => Math.random().toString(36).substring(2,8).toUpperCase();
+const clamp = (n,a,b) => Math.min(Math.max(n,a),b);
+const enc = s => encodeURIComponent(s||"");
+
+const LS = {
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d;}catch{return d;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}},
+};
+
+async function enrichItem(item) {
+  try {
+    const r = await fetch(`${B}/${item.mediaType}/${item.tmdbId}?api_key=${TMDB_KEY}&language=es-ES&append_to_response=credits,watch/providers`);
+    const d = await r.json();
+    const prov = d["watch/providers"]?.results?.ES;
+    const streaming = (prov?.flatrate||[]).map(p => p.provider_name);
+    let seriesType = "Serie";
+    if (item.mediaType === "tv") {
+      const eps = d.number_of_episodes||0, seas = d.number_of_seasons||1;
+      if (seas===1 && eps<=8) seriesType = "Miniserie";
+      else if (seas<=3) seriesType = "Serie corta";
+      else seriesType = "Serie larga";
     }
-    return{...item,
-      genre:d.genres?.[0]?.name||"",genres:(d.genres||[]).slice(0,3).map(g=>g.name),
+    return {...item,
+      genres:(d.genres||[]).slice(0,3).map(g=>g.name),
       director:item.mediaType==="movie"?(d.credits?.crew?.find(c=>c.job==="Director")?.name||""):(d.created_by?.[0]?.name||""),
       cast:(d.credits?.cast||[]).slice(0,3).map(c=>c.name),
       duration:item.mediaType==="movie"?(d.runtime?`${Math.floor(d.runtime/60)}h ${d.runtime%60}min`:""):(d.number_of_seasons?`${d.number_of_seasons} temp.`:""),
-      seriesType,streaming,tagline:d.tagline||"",country:(d.production_countries||[])[0]?.iso_3166_1||""};
-  }catch{return item;}
+      seriesType, streaming, tagline:d.tagline||"",
+    };
+  } catch { return item; }
 }
 
-async function tmdbDiscover(answers){
-  const mk=MOOD_MAP[answers.mood]||"Curioso";
-  const genres=(MOOD_GENRES[mk]||[18]).slice(0,2).join(",");
-  const page=Math.floor(Math.random()*8)+1;
-  const fmt=answers.format||"Lo que sea";
-  const marathon=answers.time==="🍿 Modo Maratón";
-  const wM=fmt==="Película"||fmt==="Lo que sea"||marathon;
-  const wT=fmt!=="Película";
-  const fetches=[];
-  if(wM)fetches.push(fetch(`${B}/discover/movie?api_key=${TMDB_KEY}&language=es-ES&sort_by=vote_average.desc&vote_count.gte=500&with_genres=${genres}&page=${page}`).then(r=>r.json()).then(d=>(d.results||[]).slice(0,marathon?6:5).map(m=>({id:m.id,title:m.title,titleEs:m.title,year:m.release_date?.slice(0,4)||"—",type:"Película",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?.toFixed(1),streaming:[],genres:[]}))));
-  if(wT)fetches.push(fetch(`${B}/discover/tv?api_key=${TMDB_KEY}&language=es-ES&sort_by=vote_average.desc&vote_count.gte=200&with_genres=${genres}&page=${page}`).then(r=>r.json()).then(d=>(d.results||[]).slice(0,marathon?4:3).map(m=>({id:m.id,title:m.name,titleEs:m.name,year:m.first_air_date?.slice(0,4)||"—",type:"Serie",mediaType:"tv",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?.toFixed(1),streaming:[],genres:[]}))));
-  const results=(await Promise.all(fetches)).flat().slice(0,marathon?12:8);
+async function tmdbDiscover(answers) {
+  const genres = (MOOD_GENRES[answers.mood]||[18]).slice(0,2).join(",");
+  const page = Math.floor(Math.random()*8)+1;
+  const fmt = answers.format||"Lo que sea";
+  const isMarathon = answers.time==="🍿 Modo Maratón";
+  const wM = fmt==="Película"||fmt==="Lo que sea"||isMarathon;
+  const wT = fmt!=="Película";
+  const fetches = [];
+  if (wM) fetches.push(
+    fetch(`${B}/discover/movie?api_key=${TMDB_KEY}&language=es-ES&sort_by=vote_average.desc&vote_count.gte=500&with_genres=${genres}&page=${page}`)
+    .then(r=>r.json()).then(d=>(d.results||[]).slice(0,isMarathon?6:5).map(m=>({
+      id:m.id,title:m.title,titleEs:m.title,year:m.release_date?.slice(0,4)||"—",
+      type:"Película",mediaType:"movie",tmdbId:m.id,
+      poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,
+      description:m.overview||"",score:m.vote_average?.toFixed(1),streaming:[],genres:[],
+    })))
+  );
+  if (wT) fetches.push(
+    fetch(`${B}/discover/tv?api_key=${TMDB_KEY}&language=es-ES&sort_by=vote_average.desc&vote_count.gte=200&with_genres=${genres}&page=${page}`)
+    .then(r=>r.json()).then(d=>(d.results||[]).slice(0,isMarathon?4:3).map(m=>({
+      id:m.id,title:m.name,titleEs:m.name,year:m.first_air_date?.slice(0,4)||"—",
+      type:"Serie",mediaType:"tv",tmdbId:m.id,
+      poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,
+      description:m.overview||"",score:m.vote_average?.toFixed(1),streaming:[],genres:[],
+    })))
+  );
+  const results = (await Promise.all(fetches)).flat().slice(0,isMarathon?12:8);
   return Promise.all(results.map(enrichItem));
 }
-async function tmdbWeekly(){
-  const r=await fetch(`${B}/trending/all/week?api_key=${TMDB_KEY}&language=es-ES`);
-  const d=await r.json();
-  const top=(d.results||[])[0];if(!top)return null;
-  const item={id:top.id,title:top.title||top.name,titleEs:top.title||top.name,year:(top.release_date||top.first_air_date||"").slice(0,4),type:top.media_type==="movie"?"Película":"Serie",mediaType:top.media_type,tmdbId:top.id,poster:top.poster_path?IMG+top.poster_path:null,backdrop:top.backdrop_path?ORIG+top.backdrop_path:null,description:top.overview||"",score:top.vote_average?.toFixed(1),streaming:[],genres:[]};
+
+async function tmdbWeekly() {
+  const r = await fetch(`${B}/trending/all/week?api_key=${TMDB_KEY}&language=es-ES`);
+  const d = await r.json();
+  const top = (d.results||[])[0]; if(!top) return null;
+  const item = {id:top.id,title:top.title||top.name,titleEs:top.title||top.name,
+    year:(top.release_date||top.first_air_date||"").slice(0,4),
+    type:top.media_type==="movie"?"Película":"Serie",mediaType:top.media_type,tmdbId:top.id,
+    poster:top.poster_path?IMG+top.poster_path:null,backdrop:top.backdrop_path?ORIG+top.backdrop_path:null,
+    description:top.overview||"",score:top.vote_average?.toFixed(1),streaming:[],genres:[]};
   return enrichItem(item);
 }
-async function tmdbSearch(q){
-  const r=await fetch(`${B}/search/multi?api_key=${TMDB_KEY}&language=es-ES&query=${enc(q)}&page=1`);
-  const d=await r.json();
-  return(d.results||[]).filter(m=>m.media_type==="movie"||m.media_type==="tv").slice(0,12).map(m=>({id:m.id,title:m.title||m.name,titleEs:m.title||m.name,year:(m.release_date||m.first_air_date||"").slice(0,4),type:m.media_type==="movie"?"Película":"Serie",poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?.toFixed(1),mediaType:m.media_type,tmdbId:m.id,streaming:[],genres:[]}));
-}
-async function tmdbPlatform(platform){
-  const PIDS={"Netflix":8,"HBO Max":384,"Disney+":337,"Prime Video":119,"Apple TV+":350,"Filmin":44,"Movistar+":149};
-  const pid=PIDS[platform];if(!pid)return[];
-  const r=await fetch(`${B}/discover/movie?api_key=${TMDB_KEY}&language=es-ES&sort_by=popularity.desc&watch_region=ES&with_watch_providers=${pid}&page=1`);
-  const d=await r.json();
-  return(d.results||[]).slice(0,8).map(m=>({id:m.id,title:m.title,titleEs:m.title,year:m.release_date?.slice(0,4)||"—",type:"Película",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?.toFixed(1),streaming:[platform],genres:[]}));
-}
-async function tmdbUpcoming(){
-  const r=await fetch(`${B}/movie/upcoming?api_key=${TMDB_KEY}&language=es-ES&region=ES&page=1`);
-  const d=await r.json();
-  return(d.results||[]).slice(0,8).map(m=>({id:m.id,title:m.title,titleEs:m.title,year:m.release_date?.slice(0,4)||"—",releaseDate:m.release_date||"",poster:m.poster_path?IMG+m.poster_path:null,description:m.overview||"",score:m.vote_average?.toFixed(1),mediaType:"movie",streaming:[],genres:[],type:"Película"}));
+
+async function tmdbSearch(q) {
+  const r = await fetch(`${B}/search/multi?api_key=${TMDB_KEY}&language=es-ES&query=${enc(q)}&page=1`);
+  const d = await r.json();
+  return (d.results||[]).filter(m=>m.media_type==="movie"||m.media_type==="tv").slice(0,12).map(m=>({
+    id:m.id,title:m.title||m.name,titleEs:m.title||m.name,
+    year:(m.release_date||m.first_air_date||"").slice(0,4),
+    type:m.media_type==="movie"?"Película":"Serie",
+    poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,
+    description:m.overview||"",score:m.vote_average?.toFixed(1),
+    mediaType:m.media_type,tmdbId:m.id,streaming:[],genres:[],
+  }));
 }
 
-const CSS=`
+async function tmdbPlatform(platform) {
+  const PIDS = {"Netflix":8,"HBO Max":384,"Disney+":337,"Prime Video":119,"Apple TV+":350,"Filmin":44,"Movistar+":149};
+  const pid = PIDS[platform]; if(!pid) return [];
+  const r = await fetch(`${B}/discover/movie?api_key=${TMDB_KEY}&language=es-ES&sort_by=popularity.desc&watch_region=ES&with_watch_providers=${pid}&page=1`);
+  const d = await r.json();
+  return (d.results||[]).slice(0,8).map(m=>({
+    id:m.id,title:m.title,titleEs:m.title,year:m.release_date?.slice(0,4)||"—",
+    type:"Película",mediaType:"movie",tmdbId:m.id,
+    poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,
+    description:m.overview||"",score:m.vote_average?.toFixed(1),streaming:[platform],genres:[],
+  }));
+}
+
+async function tmdbUpcoming() {
+  const r = await fetch(`${B}/movie/upcoming?api_key=${TMDB_KEY}&language=es-ES&region=ES&page=1`);
+  const d = await r.json();
+  return (d.results||[]).slice(0,8).map(m=>({
+    id:m.id,title:m.title,titleEs:m.title,
+    year:m.release_date?.slice(0,4)||"—",releaseDate:m.release_date||"",
+    poster:m.poster_path?IMG+m.poster_path:null,description:m.overview||"",
+    score:m.vote_average?.toFixed(1),mediaType:"movie",streaming:[],genres:[],type:"Película",
+  }));
+}
+
+function TypePill({item}) {
+  if (!item) return null;
+  if (item.mediaType==="movie") return <span style={{display:"inline-flex",alignItems:"center",gap:3,padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:"rgba(99,102,241,0.15)",color:"var(--acc2)"}}>🎬 Película</span>;
+  const t = item.seriesType||"Serie";
+  const styles = {
+    "Miniserie":{bg:"rgba(168,85,247,0.15)",color:"var(--prp)"},
+    "Serie corta":{bg:"rgba(59,130,246,0.15)",color:"var(--blu)"},
+    "Serie larga":{bg:"rgba(249,115,22,0.15)",color:"var(--org)"},
+    "Serie":{bg:"rgba(59,130,246,0.15)",color:"var(--blu)"},
+  };
+  const st = styles[t]||styles["Serie"];
+  return <span style={{display:"inline-flex",alignItems:"center",gap:3,padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:st.bg,color:st.color}}>📺 {t}</span>;
+}
+
+function StreamLinks({film}) {
+  const title = film.titleEs||film.title;
+  const known = film.streaming||[];
+  return (
+    <div style={{marginBottom:18}}>
+      <div style={{fontSize:11,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--t3)",marginBottom:10,marginTop:20}}>{known.length>0?"Ver ahora en":"Buscar en plataformas"}</div>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+        {known.length>0 ? known.map(name => {
+          const p = PLATFORMS[name]; if(!p) return null;
+          return <a key={name} href={p.url+enc(title)} target="_blank" rel="noopener"
+            style={{display:"inline-flex",alignItems:"center",gap:5,padding:"8px 12px",borderRadius:9,background:p.color,color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none"}}>
+            {p.icon} {name}
+          </a>;
+        }) : Object.entries(PLATFORMS).slice(0,4).map(([name,p]) =>
+          <a key={name} href={p.url+enc(title)} target="_blank" rel="noopener"
+            style={{display:"inline-flex",alignItems:"center",gap:5,padding:"7px 11px",borderRadius:9,border:"1px solid var(--b2)",background:"var(--s2)",color:"var(--t2)",fontSize:12,fontWeight:500,textDecoration:"none"}}>
+            {p.icon} {name}
+          </a>
+        )}
+        <a href={"https://www.justwatch.com/es/buscar?q="+enc(title)} target="_blank" rel="noopener"
+          style={{display:"inline-flex",alignItems:"center",gap:5,padding:"7px 11px",borderRadius:9,border:"1px solid var(--b2)",background:"var(--s2)",color:"var(--t2)",fontSize:12,fontWeight:500,textDecoration:"none"}}>
+          🔎 JustWatch
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function ShareBtns({film}) {
+  const title = film.titleEs||film.title;
+  const url = "https://paulaconsproyectos.github.io/rack/";
+  const txt = `Acabo de ver "${title}" en Rack ${film.score>0?"⭐"+film.score:""} — ${url}`;
+  const [cp,setCp] = useState(false);
+  return (
+    <div style={{marginBottom:18}}>
+      <div style={{fontSize:11,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--t3)",marginBottom:10}}>Compartir</div>
+      <div style={{display:"flex",gap:6}}>
+        <a href={"https://twitter.com/intent/tweet?text="+enc(txt)} target="_blank" rel="noopener"
+          style={{flex:1,padding:"10px 6px",borderRadius:9,background:"#000",color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none",textAlign:"center"}}>𝕏 Twitter</a>
+        <a href={"https://wa.me/?text="+enc(txt)} target="_blank" rel="noopener"
+          style={{flex:1,padding:"10px 6px",borderRadius:9,background:"#25D366",color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>
+        <button onClick={()=>{try{navigator.clipboard.writeText(txt);}catch{}setCp(true);setTimeout(()=>setCp(false),2000);}}
+          style={{flex:1,padding:"10px 6px",borderRadius:9,background:"var(--s3)",color:"var(--t2)",border:"1px solid var(--b)",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+          {cp?"✓ Copiado":"📋 Copiar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const CSS = `
 .app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);overflow-x:hidden;}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .ob{min-height:100vh;display:flex;flex-direction:column;}
-.ob-slides{flex:1;position:relative;overflow:hidden;min-height:50vh;}
+.ob-slides{flex:1;position:relative;overflow:hidden;min-height:52vh;}
 .ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;gap:14px;transition:opacity .35s,transform .35s;}
 .ob-slide.active{opacity:1;transform:translateX(0);pointer-events:auto;}
-.ob-slide.left{opacity:0;transform:translateX(-32px);pointer-events:none;}
-.ob-slide.right{opacity:0;transform:translateX(32px);pointer-events:none;}
-.ob-logo{font-family:'DM Serif Display',serif;font-size:56px;letter-spacing:-0.02em;}
+.ob-slide.prev{opacity:0;transform:translateX(-32px);pointer-events:none;}
+.ob-slide.next{opacity:0;transform:translateX(32px);pointer-events:none;}
+.ob-logo{font-family:'DM Serif Display',serif;font-size:56px;letter-spacing:-0.02em;color:var(--t);}
 .ob-logo span{color:var(--acc2);}
 .ob-icon{font-size:64px;line-height:1;}
 .ob-title{font-size:24px;font-weight:700;text-align:center;line-height:1.2;letter-spacing:-0.02em;}
 .ob-sub{font-size:14px;color:var(--t2);text-align:center;line-height:1.7;max-width:280px;font-weight:300;}
 .ob-dots{display:flex;gap:6px;justify-content:center;padding:12px 0;}
 .ob-dot{width:6px;height:6px;border-radius:3px;background:var(--s5);transition:all .3s;}
-.ob-dot.active{width:22px;background:var(--acc);}
+.ob-dot.on{width:22px;background:var(--acc);}
 .ob-bottom{padding:18px 28px 48px;display:flex;flex-direction:column;gap:10px;}
 .land{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% -10%,rgba(99,102,241,0.22) 0%,transparent 65%),var(--bg);}
 .land-hero{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:80px 28px 40px;position:relative;overflow:hidden;}
 .land-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.02) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.02) 40px);}
-.land-logo{font-family:'DM Serif Display',serif;font-size:72px;letter-spacing:-0.03em;line-height:1;margin-bottom:10px;position:relative;}
+.land-logo{font-family:'DM Serif Display',serif;font-size:72px;letter-spacing:-0.03em;line-height:1;margin-bottom:10px;position:relative;color:var(--t);}
 .land-logo span{color:var(--acc2);}
 .land-tag{font-size:16px;color:var(--t2);max-width:260px;line-height:1.6;font-weight:300;position:relative;}
 .land-bottom{padding:24px 28px 52px;display:flex;flex-direction:column;gap:10px;}
-.btn{width:100%;padding:16px;border:none;border-radius:13px;font-size:15px;font-weight:600;letter-spacing:-0.01em;transition:all .18s;}
+.btn{width:100%;padding:16px;border:none;border-radius:13px;font-size:15px;font-weight:600;transition:all .18s;}
 .btn-p{background:var(--acc);color:#fff;}
 .btn-p:hover{background:var(--acc2);}
 .btn-s{background:var(--s2);color:var(--t2);border:1px solid var(--b2);}
 .btn-s:hover{background:var(--s3);color:var(--t);}
-.btn-ghost{background:none;border:none;color:var(--t3);font-size:13px;padding:8px;width:100%;}
+.btn-ghost{background:none;border:none;color:var(--t3);font-size:13px;padding:8px;width:100%;cursor:pointer;}
 .auth-page{min-height:100vh;padding:0 24px 48px;display:flex;flex-direction:column;}
 .auth-top{padding:52px 0 28px;}
 .back-btn{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);cursor:pointer;}
@@ -160,32 +312,24 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .demo-hint{margin-top:11px;padding:10px 13px;background:var(--s2);border:1px solid var(--b);border-radius:9px;font-size:12px;color:var(--t3);line-height:1.6;}
 .demo-hint strong{color:var(--t2);}
 .auth-hint{font-size:13px;color:var(--t3);text-align:center;margin-top:16px;}
-.auth-hint button{background:none;border:none;color:var(--acc2);font-size:13px;font-weight:500;}
+.auth-hint button{background:none;border:none;color:var(--acc2);font-size:13px;font-weight:500;cursor:pointer;}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(9,9,11,0.94);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--b);padding:6px 0 26px;z-index:100;display:flex;justify-content:space-around;}
-.nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--t4);font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;border-radius:10px;transition:color .2s;min-width:52px;}
+.nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--t4);font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:6px 10px;border-radius:10px;transition:color .2s;min-width:52px;cursor:pointer;}
 .nb.active{color:var(--acc2);}
 .nb-ic{font-size:19px;line-height:1;transition:transform .2s;}
 .nb.active .nb-ic{transform:scale(1.12);}
 .page{padding:0 18px 110px;}
 .ph{padding:52px 18px 14px;display:flex;justify-content:space-between;align-items:center;}
-.logo{font-family:'DM Serif Display',serif;font-size:22px;}
+.logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t);}
 .logo span{color:var(--acc2);}
 .sec{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:11px;margin-top:22px;}
-.type-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
-.tp-m{background:rgba(99,102,241,0.15);color:var(--acc2);}
-.tp-mn{background:rgba(168,85,247,0.15);color:var(--prp);}
-.tp-sc{background:rgba(59,130,246,0.15);color:var(--blu);}
-.tp-sl{background:rgba(249,115,22,0.15);color:var(--org);}
 .home-hero{padding:52px 18px 0;}
 .greet-sm{font-size:12px;color:var(--t3);margin-bottom:2px;}
 .greet-lg{font-size:30px;font-weight:700;letter-spacing:-0.03em;line-height:1.1;margin-bottom:16px;}
 .greet-lg span{color:var(--acc2);}
-.quiz-cta{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);border:none;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;box-shadow:0 8px 28px rgba(99,102,241,0.3);transition:all .2s;}
+.quiz-cta{background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;box-shadow:0 8px 28px rgba(99,102,241,0.3);transition:all .2s;cursor:pointer;}
 .quiz-cta:hover{transform:translateY(-2px);}
-.qct{font-size:17px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px;}
-.qcs{font-size:12px;opacity:.75;font-weight:300;}
-.qci{font-size:36px;}
-.marathon-cta{background:linear-gradient(135deg,#78350F 0%,#B45309 100%);border:none;border-radius:14px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;box-shadow:0 5px 18px rgba(180,83,9,0.28);transition:all .2s;}
+.marathon-cta{background:linear-gradient(135deg,#78350F,#B45309);border:none;border-radius:14px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;width:100%;color:#fff;margin-bottom:10px;box-shadow:0 5px 18px rgba(180,83,9,0.28);transition:all .2s;cursor:pointer;}
 .marathon-cta:hover{transform:translateY(-2px);}
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
 .stat-card{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:14px 10px;text-align:center;}
@@ -193,7 +337,6 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .stat-l{font-size:9px;color:var(--t3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-top:3px;}
 .potw-card{border-radius:14px;overflow:hidden;margin-bottom:10px;position:relative;cursor:pointer;}
 .potw-bg{width:100%;height:170px;object-fit:cover;display:block;}
-.potw-bg-e{width:100%;height:170px;background:linear-gradient(135deg,var(--s2),var(--s3));display:flex;align-items:center;justify-content:center;font-size:48px;}
 .potw-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,transparent 60%);padding:12px;}
 .potw-tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ylw);margin-bottom:3px;}
 .potw-title{font-size:17px;font-weight:700;position:absolute;bottom:12px;left:12px;right:12px;line-height:1.2;}
@@ -201,26 +344,23 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .invite-row:hover{background:var(--acc3);}
 .ir-t{font-size:13px;font-weight:600;color:var(--acc2);margin-bottom:1px;}
 .ir-s{font-size:11px;color:var(--t3);}
-.notif-ban{background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(124,58,237,0.06));border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.nb-txt{flex:1;}
-.nb-ttl{font-size:13px;font-weight:600;color:var(--acc2);margin-bottom:1px;}
-.nb-sub{font-size:11px;color:var(--t3);}
-.nb-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;flex-shrink:0;}
+.notif-ban{background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.notif-ban-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;flex-shrink:0;cursor:pointer;}
 .search-hd{padding:52px 18px 0;}
 .search-box{position:relative;margin-bottom:13px;}
 .search-input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:13px 38px 13px 38px;color:var(--t);font-size:15px;outline:none;transition:all .2s;}
 .search-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc3);}
 .search-input::placeholder{color:var(--t4);}
 .si-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--t3);pointer-events:none;}
-.si-cl{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--s4);border:none;color:var(--t3);width:22px;height:22px;border-radius:50%;font-size:11px;}
+.si-cl{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--s4);border:none;color:var(--t3);width:22px;height:22px;border-radius:50%;font-size:11px;cursor:pointer;}
 .ptabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:8px;}
 .ptabs::-webkit-scrollbar{display:none;}
-.ptab{flex-shrink:0;padding:6px 13px;border-radius:20px;border:1px solid var(--b2);background:var(--s2);color:var(--t3);font-size:12px;font-weight:500;transition:all .14s;}
-.ptab.active{background:var(--acc);border-color:var(--acc);color:#fff;}
+.ptab{flex-shrink:0;padding:6px 13px;border-radius:20px;border:1px solid var(--b2);background:var(--s2);color:var(--t3);font-size:12px;font-weight:500;transition:all .14s;cursor:pointer;}
+.ptab.on{background:var(--acc);border-color:var(--acc);color:#fff;}
 .fli{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--b);cursor:pointer;transition:opacity .14s;}
 .fli:hover{opacity:.75;}
 .fli:last-child{border-bottom:none;}
-.fli-p{width:52px;height:78px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.fli-p{width:52px;height:78px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--s3);}
 .fli-pe{width:52px;height:78px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .fli-info{flex:1;min-width:0;padding-top:1px;}
 .fli-title{font-size:14px;font-weight:600;margin-bottom:2px;line-height:1.3;}
@@ -228,7 +368,7 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .fli-sc{color:var(--ylw);font-weight:600;}
 .fli-desc{font-size:11px;color:var(--t2);line-height:1.5;font-weight:300;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px;}
 .fli-acts{display:flex;gap:4px;flex-wrap:wrap;}
-.pb{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:none;transition:all .13s;}
+.pb{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:none;transition:all .13s;cursor:pointer;}
 .pb-acc{background:var(--acc3);color:var(--acc2);}
 .pb-acc:hover{background:var(--acc);color:#fff;}
 .pb-done{background:rgba(34,197,94,.1);color:var(--grn);cursor:default;}
@@ -249,8 +389,7 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .ms-num{width:22px;height:22px;border-radius:50%;background:rgba(180,83,9,0.3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#F59E0B;flex-shrink:0;}
 .ms-name{font-size:13px;font-weight:500;}
 .ms-dur{font-size:11px;color:var(--t3);}
-.det-back{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:52px 18px 0;z-index:50;pointer-events:none;}
-.det-back-btn{pointer-events:auto;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,.75);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t);backdrop-filter:blur(8px);}
+.det-back-btn{position:fixed;top:52px;left:50%;transform:translateX(-50%) translateX(-180px);z-index:50;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,.75);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t);backdrop-filter:blur(8px);cursor:pointer;}
 .det-backdrop{width:100%;height:250px;object-fit:cover;display:block;}
 .det-bd-e{width:100%;height:200px;background:linear-gradient(135deg,var(--s2),var(--s3));display:flex;align-items:center;justify-content:center;font-size:72px;}
 .det-body{padding:0 18px 110px;}
@@ -268,38 +407,25 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .spill-l{font-size:9px;color:var(--t3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:1px;}
 .det-desc{font-size:13px;color:var(--t2);line-height:1.75;margin-bottom:14px;font-weight:300;}
 .det-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:18px;}
-.det-btn{padding:12px;border:none;border-radius:11px;font-size:13px;font-weight:600;transition:all .17s;}
+.det-btn{padding:12px;border:none;border-radius:11px;font-size:13px;font-weight:600;transition:all .17s;cursor:pointer;}
 .db-p{background:var(--acc);color:#fff;}
 .db-p:hover{background:var(--acc2);}
 .db-s{background:var(--s2);color:var(--t2);border:1px solid var(--b2);}
 .db-s:hover{background:var(--s3);}
 .db-done{opacity:.4;cursor:default;}
-.stream-sec{margin-bottom:18px;}
-.stream-row{display:flex;gap:6px;flex-wrap:wrap;}
-.stream-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:9px;border:none;font-size:12px;font-weight:600;color:#fff;text-decoration:none;transition:all .14s;cursor:pointer;}
-.stream-btn:hover{filter:brightness(1.12);transform:translateY(-1px);}
-.stream-srch{display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);font-size:12px;font-weight:500;color:var(--t2);text-decoration:none;transition:all .14s;}
-.stream-srch:hover{background:var(--s3);color:var(--t);}
-.share-row{display:flex;gap:6px;margin-bottom:18px;}
-.shr-btn{flex:1;padding:10px 6px;border-radius:9px;border:none;font-size:12px;font-weight:600;transition:all .14s;display:flex;align-items:center;justify-content:center;gap:4px;}
-.shr-btn:hover{transform:translateY(-1px);}
-.sb-tw{background:#000;color:#fff;}
-.sb-wa{background:#25D366;color:#fff;}
-.sb-cp{background:var(--s3);color:var(--t2);border:1px solid var(--b);}
 .cast-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;}
 .cast-row::-webkit-scrollbar{display:none;}
 .cast-item{flex-shrink:0;text-align:center;width:58px;}
 .cast-av{width:44px;height:44px;border-radius:50%;background:var(--s3);margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--t2);}
 .cast-name{font-size:9px;color:var(--t2);line-height:1.3;word-break:break-word;}
 .rev-sec{background:var(--s1);border:1px solid var(--b);border-radius:13px;padding:15px;margin-bottom:16px;}
-.rev-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:9px;}
 .stars{display:flex;gap:4px;margin-bottom:11px;}
-.star{background:none;border:none;font-size:22px;color:var(--s5);transition:color .11s;padding:0;line-height:1;}
+.star{background:none;border:none;font-size:22px;color:var(--s5);transition:color .11s;padding:0;line-height:1;cursor:pointer;}
 .star.on{color:var(--ylw);}
 .rev-ta{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:9px;padding:10px 12px;font-size:13px;color:var(--t);resize:none;height:76px;outline:none;transition:all .2s;font-weight:300;}
 .rev-ta:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc3);}
 .rev-ta::placeholder{color:var(--t3);}
-.rev-sub{width:100%;padding:11px;background:var(--acc);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;margin-top:8px;transition:all .2s;}
+.rev-sub{width:100%;padding:11px;background:var(--acc);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;margin-top:8px;transition:all .2s;cursor:pointer;}
 .rev-sub:disabled{opacity:.2;cursor:not-allowed;}
 .rev-sub:not(:disabled):hover{background:var(--acc2);}
 .rc{padding:12px 0;border-bottom:1px solid var(--b);}
@@ -311,25 +437,25 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .rc-handle{font-size:10px;color:var(--t3);}
 .rc-stars{font-size:10px;color:var(--ylw);}
 .rc-txt{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:7px;font-weight:300;}
-.rc-like{background:var(--s2);border:1px solid var(--b);border-radius:20px;font-size:11px;font-weight:500;color:var(--t3);padding:3px 9px;transition:all .14s;}
+.rc-like{background:var(--s2);border:1px solid var(--b);border-radius:20px;font-size:11px;font-weight:500;color:var(--t3);padding:3px 9px;transition:all .14s;cursor:pointer;}
 .rc-like:hover{border-color:var(--acc2);color:var(--acc2);}
 .rc-like.liked{background:var(--acc3);border-color:var(--acc);color:var(--acc2);}
 .quiz-page{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
 .quiz-hd{padding:52px 18px 18px;display:flex;align-items:center;gap:12px;}
 .quiz-prog{flex:1;height:3px;background:var(--s3);border-radius:2px;overflow:hidden;}
 .quiz-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
-.q-exit{background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--t3);font-size:11px;font-weight:500;padding:5px 10px;flex-shrink:0;}
+.q-exit{background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--t3);font-size:11px;font-weight:500;padding:5px 10px;flex-shrink:0;cursor:pointer;}
 .quiz-body{padding:4px 18px 40px;flex:1;overflow-y:auto;}
 .q-step{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);margin-bottom:7px;}
 .q-q{font-size:26px;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:26px;}
 .opts{display:flex;flex-direction:column;gap:6px;}
 .opts-2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.opt{padding:12px 15px;border:1.5px solid var(--b2);border-radius:11px;background:var(--s1);text-align:left;font-size:13px;color:var(--t2);transition:all .11s;display:flex;align-items:center;justify-content:space-between;font-weight:400;}
+.opt{padding:12px 15px;border:1.5px solid var(--b2);border-radius:11px;background:var(--s1);text-align:left;font-size:13px;color:var(--t2);transition:all .11s;display:flex;align-items:center;justify-content:space-between;font-weight:400;cursor:pointer;}
 .opt:hover{border-color:var(--b3);color:var(--t);}
 .opt.sel{border-color:var(--acc);background:var(--acc3);color:var(--t);}
 .opt-chk{width:15px;height:15px;border-radius:4px;border:1.5px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;opacity:.3;}
 .opt.sel .opt-chk{opacity:1;color:var(--acc2);border-color:var(--acc2);}
-.quiz-next{margin-top:18px;width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:600;transition:all .2s;}
+.quiz-next{margin-top:18px;width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:600;transition:all .2s;cursor:pointer;}
 .quiz-next:disabled{opacity:.2;cursor:not-allowed;}
 .quiz-next:not(:disabled):hover{background:var(--acc2);}
 .loading-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;}
@@ -357,10 +483,10 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .wl-title{font-size:13px;font-weight:600;margin-bottom:2px;}
 .wl-meta{font-size:11px;color:var(--t3);}
 .wl-pts{font-size:12px;color:var(--grn);font-weight:600;margin-left:auto;flex-shrink:0;}
-.logout-btn{width:100%;padding:12px;background:transparent;color:var(--t3);border:1px solid var(--b);border-radius:11px;font-size:13px;font-weight:500;transition:all .2s;margin-top:22px;}
+.logout-btn{width:100%;padding:12px;background:transparent;color:var(--t3);border:1px solid var(--b);border-radius:11px;font-size:13px;font-weight:500;transition:all .2s;margin-top:22px;cursor:pointer;}
 .logout-btn:hover{border-color:var(--red);color:var(--red);}
 .tab-row{display:flex;gap:3px;background:var(--s2);border-radius:10px;padding:3px;margin-bottom:16px;}
-.tab-btn{flex:1;padding:7px;border:none;border-radius:7px;font-size:11px;font-weight:600;color:var(--t3);background:transparent;transition:all .17s;}
+.tab-btn{flex:1;padding:7px;border:none;border-radius:7px;font-size:11px;font-weight:600;color:var(--t3);background:transparent;transition:all .17s;cursor:pointer;}
 .tab-btn.active{background:var(--s4);color:var(--t);}
 .act-item{padding:11px 0;border-bottom:1px solid var(--b);display:flex;gap:8px;}
 .act-av{width:28px;height:28px;border-radius:50%;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--t3);}
@@ -405,79 +531,41 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .empty-t{font-size:13px;}
 `;
 
-function TypePill({item}){
-  if(!item)return null;
-  if(item.mediaType==="movie")return React.createElement("span",{className:"type-pill tp-m"},"🎬 Película");
-  const t=item.seriesType||"Serie";
-  if(t==="Miniserie")return React.createElement("span",{className:"type-pill tp-mn"},"📺 Miniserie");
-  if(t==="Serie corta")return React.createElement("span",{className:"type-pill tp-sc"},"📺 Serie corta");
-  return React.createElement("span",{className:"type-pill tp-sl"},"📺 Serie larga");
-}
-
-function StreamLinks({film}){
-  const title=film.titleEs||film.title;
-  const known=film.streaming||[];
-  const links=known.length>0?known.map(name=>{
-    const p=PLATFORMS[name];if(!p)return null;
-    return React.createElement("a",{key:name,className:"stream-btn",href:p.url+enc(title)+(p.aff||""),target:"_blank",rel:"noopener",style:{background:p.color}},
-      React.createElement("span",null,p.icon),React.createElement("span",null,name));
-  }):[...Object.entries(PLATFORMS).slice(0,4).map(([name,p])=>
-    React.createElement("a",{key:name,className:"stream-srch",href:p.url+enc(title),target:"_blank",rel:"noopener"},
-      React.createElement("span",null,p.icon)," ",name))];
-  return React.createElement("div",{className:"stream-sec"},
-    React.createElement("div",{className:"sec"},known.length>0?"Ver ahora en":"Buscar en plataformas"),
-    React.createElement("div",{className:"stream-row"},...links,
-      React.createElement("a",{className:"stream-srch",href:"https://www.justwatch.com/es/buscar?q="+enc(title),target:"_blank",rel:"noopener"},"🔎 JustWatch")));
-}
-
-function ShareBtns({film}){
-  const title=film.titleEs||film.title;
-  const url="https://paulaconsproyectos.github.io/rack/";
-  const txt=`Acabo de ver "${title}" en Rack ${film.score>0?"⭐"+film.score:""} — ${url}`;
-  const [cp,setCp]=useState(false);
-  return React.createElement("div",null,
-    React.createElement("div",{className:"sec"},"Compartir"),
-    React.createElement("div",{className:"share-row"},
-      React.createElement("a",{className:"shr-btn sb-tw",href:"https://twitter.com/intent/tweet?text="+enc(txt),target:"_blank",rel:"noopener"},"𝕏"),
-      React.createElement("a",{className:"shr-btn sb-wa",href:"https://wa.me/?text="+enc(txt),target:"_blank",rel:"noopener"},"💬 WA"),
-      React.createElement("button",{className:"shr-btn sb-cp",onClick:()=>{try{navigator.clipboard.writeText(txt);}catch{}setCp(true);setTimeout(()=>setCp(false),2000);}},cp?"✓":"📋")));
-}
-
-function App(){
-  const [auth,setAuth]=useState(()=>LS.get("rack_auth","onboarding"));
-  const [user,setUser]=useState(()=>LS.get("rack_user",null));
-  const [obStep,setObStep]=useState(0);
-  const [authMode,setAuthMode]=useState("login");
-  const [screen,setScreen]=useState("home");
-  const [prev,setPrev]=useState("home");
-  const [films,setFilms]=useState([]);
-  const [loading,setLoading]=useState(false);
-  const [sel,setSel]=useState(null);
-  const [marathon,setMarathon]=useState(false);
-  const [potw,setPotw]=useState(null);
-  const [quizStep,setQuizStep]=useState(0);
-  const [answers,setAnswers]=useState({});
-  const [multi,setMulti]=useState([]);
-  const [searchQ,setSearchQ]=useState("");
-  const [searchRes,setSearchRes]=useState([]);
-  const [searching,setSearching]=useState(false);
-  const [ptab,setPtab]=useState("all");
-  const [platRes,setPlatRes]=useState([]);
-  const [loadingPlat,setLoadingPlat]=useState(false);
-  const [upcoming,setUpcoming]=useState([]);
-  const [notif,setNotif]=useState(()=>LS.get("rack_notif",false));
-  const [notifF,setNotifF]=useState(()=>LS.get("rack_notifF",{}));
-  const [reviews,setReviews]=useState(()=>LS.get("rack_reviews",DEMO_REVIEWS));
-  const [revTxt,setRevTxt]=useState("");
-  const [revSt,setRevSt]=useState(0);
-  const [socTab,setSocTab]=useState("feed");
-  const [toast,setToast]=useState(null);
-  const [showInv,setShowInv]=useState(false);
-  const [invCode]=useState(()=>LS.get("rack_inv_code",genCode()));
-  const [lH,setLH]=useState("");const [lP,setLP]=useState("");
-  const [rN,setRN]=useState("");const [rH,setRH]=useState("");const [rP,setRP]=useState("");
-  const [err,setErr]=useState("");
-  const stRef=useRef(null);
+function App() {
+  const [auth, setAuth] = useState(() => LS.get("rack_auth","onboarding"));
+  const [user, setUser] = useState(() => LS.get("rack_user",null));
+  const [obStep, setObStep] = useState(0);
+  const [authMode, setAuthMode] = useState("login");
+  const [screen, setScreen] = useState("home");
+  const [prev, setPrev] = useState("home");
+  const [films, setFilms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [sel, setSel] = useState(null);
+  const [marathon, setMarathon] = useState(false);
+  const [potw, setPotw] = useState(null);
+  const [quizStep, setQuizStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [multi, setMulti] = useState([]);
+  const [searchQ, setSearchQ] = useState("");
+  const [searchRes, setSearchRes] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [ptab, setPtab] = useState("all");
+  const [platRes, setPlatRes] = useState([]);
+  const [loadingPlat, setLoadingPlat] = useState(false);
+  const [upcoming, setUpcoming] = useState([]);
+  const [notif, setNotif] = useState(() => LS.get("rack_notif",false));
+  const [notifF, setNotifF] = useState(() => LS.get("rack_notifF",{}));
+  const [reviews, setReviews] = useState(() => LS.get("rack_reviews",DEMO_REVIEWS));
+  const [revTxt, setRevTxt] = useState("");
+  const [revSt, setRevSt] = useState(0);
+  const [socTab, setSocTab] = useState("feed");
+  const [toast, setToast] = useState(null);
+  const [showInv, setShowInv] = useState(false);
+  const [invCode] = useState(() => LS.get("rack_inv_code",genCode()));
+  const [lH,setLH] = useState(""); const [lP,setLP] = useState("");
+  const [rN,setRN] = useState(""); const [rH,setRH] = useState(""); const [rP,setRP] = useState("");
+  const [err, setErr] = useState("");
+  const stRef = useRef(null);
 
   useEffect(()=>LS.set("rack_auth",auth),[auth]);
   useEffect(()=>LS.set("rack_user",user),[user]);
@@ -487,372 +575,576 @@ function App(){
   useEffect(()=>LS.set("rack_notifF",notifF),[notifF]);
   useEffect(()=>{if(user?.id){LS.set("rack_w_"+user.id,user.watched||[]);LS.set("rack_l_"+user.id,user.watchlist||[]);}},[user?.watched,user?.watchlist]);
 
-  const t_=msg=>{setToast(msg);setTimeout(()=>setToast(null),2500);};
+  const t_ = msg => { setToast(msg); setTimeout(()=>setToast(null),2500); };
 
-  useEffect(()=>{if(auth==="app")tmdbWeekly().then(setPotw).catch(()=>{});},[auth]);
-  useEffect(()=>{if(screen==="social"&&socTab==="estrenos")tmdbUpcoming().then(setUpcoming).catch(()=>{});},[screen,socTab]);
+  useEffect(()=>{if(auth==="app") tmdbWeekly().then(setPotw).catch(()=>{});},[auth]);
+  useEffect(()=>{if(screen==="social"&&socTab==="estrenos") tmdbUpcoming().then(setUpcoming).catch(()=>{});},[screen,socTab]);
   useEffect(()=>{
     if(ptab==="all"){setPlatRes([]);return;}
-    setLoadingPlat(true);tmdbPlatform(ptab).then(r=>{setPlatRes(r);setLoadingPlat(false);}).catch(()=>setLoadingPlat(false));
+    setLoadingPlat(true);
+    tmdbPlatform(ptab).then(r=>{setPlatRes(r);setLoadingPlat(false);}).catch(()=>setLoadingPlat(false));
   },[ptab]);
   useEffect(()=>{
     clearTimeout(stRef.current);
     if(!searchQ.trim()||ptab!=="all"){setSearchRes([]);return;}
     setSearching(true);
-    stRef.current=setTimeout(async()=>{try{const r=await tmdbSearch(searchQ);setSearchRes(r);}catch{}setSearching(false);},450);
+    stRef.current = setTimeout(async()=>{
+      try{const r=await tmdbSearch(searchQ);setSearchRes(r);}catch{}
+      setSearching(false);
+    },450);
   },[searchQ,ptab]);
 
-  const reqNotif=async()=>{
+  const reqNotif = async () => {
     if(!("Notification" in window)){t_("Navegador no soporta notificaciones");return;}
-    const p=await Notification.requestPermission();
+    const p = await Notification.requestPermission();
     if(p==="granted"){setNotif(true);t_("🔔 Notificaciones activadas");try{new Notification("Rack",{body:"Te avisaremos de los próximos estrenos."});}catch{}}
-    else t_("Permisos de notificación denegados");
+    else t_("Permisos denegados en ajustes");
   };
-  const toggleNotifF=id=>{setNotifF(p=>{const n={...p};if(n[id])delete n[id];else n[id]=true;return n;});};
+  const toggleNotifF = id => setNotifF(p=>{const n={...p};if(n[id])delete n[id];else n[id]=true;return n;});
 
-  const doLogin=()=>{
+  const doLogin = () => {
     if(!lH.trim()||!lP.trim()){setErr("Rellena todos los campos");return;}
-    const saved=LS.get("rack_users",[]);
-    const all=[...DEMO_USERS.map(u=>({...u,password:"1234"})),...saved];
-    const found=all.find(u=>u.handle===lH.toLowerCase().trim()&&u.password===lP);
+    const saved = LS.get("rack_users",[]);
+    const all = [...DEMO_USERS.map(u=>({...u,password:"1234"})),...saved];
+    const found = all.find(u=>u.handle===lH.toLowerCase().trim()&&u.password===lP);
     if(!found){setErr("Usuario o contraseña incorrectos");return;}
     setUser({...found,watched:LS.get("rack_w_"+found.id,[]),watchlist:LS.get("rack_l_"+found.id,[])});
     setAuth("app");setErr("");
   };
-  const doReg=()=>{
+  const doReg = () => {
     if(!rN.trim()||!rH.trim()||!rP.trim()){setErr("Rellena todos los campos");return;}
-    const saved=LS.get("rack_users",[]);
+    const saved = LS.get("rack_users",[]);
     if([...DEMO_USERS,...saved].find(u=>u.handle===rH.toLowerCase().trim())){setErr("Usuario ya existe");return;}
-    const nu={id:"u"+Date.now(),name:rN.trim(),handle:rH.toLowerCase().trim(),password:rP,score:0};
+    const nu = {id:"u"+Date.now(),name:rN.trim(),handle:rH.toLowerCase().trim(),password:rP,score:0};
     LS.set("rack_users",[...saved,nu]);
     setUser({...nu,watched:[],watchlist:[]});setAuth("app");setErr("");
   };
-  const doLogout=()=>{setUser(null);setAuth("landing");setScreen("home");setFilms([]);};
+  const doLogout = () => {setUser(null);setAuth("landing");setScreen("home");setFilms([]);};
 
-  const q=QUESTIONS[quizStep];
-  const pickOpt=val=>{
+  const q = QUESTIONS[quizStep];
+  const pickOpt = val => {
     if(q.multi){setMulti(p=>p.includes(val)?p.filter(v=>v!==val):[...p,val]);return;}
-    const a={...answers,[q.id]:val};setAnswers(a);
-    if(quizStep<QUESTIONS.length-1)setTimeout(()=>setQuizStep(s=>s+1),180);
+    const a = {...answers,[q.id]:val};setAnswers(a);
+    if(quizStep<QUESTIONS.length-1) setTimeout(()=>setQuizStep(s=>s+1),180);
     else doFetch(a);
   };
-  const nextMulti=()=>{
-    const a={...answers,[q.id]:multi};setAnswers(a);
+  const nextMulti = () => {
+    const a = {...answers,[q.id]:multi};setAnswers(a);
     if(quizStep<QUESTIONS.length-1){setMulti([]);setQuizStep(s=>s+1);}else doFetch(a);
   };
-  const exitQuiz=()=>{setQuizStep(0);setAnswers({});setMulti([]);setScreen("home");};
-  const goQuiz=(isM=false)=>{setScreen("quiz");setQuizStep(0);setAnswers({});setMulti([]);setMarathon(isM);};
-  const doFetch=async ans=>{
-    const isM=ans.time==="🍿 Modo Maratón"||marathon;
+  const exitQuiz = () => {setQuizStep(0);setAnswers({});setMulti([]);setScreen("home");};
+  const goQuiz = (isM=false) => {setScreen("quiz");setQuizStep(0);setAnswers({});setMulti([]);setMarathon(isM);};
+  const doFetch = async ans => {
+    const isM = ans.time==="🍿 Modo Maratón"||marathon;
     setMarathon(isM);setLoading(true);setScreen("results");
-    try{const r=await tmdbDiscover({...ans,time:isM?"🍿 Modo Maratón":ans.time});setFilms(r);}catch{t_("Error al conectar");}
+    try{const r=await tmdbDiscover({...ans});setFilms(r);}catch{t_("Error al conectar");}
     setLoading(false);
   };
 
-  const isW=f=>!!(user?.watched||[]).find(w=>w.id===f.id);
-  const isL=f=>!!(user?.watchlist||[]).find(w=>w.id===f.id);
-  const markW=f=>{
+  const isW = f => !!(user?.watched||[]).find(w=>w.id===f.id);
+  const isL = f => !!(user?.watchlist||[]).find(w=>w.id===f.id);
+  const markW = f => {
     if(!user||isW(f))return;
-    const pts=Math.round((parseFloat(f.score)||5)*10);
+    const pts = Math.round((parseFloat(f.score)||5)*10);
     setUser(p=>({...p,watched:[...(p.watched||[]),f],score:p.score+pts}));t_(`+${pts} pts`);
   };
-  const addL=f=>{if(!user||isL(f))return;setUser(p=>({...p,watchlist:[...(p.watchlist||[]),f]}));t_("Guardada");};
-  const submitRev=f=>{
+  const addL = f => {if(!user||isL(f))return;setUser(p=>({...p,watchlist:[...(p.watchlist||[]),f]}));t_("Guardada");};
+  const submitRev = f => {
     if(!revTxt.trim()||!revSt)return;
     const r={id:"r"+Date.now(),userId:user.id,userName:user.name,handle:user.handle,film:f.titleEs||f.title,text:revTxt,stars:revSt,likes:0,likedBy:[]};
     setReviews(p=>[r,...p]);setUser(p=>({...p,score:p.score+50}));setRevTxt("");setRevSt(0);t_("+50 pts");
   };
-  const toggleLike=id=>{
+  const toggleLike = id => {
     if(!user)return;
     setReviews(p=>p.map(r=>{if(r.id!==id)return r;const lk=r.likedBy.includes(user.id);return{...r,likes:lk?r.likes-1:r.likes+1,likedBy:lk?r.likedBy.filter(x=>x!==user.id):[...r.likedBy,user.id]};}));
   };
-  const goDetail=(f,from)=>{setPrev(from||screen);setSel(f);setScreen("detail");setRevTxt("");setRevSt(0);};
+  const goDetail = (f,from) => {setPrev(from||screen);setSel(f);setScreen("detail");setRevTxt("");setRevSt(0);};
 
-  const badge=user?getBadge(user.score):null;
-  const nextB=user?getNext(user.score):null;
-  const prog=badge&&nextB?clamp(((user.score-badge.min)/(nextB.min-badge.min))*100,0,100):100;
-  const filmRevs=sel?reviews.filter(r=>r.film===(sel.titleEs||sel.title)):[];
-  const allUsers=[...DEMO_USERS,...LS.get("rack_users",[])];
+  const badge = user?getBadge(user.score):null;
+  const nextB = user?getNext(user.score):null;
+  const prog = badge&&nextB?clamp(((user.score-badge.min)/(nextB.min-badge.min))*100,0,100):100;
+  const filmRevs = sel?reviews.filter(r=>r.film===(sel.titleEs||sel.title)):[];
+  const allUsers = [...DEMO_USERS,...LS.get("rack_users",[])];
 
-  const E=React.createElement;
+  return (
+    <div className="app">
+      <style>{CSS}</style>
+      {toast && <div className="toast">{toast}</div>}
 
-  return E("div",{className:"app"},
-    E("style",null,CSS),
-    toast&&E("div",{className:"toast"},toast),
+      {showInv && (
+        <div className="overlay" onClick={()=>setShowInv(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-handle"/>
+            <div className="modal-title">Invita amigos</div>
+            <div className="modal-sub">Cuando se registren con tu código, ambos ganáis 100 puntos.</div>
+            <div className="code-box"><div className="code-lbl">Tu código</div><div className="code-val">{invCode}</div></div>
+            <button className="btn btn-p" onClick={()=>{try{navigator.clipboard.writeText(`Únete a Rack con mi código ${invCode} → https://paulaconsproyectos.github.io/rack/`);}catch{}t_("Copiado");setShowInv(false);}}>Copiar enlace</button>
+            <button className="btn btn-s" style={{marginTop:8}} onClick={()=>setShowInv(false)}>Cerrar</button>
+          </div>
+        </div>
+      )}
 
-    showInv&&E("div",{className:"overlay",onClick:()=>setShowInv(false)},
-      E("div",{className:"modal",onClick:e=>e.stopPropagation()},
-        E("div",{className:"modal-handle"}),
-        E("div",{className:"modal-title"},"Invita amigos"),
-        E("div",{className:"modal-sub"},"Cuando se registren con tu código, ambos ganáis 100 puntos."),
-        E("div",{className:"code-box"},E("div",{className:"code-lbl"},"Tu código"),E("div",{className:"code-val"},invCode)),
-        E("button",{className:"btn btn-p",onClick:()=>{try{navigator.clipboard.writeText("Únete a Rack con mi código "+invCode+" → https://paulaconsproyectos.github.io/rack/");}catch{}t_("Copiado");setShowInv(false);}},
-          "Copiar enlace de invitación"),
-        E("button",{className:"btn btn-s",style:{marginTop:8},onClick:()=>setShowInv(false)},"Cerrar"))),
+      {auth==="onboarding" && (
+        <div className="ob">
+          <div className="ob-slides">
+            <div className={`ob-slide ${obStep===0?"active":obStep>0?"prev":"next"}`}>
+              <div className="ob-logo">ra<span>ck</span></div>
+              <div className="ob-sub" style={{marginTop:6}}>La app de cine para los que de verdad aman el cine.</div>
+            </div>
+            {ONBOARDING.map((sl,i)=>(
+              <div key={i} className={`ob-slide ${obStep===i+1?"active":obStep>i+1?"prev":"next"}`}>
+                <div className="ob-icon">{sl.icon}</div>
+                <div className="ob-title">{sl.title}</div>
+                <div className="ob-sub">{sl.sub}</div>
+              </div>
+            ))}
+          </div>
+          <div className="ob-dots">
+            {[0,...ONBOARDING.map((_,i)=>i+1)].map(i=>(
+              <div key={i} className={`ob-dot${obStep===i?" on":""}`}/>
+            ))}
+          </div>
+          <div className="ob-bottom">
+            <button className="btn btn-p" onClick={()=>obStep<ONBOARDING.length?setObStep(s=>s+1):setAuth("landing")}>
+              {obStep<ONBOARDING.length?"Continuar →":"Empezar"}
+            </button>
+            {obStep<ONBOARDING.length&&<button className="btn-ghost" onClick={()=>setAuth("landing")}>Saltar</button>}
+          </div>
+        </div>
+      )}
 
-    // ONBOARDING
-    auth==="onboarding"&&E("div",{className:"ob"},
-      E("div",{className:"ob-slides"},
-        E("div",{className:"ob-slide "+(obStep===0?"active":obStep>0?"left":"right")},
-          E("div",{className:"ob-logo"},"ra",E("span",null,"ck")),
-          E("div",{className:"ob-sub",style:{marginTop:6}},"La app de cine para los que de verdad aman el cine.")),
-        ONBOARDING.map((sl,i)=>E("div",{key:i,className:"ob-slide "+(obStep===i+1?"active":obStep>i+1?"left":"right")},
-          E("div",{className:"ob-icon"},sl.icon),
-          E("div",{className:"ob-title"},sl.title),
-          E("div",{className:"ob-sub"},sl.sub)))),
-      E("div",{className:"ob-dots"},[0,...ONBOARDING.map((_,i)=>i+1)].map(i=>E("div",{key:i,className:"ob-dot"+(obStep===i?" active":"")}))),
-      E("div",{className:"ob-bottom"},
-        E("button",{className:"btn btn-p",onClick:()=>obStep<ONBOARDING.length?setObStep(s=>s+1):setAuth("landing")},obStep<ONBOARDING.length?"Continuar →":"Empezar"),
-        obStep<ONBOARDING.length&&E("button",{className:"btn-ghost",onClick:()=>setAuth("landing")},"Saltar"))),
+      {auth==="landing" && (
+        <div className="land">
+          <div className="land-hero">
+            <div className="land-logo">ra<span>ck</span></div>
+            <p className="land-tag">El cine exacto para este momento.</p>
+          </div>
+          <div className="land-bottom">
+            <button className="btn btn-p" onClick={()=>{setAuthMode("register");setAuth("auth");}}>Crear cuenta</button>
+            <button className="btn btn-s" onClick={()=>{setAuthMode("login");setAuth("auth");}}>Iniciar sesión</button>
+          </div>
+        </div>
+      )}
 
-    // LANDING
-    auth==="landing"&&E("div",{className:"land"},
-      E("div",{className:"land-hero"},E("div",{className:"land-logo"},"ra",E("span",null,"ck")),E("p",{className:"land-tag"},"El cine exacto para este momento.")),
-      E("div",{className:"land-bottom"},
-        E("button",{className:"btn btn-p",onClick:()=>{setAuthMode("register");setAuth("auth");}},"Crear cuenta"),
-        E("button",{className:"btn btn-s",onClick:()=>{setAuthMode("login");setAuth("auth");}},"Iniciar sesión"))),
+      {auth==="auth" && (
+        <div className="auth-page">
+          <div className="auth-top">
+            <button className="back-btn" onClick={()=>{setAuth("landing");setErr("");}}>←</button>
+          </div>
+          {authMode==="login" ? <>
+            <div className="auth-ttl">Bienvenido de vuelta</div>
+            <div className="auth-sub">Entra en tu cuenta de Rack</div>
+            {err&&<div className="auth-err">{err}</div>}
+            <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={lH} onChange={e=>setLH(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <div className="field"><label>Contraseña</label><input type="password" placeholder="••••••••" value={lP} onChange={e=>setLP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <div className="demo-hint">Demo: <strong>sofiam</strong>, <strong>marcosr</strong>, <strong>laiat</strong>, <strong>andresb</strong> · pass: <strong>1234</strong></div>
+            <button className="btn btn-p" style={{marginTop:16}} onClick={doLogin}>Entrar</button>
+            <div className="auth-hint">¿Sin cuenta? <button onClick={()=>{setAuthMode("register");setErr("");}}>Regístrate</button></div>
+          </> : <>
+            <div className="auth-ttl">Únete a Rack</div>
+            <div className="auth-sub">Crea tu perfil de cinéfilo</div>
+            {err&&<div className="auth-err">{err}</div>}
+            <div className="field"><label>Nombre completo</label><input placeholder="Tu nombre" value={rN} onChange={e=>setRN(e.target.value)}/></div>
+            <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={rH} onChange={e=>setRH(e.target.value)}/></div>
+            <div className="field"><label>Contraseña</label><input type="password" placeholder="••••••••" value={rP} onChange={e=>setRP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doReg()}/></div>
+            <button className="btn btn-p" style={{marginTop:14}} onClick={doReg}>Crear cuenta</button>
+            <div className="auth-hint">¿Ya tienes cuenta? <button onClick={()=>{setAuthMode("login");setErr("");}}>Inicia sesión</button></div>
+          </>}
+        </div>
+      )}
 
-    // AUTH
-    auth==="auth"&&E("div",{className:"auth-page"},
-      E("div",{className:"auth-top"},E("button",{className:"back-btn",onClick:()=>{setAuth("landing");setErr("");}},"\u2190")),
-      authMode==="login"?E(React.Fragment,null,
-        E("div",{className:"auth-ttl"},"Bienvenido de vuelta"),
-        E("div",{className:"auth-sub"},"Entra en tu cuenta de Rack"),
-        err&&E("div",{className:"auth-err"},err),
-        E("div",{className:"field"},E("label",null,"Usuario"),E("input",{placeholder:"tu_usuario",value:lH,onChange:e=>setLH(e.target.value),onKeyDown:e=>e.key==="Enter"&&doLogin()})),
-        E("div",{className:"field"},E("label",null,"Contraseña"),E("input",{type:"password",placeholder:"••••••••",value:lP,onChange:e=>setLP(e.target.value),onKeyDown:e=>e.key==="Enter"&&doLogin()})),
-        E("div",{className:"demo-hint"},"Demo: ",E("strong",null,"sofiam"),", ",E("strong",null,"marcosr"),", ",E("strong",null,"laiat"),", ",E("strong",null,"andresb")," · pass: ",E("strong",null,"1234")),
-        E("button",{className:"btn btn-p",style:{marginTop:16},onClick:doLogin},"Entrar"),
-        E("div",{className:"auth-hint"},"¿Sin cuenta? ",E("button",{onClick:()=>{setAuthMode("register");setErr("");}},
-          "Regístrate"))):
-      E(React.Fragment,null,
-        E("div",{className:"auth-ttl"},"Únete a Rack"),
-        E("div",{className:"auth-sub"},"Crea tu perfil de cinéfilo"),
-        err&&E("div",{className:"auth-err"},err),
-        E("div",{className:"field"},E("label",null,"Nombre completo"),E("input",{placeholder:"Tu nombre",value:rN,onChange:e=>setRN(e.target.value)})),
-        E("div",{className:"field"},E("label",null,"Usuario"),E("input",{placeholder:"tu_usuario",value:rH,onChange:e=>setRH(e.target.value)})),
-        E("div",{className:"field"},E("label",null,"Contraseña"),E("input",{type:"password",placeholder:"••••••••",value:rP,onChange:e=>setRP(e.target.value),onKeyDown:e=>e.key==="Enter"&&doReg()})),
-        E("button",{className:"btn btn-p",style:{marginTop:14},onClick:doReg},"Crear cuenta"),
-        E("div",{className:"auth-hint"},"¿Ya tienes cuenta? ",E("button",{onClick:()=>{setAuthMode("login");setErr("");}},
-          "Inicia sesión")))),
+      {auth==="app" && user && <>
 
-    // APP
-    auth==="app"&&user&&E(React.Fragment,null,
+        {screen==="home" && <>
+          <div className="home-hero">
+            <div className="greet-sm">Buenas,</div>
+            <div className="greet-lg">{user.name.split(" ")[0]} <span>👋</span></div>
+            {!notif && (
+              <div className="notif-ban">
+                <div style={{fontSize:22}}>🔔</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Activa las notificaciones</div>
+                  <div style={{fontSize:11,color:"var(--t3)"}}>Entérate de estrenos según tus gustos</div>
+                </div>
+                <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
+              </div>
+            )}
+            <button className="quiz-cta" onClick={()=>goQuiz(false)}>
+              <div><div style={{fontSize:17,fontWeight:700,letterSpacing:"-0.02em",marginBottom:2}}>¿Qué veo hoy?</div><div style={{fontSize:12,opacity:.75,fontWeight:300}}>Test de estado de ánimo · personalizado</div></div>
+              <div style={{fontSize:36}}>🎬</div>
+            </button>
+            <button className="marathon-cta" onClick={()=>goQuiz(true)}>
+              <div><div style={{fontSize:15,fontWeight:700}}>🍿 Modo Maratón</div><div style={{fontSize:12,opacity:.75,fontWeight:300}}>Tengo tiempo. Dame todo.</div></div>
+              <div style={{fontSize:26}}>→</div>
+            </button>
+          </div>
+          <div className="page" style={{paddingTop:8}}>
+            {potw && <>
+              <div className="sec">Peli de la semana</div>
+              <div className="potw-card" onClick={()=>goDetail(potw,"home")}>
+                {potw.backdrop?<img className="potw-bg" src={potw.backdrop} alt="" loading="lazy"/>:<div style={{width:"100%",height:170,background:"var(--s2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:48}}>🎬</div>}
+                <div className="potw-ov">
+                  <div className="potw-tag">✦ TRENDING ESTA SEMANA</div>
+                  <div className="potw-title">{potw.titleEs||potw.title}{potw.score>0?` · ⭐${potw.score}`:""}</div>
+                </div>
+              </div>
+            </>}
+            <div className="stats-row">
+              <div className="stat-card"><div className="stat-n">{user.score}</div><div className="stat-l">Puntos</div></div>
+              <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
+              <div className="stat-card"><div className="stat-n">{reviews.filter(r=>r.userId===user.id).length}</div><div className="stat-l">Reseñas</div></div>
+            </div>
+            {films.length>0&&<button className="btn btn-s" style={{marginBottom:10}} onClick={()=>setScreen("results")}>Ver últimas recomendaciones →</button>}
+            <div className="invite-row" onClick={()=>setShowInv(true)}>
+              <div><div className="ir-t">Invitar amigos</div><div className="ir-s">+100 pts cuando se registren con tu código</div></div>
+              <span style={{color:"var(--acc2)"}}>→</span>
+            </div>
+            {(user.watchlist||[]).length>0 && <>
+              <div className="sec">Mi lista</div>
+              {(user.watchlist||[]).slice(0,4).map((f,i)=>(
+                <div key={i} className="wl-item" onClick={()=>goDetail(f,"home")}>
+                  {f.poster?<img className="wl-p" src={f.poster} alt="" loading="lazy"/>:<div className="wl-pe">🎬</div>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="wl-title">{f.titleEs||f.title}</div>
+                    <div className="wl-meta" style={{display:"flex",gap:5,alignItems:"center"}}><TypePill item={f}/> {f.year}</div>
+                  </div>
+                </div>
+              ))}
+            </>}
+          </div>
+        </>}
 
-      // HOME
-      screen==="home"&&E(React.Fragment,null,
-        E("div",{className:"home-hero"},
-          E("div",{className:"greet-sm"},"Buenas,"),
-          E("div",{className:"greet-lg"},user.name.split(" ")[0]," ",E("span",null,"👋")),
-          !notif&&E("div",{className:"notif-ban"},E("div",{style:{fontSize:24}},"🔔"),E("div",{className:"nb-txt"},E("div",{className:"nb-ttl"},"Activa las notificaciones"),E("div",{className:"nb-sub"},"Entérate de estrenos según tus gustos")),E("button",{className:"nb-btn",onClick:reqNotif},"Activar")),
-          E("button",{className:"quiz-cta",onClick:()=>goQuiz(false)},E("div",null,E("div",{className:"qct"},"¿Qué veo hoy?"),E("div",{className:"qcs"},"Test de estado de ánimo · personalizado")),E("div",{className:"qci"},"🎬")),
-          E("button",{className:"marathon-cta",onClick:()=>goQuiz(true)},E("div",null,E("div",{className:"qct",style:{fontSize:15}},"🍿 Modo Maratón"),E("div",{className:"qcs"},"Tengo tiempo. Dame todo.")),E("div",{style:{fontSize:26}},"→"))),
-        E("div",{className:"page",style:{paddingTop:8}},
-          potw&&E(React.Fragment,null,E("div",{className:"sec"},"Peli de la semana"),E("div",{className:"potw-card",onClick:()=>goDetail(potw,"home")},
-            potw.backdrop?E("img",{className:"potw-bg",src:potw.backdrop,alt:"",loading:"lazy"}):E("div",{className:"potw-bg-e"},"🎬"),
-            E("div",{className:"potw-ov"},E("div",{className:"potw-tag"},"✦ TRENDING ESTA SEMANA"),E("div",{className:"potw-title"},(potw.titleEs||potw.title)+(potw.score>0?" · ⭐"+potw.score:""))))),
-          E("div",{className:"stats-row"},
-            E("div",{className:"stat-card"},E("div",{className:"stat-n"},user.score),E("div",{className:"stat-l"},"Puntos")),
-            E("div",{className:"stat-card"},E("div",{className:"stat-n"},(user.watched||[]).length),E("div",{className:"stat-l"},"Vistas")),
-            E("div",{className:"stat-card"},E("div",{className:"stat-n"},reviews.filter(r=>r.userId===user.id).length),E("div",{className:"stat-l"},"Reseñas"))),
-          films.length>0&&E("button",{className:"btn btn-s",style:{marginBottom:10},onClick:()=>setScreen("results")},"Ver últimas recomendaciones →"),
-          E("div",{className:"invite-row",onClick:()=>setShowInv(true)},
-            E("div",null,E("div",{className:"ir-t"},"Invitar amigos"),E("div",{className:"ir-s"},"+100 pts cuando se registren con tu código")),
-            E("span",{style:{color:"var(--acc2)"}},"→")),
-          (user.watchlist||[]).length>0&&E(React.Fragment,null,
-            E("div",{className:"sec"},"Mi lista"),
-            (user.watchlist||[]).slice(0,4).map((f,i)=>E("div",{key:i,className:"wl-item",onClick:()=>goDetail(f,"home")},
-              f.poster?E("img",{className:"wl-p",src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"wl-pe"},"🎬"),
-              E("div",{style:{flex:1,minWidth:0}},E("div",{className:"wl-title"},f.titleEs||f.title),E("div",{className:"wl-meta",style:{display:"flex",gap:6,alignItems:"center"}},E(TypePill,{item:f}),f.year))))))),
+        {screen==="search" && <>
+          <div className="search-hd">
+            <div className="logo" style={{marginBottom:14}}>ra<span>ck</span></div>
+            <div className="search-box">
+              <span className="si-ic">🔍</span>
+              <input className="search-input" placeholder="Busca películas o series..." value={searchQ} onChange={e=>setSearchQ(e.target.value)} autoFocus/>
+              {searchQ&&<button className="si-cl" onClick={()=>{setSearchQ("");setSearchRes([]);}}>✕</button>}
+            </div>
+            <div className="ptabs">
+              <button className={`ptab${ptab==="all"?" on":""}`} onClick={()=>setPtab("all")}>Todo</button>
+              {Object.keys(PLATFORMS).map(p=>(
+                <button key={p} className={`ptab${ptab===p?" on":""}`} onClick={()=>{setPtab(p);setSearchQ("");}}>
+                  {PLATFORMS[p].icon} {p}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="page" style={{paddingTop:8}}>
+            {ptab==="all" ? <>
+              {searching&&<div style={{textAlign:"center",padding:"32px 0",color:"var(--t3)"}}>Buscando...</div>}
+              {!searching&&searchRes.length>0&&searchRes.map((f,i)=>(
+                <div key={i} className="fli" onClick={()=>goDetail(f,"search")}>
+                  {f.poster?<img className="fli-p" src={f.poster} alt="" loading="lazy"/>:<div className="fli-pe">🎬</div>}
+                  <div className="fli-info">
+                    <div className="fli-title">{f.titleEs||f.title}</div>
+                    <div className="fli-meta"><TypePill item={f}/>{f.year&&<span>{f.year}</span>}{f.score>0&&<span className="fli-sc">⭐{f.score}</span>}</div>
+                    <div className="fli-desc">{f.description}</div>
+                    <div className="fli-acts" onClick={e=>e.stopPropagation()}>
+                      <button className={`pb ${isL(f)?"pb-done":"pb-neu"}`} onClick={()=>addL(f)}>{isL(f)?"✓ Lista":"+ Lista"}</button>
+                      <button className={`pb ${isW(f)?"pb-done":"pb-acc"}`} onClick={()=>markW(f)}>{isW(f)?"✓ Vista":"Marcar vista"}</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!searching&&!searchQ&&<div className="empty"><div className="empty-i">🍿</div><div className="empty-t">Busca cualquier peli o serie</div></div>}
+              {!searching&&searchQ&&searchRes.length===0&&<div className="empty"><div className="empty-i">🔎</div><div className="empty-t">Sin resultados para "{searchQ}"</div></div>}
+            </> : <>
+              {loadingPlat&&<div style={{textAlign:"center",padding:"32px 0",color:"var(--t3)"}}>Cargando {ptab}...</div>}
+              {!loadingPlat&&platRes.map((f,i)=>(
+                <div key={i} className="fli" onClick={()=>goDetail(f,"search")}>
+                  {f.poster?<img className="fli-p" src={f.poster} alt="" loading="lazy"/>:<div className="fli-pe">🎬</div>}
+                  <div className="fli-info">
+                    <div className="fli-title">{f.titleEs||f.title}</div>
+                    <div className="fli-meta"><TypePill item={f}/>{f.year&&<span>{f.year}</span>}{f.score>0&&<span className="fli-sc">⭐{f.score}</span>}</div>
+                    <div className="fli-desc">{f.description}</div>
+                    <div className="fli-acts" onClick={e=>e.stopPropagation()}>
+                      <button className={`pb ${isL(f)?"pb-done":"pb-neu"}`} onClick={()=>addL(f)}>{isL(f)?"✓ Lista":"+ Lista"}</button>
+                      <button className={`pb ${isW(f)?"pb-done":"pb-acc"}`} onClick={()=>markW(f)}>{isW(f)?"✓ Vista":"Marcar vista"}</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>}
+          </div>
+        </>}
 
-      // SEARCH
-      screen==="search"&&E(React.Fragment,null,
-        E("div",{className:"search-hd"},
-          E("div",{className:"logo",style:{marginBottom:14}},"ra",E("span",null,"ck")),
-          E("div",{className:"search-box"},
-            E("span",{className:"si-ic"},"🔍"),
-            E("input",{className:"search-input",placeholder:"Busca películas o series...",value:searchQ,onChange:e=>setSearchQ(e.target.value),autoFocus:true}),
-            searchQ&&E("button",{className:"si-cl",onClick:()=>{setSearchQ("");setSearchRes([]);}},"✕")),
-          E("div",{className:"ptabs"},
-            E("button",{className:"ptab"+(ptab==="all"?" active":""),onClick:()=>setPtab("all")},"Todo"),
-            Object.keys(PLATFORMS).map(p=>E("button",{key:p,className:"ptab"+(ptab===p?" active":""),onClick:()=>{setPtab(p);setSearchQ("");}},PLATFORMS[p].icon," ",p)))),
-        E("div",{className:"page",style:{paddingTop:8}},
-          ptab==="all"?E(React.Fragment,null,
-            searching&&E("div",{style:{textAlign:"center",padding:"32px 0",color:"var(--t3)"}},"Buscando..."),
-            !searching&&searchRes.length>0&&searchRes.map((f,i)=>E("div",{key:i,className:"fli",onClick:()=>goDetail(f,"search")},
-              f.poster?E("img",{className:"fli-p",src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"fli-pe"},"🎬"),
-              E("div",{className:"fli-info"},
-                E("div",{className:"fli-title"},f.titleEs||f.title),
-                E("div",{className:"fli-meta"},E(TypePill,{item:f}),f.year&&E("span",null,f.year),f.score>0&&E("span",{className:"fli-sc"},"⭐",f.score)),
-                E("div",{className:"fli-desc"},f.description),
-                E("div",{className:"fli-acts",onClick:e=>e.stopPropagation()},
-                  E("button",{className:"pb "+(isL(f)?"pb-done":"pb-neu"),onClick:()=>addL(f)},isL(f)?"✓ Lista":"+ Lista"),
-                  E("button",{className:"pb "+(isW(f)?"pb-done":"pb-acc"),onClick:()=>markW(f)},isW(f)?"✓ Vista":"Marcar vista"))))),
-            !searching&&!searchQ&&E("div",{className:"empty"},E("div",{className:"empty-i"},"🍿"),E("div",{className:"empty-t"},"Busca cualquier peli o serie")),
-            !searching&&searchQ&&searchRes.length===0&&E("div",{className:"empty"},E("div",{className:"empty-i"},"🔎"),E("div",{className:"empty-t"},'Sin resultados para "'+searchQ+'"'))):
-          E(React.Fragment,null,
-            loadingPlatform&&E("div",{style:{textAlign:"center",padding:"32px 0",color:"var(--t3)"}},"Cargando..."),
-            !loadingPlatform&&platRes.map((f,i)=>E("div",{key:i,className:"fli",onClick:()=>goDetail(f,"search")},
-              f.poster?E("img",{className:"fli-p",src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"fli-pe"},"🎬"),
-              E("div",{className:"fli-info"},
-                E("div",{className:"fli-title"},f.titleEs||f.title),
-                E("div",{className:"fli-meta"},E(TypePill,{item:f}),f.year&&E("span",null,f.year),f.score>0&&E("span",{className:"fli-sc"},"⭐",f.score)),
-                E("div",{className:"fli-desc"},f.description),
-                E("div",{className:"fli-acts",onClick:e=>e.stopPropagation()},
-                  E("button",{className:"pb "+(isL(f)?"pb-done":"pb-neu"),onClick:()=>addL(f)},isL(f)?"✓ Lista":"+ Lista"),
-                  E("button",{className:"pb "+(isW(f)?"pb-done":"pb-acc"),onClick:()=>markW(f)},isW(f)?"✓ Vista":"Marcar vista")))))))),
+        {screen==="quiz" && (
+          <div className="quiz-page">
+            <div className="quiz-hd">
+              <div className="quiz-prog"><div className="quiz-fill" style={{width:`${(quizStep/QUESTIONS.length)*100}%`}}/></div>
+              <button className="q-exit" onClick={exitQuiz}>Salir</button>
+            </div>
+            <div className="quiz-body">
+              <div className="q-step">{quizStep+1} / {QUESTIONS.length}</div>
+              <h2 className="q-q">{q.q}</h2>
+              {q.multi ? <>
+                <div className="opts-2">
+                  {q.opts.map(o=>(
+                    <button key={o} className={`opt${multi.includes(o)?" sel":""}`} onClick={()=>pickOpt(o)}>
+                      {o}<span className="opt-chk">{multi.includes(o)?"✓":""}</span>
+                    </button>
+                  ))}
+                </div>
+                <button className="quiz-next" onClick={nextMulti} disabled={multi.length===0}>Continuar →</button>
+              </> : (
+                <div className="opts">
+                  {q.opts.map(o=>(
+                    <button key={o} className={`opt${answers[q.id]===o?" sel":""}`} onClick={()=>pickOpt(o)}>{o}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
-      // QUIZ
-      screen==="quiz"&&E("div",{className:"quiz-page"},
-        E("div",{className:"quiz-hd"},
-          E("div",{className:"quiz-prog"},E("div",{className:"quiz-fill",style:{width:(quizStep/QUESTIONS.length*100)+"%"}})),
-          E("button",{className:"q-exit",onClick:exitQuiz},"Salir")),
-        E("div",{className:"quiz-body"},
-          E("div",{className:"q-step"},(quizStep+1)+" / "+QUESTIONS.length),
-          E("h2",{className:"q-q"},q.q),
-          q.multi?E(React.Fragment,null,
-            E("div",{className:"opts-2"},q.opts.map(o=>E("button",{key:o,className:"opt"+(multi.includes(o)?" sel":""),onClick:()=>pickOpt(o)},o,E("span",{className:"opt-chk"},multi.includes(o)?"✓":"")))),
-            E("button",{className:"quiz-next",onClick:nextMulti,disabled:multi.length===0},"Continuar →")):
-          E("div",{className:"opts"},q.opts.map(o=>E("button",{key:o,className:"opt"+(answers[q.id]===o?" sel":""),onClick:()=>pickOpt(o)},o))))),
+        {screen==="results"&&loading&&(
+          <div className="loading-page"><div className="spinner"/><div className="loading-txt">{marathon?"Armando tu maratón...":"Buscando en la cinemateca..."}</div></div>
+        )}
 
-      // LOADING
-      screen==="results"&&loading&&E("div",{className:"loading-page"},E("div",{className:"spinner"}),E("div",{className:"loading-txt"},marathon?"Armando tu maratón...":"Buscando en la cinemateca...")),
+        {screen==="results"&&!loading&&(
+          <>
+            <div className="res-hd">
+              <div className="res-lbl">{marathon?"🍿 MODO MARATÓN":"✨ SOLO PARA TI"}</div>
+              <div className="res-title">{films.length} recomendaciones</div>
+            </div>
+            <div className="page" style={{paddingTop:0}}>
+              {marathon && (
+                <div className="marathon-sec">
+                  <div className="ms-title">🍿 Tu sesión maratón</div>
+                  {films.slice(0,4).map((f,i)=>(
+                    <div key={i} className="ms-item" onClick={()=>goDetail(f,"results")}>
+                      <div className="ms-num">{i+1}</div>
+                      <div style={{flex:1}}><div className="ms-name">{f.titleEs||f.title}</div><div className="ms-dur">{f.duration||f.type}</div></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="fgrid">
+                {films.map((f,i)=>(
+                  <div key={i} className="fthumb" onClick={()=>goDetail(f,"results")}>
+                    {f.poster?<img src={f.poster} alt="" loading="lazy"/>:<div className="fthumb-e">🎬</div>}
+                    <div className="fthumb-info">
+                      <div style={{marginBottom:3}}><TypePill item={f}/></div>
+                      <div className="fti-t">{f.titleEs||f.title}</div>
+                      <div className="fti-m"><span className="fti-sc">⭐{f.score}</span><span>{f.year}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button className="btn btn-p" style={{marginTop:16}} onClick={()=>goQuiz(marathon)}>Nuevo test</button>
+            </div>
+          </>
+        )}
 
-      // RESULTS
-      screen==="results"&&!loading&&E(React.Fragment,null,
-        E("div",{className:"res-hd"},
-          E("div",{className:"res-lbl"},marathon?"🍿 MODO MARATÓN":"✨ SOLO PARA TI"),
-          E("div",{className:"res-title"},films.length+" recomendaciones")),
-        E("div",{className:"page",style:{paddingTop:0}},
-          marathon&&E("div",{className:"marathon-sec"},
-            E("div",{className:"ms-title"},"🍿 Tu sesión maratón"),
-            films.slice(0,4).map((f,i)=>E("div",{key:i,className:"ms-item",onClick:()=>goDetail(f,"results")},
-              E("div",{className:"ms-num"},i+1),
-              E("div",{style:{flex:1}},E("div",{className:"ms-name"},f.titleEs||f.title),E("div",{className:"ms-dur"},f.duration||f.type))))),
-          E("div",{className:"fgrid"},films.map((f,i)=>E("div",{key:i,className:"fthumb",onClick:()=>goDetail(f,"results")},
-            f.poster?E("img",{src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"fthumb-e"},"🎬"),
-            E("div",{className:"fthumb-info"},E("div",{style:{marginBottom:3}},E(TypePill,{item:f})),E("div",{className:"fti-t"},f.titleEs||f.title),E("div",{className:"fti-m"},E("span",{className:"fti-sc"},"⭐",f.score),E("span",null,f.year)))))),
-          E("button",{className:"btn btn-p",style:{marginTop:16},onClick:()=>goQuiz(marathon)},"Nuevo test"))),
+        {screen==="detail"&&sel&&(
+          <>
+            <button className="det-back-btn" onClick={()=>setScreen(prev)}>←</button>
+            {sel.backdrop?<img className="det-backdrop" src={sel.backdrop} alt=""/>:<div className="det-bd-e">🎬</div>}
+            <div className="det-body">
+              <div className="det-over">
+                <div className="det-row">
+                  {sel.poster?<img className="det-poster" src={sel.poster} alt=""/>:<div className="det-poster-e">🎬</div>}
+                  <div className="det-meta">
+                    <div style={{marginBottom:5}}><TypePill item={sel}/></div>
+                    <div className="det-title">{sel.titleEs||sel.title}</div>
+                    <div className="det-info">
+                      {sel.director&&<div>🎬 {sel.director}</div>}
+                      <div>📅 {sel.year}{sel.duration?` · ${sel.duration}`:""}</div>
+                      {sel.genres?.length>0&&<div>🏷 {sel.genres.join(", ")}</div>}
+                    </div>
+                  </div>
+                </div>
+                {sel.tagline&&<div className="det-tagline">"{sel.tagline}"</div>}
+                <div className="scores-row">
+                  {sel.score>0&&<div className="spill"><div className="spill-n">⭐{sel.score}</div><div className="spill-l">TMDB</div></div>}
+                  {filmRevs.length>0&&<div className="spill"><div className="spill-n">{(filmRevs.reduce((a,r)=>a+r.stars,0)/filmRevs.length).toFixed(1)}</div><div className="spill-l">Rack</div></div>}
+                </div>
+                {sel.description&&<p className="det-desc">{sel.description}</p>}
+                {sel.cast?.length>0&&<>
+                  <div className="sec">Reparto</div>
+                  <div className="cast-row">
+                    {sel.cast.map((c,i)=>(
+                      <div key={i} className="cast-item">
+                        <div className="cast-av">{ini(c)}</div>
+                        <div className="cast-name">{c.split(" ")[0]}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>}
+                <div className="det-btns">
+                  <button className={`det-btn db-p${isW(sel)?" db-done":""}`} onClick={()=>markW(sel)}>{isW(sel)?"✓ Vista":"Marcar como vista"}</button>
+                  <button className={`det-btn db-s${isL(sel)?" db-done":""}`} onClick={()=>addL(sel)}>{isL(sel)?"✓ En lista":"+ Mi lista"}</button>
+                </div>
+                <StreamLinks film={sel}/>
+                <ShareBtns film={sel}/>
+                <div className="sec" style={{marginTop:18}}>Tu reseña</div>
+                <div className="rev-sec">
+                  <div style={{fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--t3)",marginBottom:9}}>Puntúa y reseña</div>
+                  <div className="stars">{[1,2,3,4,5].map(s=><button key={s} className={`star${s<=revSt?" on":""}`} onClick={()=>setRevSt(s)}>★</button>)}</div>
+                  <textarea className="rev-ta" placeholder="¿Qué te pareció?" value={revTxt} onChange={e=>setRevTxt(e.target.value)}/>
+                  <button className="rev-sub" disabled={!revTxt.trim()||!revSt} onClick={()=>submitRev(sel)}>Publicar reseña</button>
+                </div>
+                {filmRevs.length>0&&<>
+                  <div className="sec">Reseñas · {filmRevs.length}</div>
+                  {filmRevs.map(r=>(
+                    <div key={r.id} className="rc">
+                      <div className="rc-h">
+                        <div className="rc-ui"><div className="rc-av">{ini(r.userName)}</div><div><div className="rc-name">{r.userName}</div><div className="rc-handle">@{r.handle}</div></div></div>
+                        <div className="rc-stars">{"★".repeat(r.stars)}</div>
+                      </div>
+                      <p className="rc-txt">{r.text}</p>
+                      <button className={`rc-like${r.likedBy.includes(user.id)?" liked":""}`} onClick={()=>toggleLike(r.id)}>♥ {r.likes}</button>
+                    </div>
+                  ))}
+                </>}
+              </div>
+            </div>
+          </>
+        )}
 
-      // DETAIL
-      screen==="detail"&&sel&&E(React.Fragment,null,
-        E("div",{className:"det-back"},E("button",{className:"det-back-btn",onClick:()=>setScreen(prev)},"←")),
-        sel.backdrop?E("img",{className:"det-backdrop",src:sel.backdrop,alt:""}):E("div",{className:"det-bd-e"},"🎬"),
-        E("div",{className:"det-body"},
-          E("div",{className:"det-over"},
-            E("div",{className:"det-row"},
-              sel.poster?E("img",{className:"det-poster",src:sel.poster,alt:""}):E("div",{className:"det-poster-e"},"🎬"),
-              E("div",{className:"det-meta"},
-                E("div",{style:{marginBottom:5}},E(TypePill,{item:sel})),
-                E("div",{className:"det-title"},sel.titleEs||sel.title),
-                E("div",{className:"det-info"},
-                  sel.director&&E("div",null,"🎬 ",sel.director),
-                  E("div",null,"📅 ",sel.year,sel.duration?" · "+sel.duration:""),
-                  sel.country&&E("div",null,"🌍 ",sel.country),
-                  sel.genres?.length>0&&E("div",null,"🏷 ",sel.genres.join(", "))))),
-            sel.tagline&&E("div",{className:"det-tagline"},'"',sel.tagline,'"'),
-            E("div",{className:"scores-row"},
-              sel.score>0&&E("div",{className:"spill"},E("div",{className:"spill-n"},"⭐",sel.score),E("div",{className:"spill-l"},"TMDB")),
-              filmRevs.length>0&&E("div",{className:"spill"},E("div",{className:"spill-n"},(filmRevs.reduce((a,r)=>a+r.stars,0)/filmRevs.length).toFixed(1)),E("div",{className:"spill-l"},"Rack"))),
-            sel.description&&E("p",{className:"det-desc"},sel.description),
-            sel.cast?.length>0&&E(React.Fragment,null,
-              E("div",{className:"sec"},"Reparto"),
-              E("div",{className:"cast-row"},sel.cast.map((c,i)=>E("div",{key:i,className:"cast-item"},E("div",{className:"cast-av"},ini(c)),E("div",{className:"cast-name"},c.split(" ")[0]))))),
-            E("div",{className:"det-btns"},
-              E("button",{className:"det-btn db-p"+(isW(sel)?" db-done":""),onClick:()=>markW(sel)},isW(sel)?"✓ Vista":"Marcar como vista"),
-              E("button",{className:"det-btn db-s"+(isL(sel)?" db-done":""),onClick:()=>addL(sel)},isL(sel)?"✓ En lista":"+ Mi lista")),
-            E(StreamLinks,{film:sel}),
-            E(ShareBtns,{film:sel}),
-            E("div",{className:"sec",style:{marginTop:18}},"Tu reseña"),
-            E("div",{className:"rev-sec"},
-              E("div",{className:"rev-lbl"},"Puntúa y reseña"),
-              E("div",{className:"stars"},[1,2,3,4,5].map(s=>E("button",{key:s,className:"star"+(s<=revSt?" on":""),onClick:()=>setRevSt(s)},"★"))),
-              E("textarea",{className:"rev-ta",placeholder:"¿Qué te pareció?",value:revTxt,onChange:e=>setRevTxt(e.target.value)}),
-              E("button",{className:"rev-sub",disabled:!revTxt.trim()||!revSt,onClick:()=>submitRev(sel)},"Publicar reseña")),
-            filmRevs.length>0&&E(React.Fragment,null,
-              E("div",{className:"sec"},"Reseñas · "+filmRevs.length),
-              filmRevs.map(r=>E("div",{key:r.id,className:"rc"},
-                E("div",{className:"rc-h"},
-                  E("div",{className:"rc-ui"},E("div",{className:"rc-av"},ini(r.userName)),E("div",null,E("div",{className:"rc-name"},r.userName),E("div",{className:"rc-handle"},"@",r.handle))),
-                  E("div",{className:"rc-stars"},"★".repeat(r.stars))),
-                E("p",{className:"rc-txt"},r.text),
-                E("button",{className:"rc-like"+(r.likedBy.includes(user.id)?" liked":""),onClick:()=>toggleLike(r.id)},"♥ ",r.likes))))))),
+        {screen==="social"&&(
+          <>
+            <div className="ph"><div className="logo">ra<span>ck</span></div></div>
+            <div className="page" style={{paddingTop:0}}>
+              <div className="tab-row">
+                {["feed","ranking","reseñas","estrenos"].map(t=>(
+                  <button key={t} className={`tab-btn${socTab===t?" active":""}`} onClick={()=>setSocTab(t)}>
+                    {t.charAt(0).toUpperCase()+t.slice(1)}
+                  </button>
+                ))}
+              </div>
+              {socTab==="feed"&&DEMO_FEED.map((a,i)=>(
+                <div key={i} className="act-item">
+                  <div className="act-av">{a.u.split(" ").map(w=>w[0]).join("").slice(0,2)}</div>
+                  <div className="act-body">
+                    <div className="act-txt"><strong>{a.u}</strong> {a.a} <em>{a.f}</em></div>
+                    <div className="act-time">hace {a.t}</div>
+                  </div>
+                </div>
+              ))}
+              {socTab==="ranking"&&[...allUsers,{id:user.id,name:user.name,score:user.score}]
+                .filter((u,i,a)=>a.findIndex(x=>x.id===u.id)===i).sort((a,b)=>b.score-a.score)
+                .map((u,i)=>(
+                <div key={u.id} className={`rank-row${u.id===user.id?" me":""}`}>
+                  <div className={`rank-n${i===0?" gold":""}`}>{i+1}</div>
+                  <div className="rank-av">{ini(u.name)}</div>
+                  <div className="rank-info"><div className="rank-name">{u.name}{u.id===user.id?" (tú)":""}</div><div className="rank-badge">{getBadge(u.score).icon} {getBadge(u.score).label}</div></div>
+                  <div style={{textAlign:"right"}}><div className="rank-score">{u.score}</div><div style={{fontSize:9,color:"var(--t3)"}}>pts</div></div>
+                </div>
+              ))}
+              {socTab==="reseñas"&&reviews.map(r=>(
+                <div key={r.id} className="rc" style={{paddingTop:13}}>
+                  <div style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--acc2)",marginBottom:6}}>{r.film}</div>
+                  <div className="rc-h">
+                    <div className="rc-ui"><div className="rc-av">{ini(r.userName)}</div><div><div className="rc-name">{r.userName}</div><div className="rc-handle">@{r.handle}</div></div></div>
+                    <div className="rc-stars">{"★".repeat(r.stars)}</div>
+                  </div>
+                  <p className="rc-txt" style={{marginTop:7}}>{r.text}</p>
+                  <button className={`rc-like${r.likedBy.includes(user.id)?" liked":""}`} onClick={()=>toggleLike(r.id)}>♥ {r.likes}</button>
+                </div>
+              ))}
+              {socTab==="estrenos"&&<>
+                {!notif&&(
+                  <div className="notif-ban" style={{marginBottom:14}}>
+                    <div style={{fontSize:22}}>🔔</div>
+                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Notificaciones de estrenos</div><div style={{fontSize:11,color:"var(--t3)"}}>No te pierdas ningún estreno</div></div>
+                    <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
+                  </div>
+                )}
+                {upcoming.length===0&&<div style={{textAlign:"center",padding:"32px 0"}}><div className="spinner"/></div>}
+                {upcoming.map((f,i)=>(
+                  <div key={i} className="up-item">
+                    {f.poster?<img className="up-p" src={f.poster} alt="" loading="lazy"/>:<div className="up-pe">🎬</div>}
+                    <div style={{flex:1}}>
+                      <div className="up-title">{f.titleEs||f.title}</div>
+                      <div className="up-date">📅 {f.releaseDate||f.year}</div>
+                      <div className="up-desc">{f.description}</div>
+                      <div className="toggle-wrap">
+                        <div className={`toggle-track${notifF[f.id]?" on":""}`} onClick={()=>{toggleNotifF(f.id);t_(notifF[f.id]?"Cancelado":"🔔 Te avisamos del estreno");}}>
+                          <div className="toggle-thumb"/>
+                        </div>
+                        <span className="toggle-lbl">{notifF[f.id]?"Activada":"Avisarme del estreno"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>}
+            </div>
+          </>
+        )}
 
-      // SOCIAL
-      screen==="social"&&E(React.Fragment,null,
-        E("div",{className:"ph"},E("div",{className:"logo"},"ra",E("span",null,"ck"))),
-        E("div",{className:"page",style:{paddingTop:0}},
-          E("div",{className:"tab-row"},["feed","ranking","reseñas","estrenos"].map(t=>E("button",{key:t,className:"tab-btn"+(socTab===t?" active":""),onClick:()=>setSocTab(t)},t.charAt(0).toUpperCase()+t.slice(1)))),
-          socTab==="feed"&&DEMO_FEED.map((a,i)=>E("div",{key:i,className:"act-item"},
-            E("div",{className:"act-av"},a.u.split(" ").map(w=>w[0]).join("").slice(0,2)),
-            E("div",{className:"act-body"},E("div",{className:"act-txt"},E("strong",null,a.u)," ",a.a," ",E("em",null,a.f)),E("div",{className:"act-time"},"hace ",a.t)))),
-          socTab==="ranking"&&[...allUsers,{id:user.id,name:user.name,score:user.score}]
-            .filter((u,i,a)=>a.findIndex(x=>x.id===u.id)===i).sort((a,b)=>b.score-a.score)
-            .map((u,i)=>E("div",{key:u.id,className:"rank-row"+(u.id===user.id?" me":"")},
-              E("div",{className:"rank-n"+(i===0?" gold":"")},i+1),
-              E("div",{className:"rank-av"},ini(u.name)),
-              E("div",{className:"rank-info"},E("div",{className:"rank-name"},u.name,u.id===user.id?" (tú)":""),E("div",{className:"rank-badge"},getBadge(u.score).icon," ",getBadge(u.score).label)),
-              E("div",{style:{textAlign:"right"}},E("div",{className:"rank-score"},u.score),E("div",{style:{fontSize:9,color:"var(--t3)"}},"pts")))),
-          socTab==="reseñas"&&reviews.map(r=>E("div",{key:r.id,className:"rc",style:{paddingTop:13}},
-            E("div",{style:{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--acc2)",marginBottom:6}},r.film),
-            E("div",{className:"rc-h"},E("div",{className:"rc-ui"},E("div",{className:"rc-av"},ini(r.userName)),E("div",null,E("div",{className:"rc-name"},r.userName),E("div",{className:"rc-handle"},"@",r.handle))),E("div",{className:"rc-stars"},"★".repeat(r.stars))),
-            E("p",{className:"rc-txt",style:{marginTop:7}},r.text),
-            E("button",{className:"rc-like"+(r.likedBy.includes(user.id)?" liked":""),onClick:()=>toggleLike(r.id)},"♥ ",r.likes))),
-          socTab==="estrenos"&&E(React.Fragment,null,
-            !notif&&E("div",{className:"notif-ban",style:{marginBottom:14}},E("div",{style:{fontSize:22}},"🔔"),E("div",{className:"nb-txt"},E("div",{className:"nb-ttl"},"Notificaciones de estrenos"),E("div",{className:"nb-sub"},"No te pierdas ningún estreno")),E("button",{className:"nb-btn",onClick:reqNotif},"Activar")),
-            upcoming.length===0&&E("div",{style:{textAlign:"center",padding:"32px 0"}},E("div",{className:"spinner"})),
-            upcoming.map((f,i)=>E("div",{key:i,className:"up-item"},
-              f.poster?E("img",{className:"up-p",src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"up-pe"},"🎬"),
-              E("div",{style:{flex:1}},
-                E("div",{className:"up-title"},f.titleEs||f.title),
-                E("div",{className:"up-date"},"📅 ",f.releaseDate||f.year),
-                E("div",{className:"up-desc"},f.description),
-                E("div",{className:"toggle-wrap"},
-                  E("div",{className:"toggle-track"+(notifF[f.id]?" on":""),onClick:()=>{toggleNotifF(f.id);t_(notifF[f.id]?"Cancelado":"🔔 Te avisamos del estreno");}},E("div",{className:"toggle-thumb"})),
-                  E("span",{className:"toggle-lbl"},notifF[f.id]?"Notificación activada":"Avisarme"))))))),
+        {screen==="profile"&&(
+          <>
+            <div className="prof-hd">
+              <div className="prof-av">{ini(user.name)}</div>
+              <div className="prof-name">{user.name}</div>
+              <div className="prof-handle">@{user.handle}</div>
+              <div className="prof-badge" style={{marginTop:6}}>{badge?.icon} {badge?.label}</div>
+            </div>
+            <div className="page" style={{paddingTop:0}}>
+              <div className="score-blk">
+                <div className="score-big">{user.score}</div>
+                <div className="score-lbl">Puntos cinéfilos</div>
+                <div className="prog-bar"><div className="prog-fill" style={{width:`${prog}%`}}/></div>
+                <div className="prog-labels"><span>{badge?.icon} {badge?.label}</span>{nextB&&<span>{nextB.label} · {nextB.min-user.score} pts</span>}</div>
+              </div>
+              <div className="stats-row">
+                <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
+                <div className="stat-card"><div className="stat-n">{reviews.filter(r=>r.userId===user.id).length}</div><div className="stat-l">Reseñas</div></div>
+                <div className="stat-card"><div className="stat-n">{(user.watchlist||[]).length}</div><div className="stat-l">Lista</div></div>
+              </div>
+              <div className="invite-row" onClick={()=>setShowInv(true)}>
+                <div><div className="ir-t">Código de invitación</div><div className="ir-s" style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:"var(--acc2)",marginTop:3}}>{invCode}</div></div>
+                <span style={{color:"var(--acc2)"}}>→</span>
+              </div>
+              {(user.watched||[]).length>0&&<>
+                <div className="sec">Películas vistas</div>
+                {(user.watched||[]).map((f,i)=>(
+                  <div key={i} className="wl-item" onClick={()=>goDetail(f,"profile")}>
+                    {f.poster?<img className="wl-p" src={f.poster} alt="" loading="lazy"/>:<div className="wl-pe">🎬</div>}
+                    <div style={{flex:1,minWidth:0}}><div className="wl-title">{f.titleEs||f.title}</div><div className="wl-meta" style={{display:"flex",gap:5,alignItems:"center"}}><TypePill item={f}/> {f.year}</div></div>
+                    <div className="wl-pts">+{Math.round((parseFloat(f.score)||5)*10)}</div>
+                  </div>
+                ))}
+              </>}
+              {(user.watchlist||[]).length>0&&<>
+                <div className="sec">Mi lista</div>
+                {(user.watchlist||[]).map((f,i)=>(
+                  <div key={i} className="wl-item" onClick={()=>goDetail(f,"profile")}>
+                    {f.poster?<img className="wl-p" src={f.poster} alt="" loading="lazy"/>:<div className="wl-pe">🎬</div>}
+                    <div style={{flex:1,minWidth:0}}><div className="wl-title">{f.titleEs||f.title}</div><div className="wl-meta" style={{display:"flex",gap:5,alignItems:"center"}}><TypePill item={f}/> {f.year}</div></div>
+                  </div>
+                ))}
+              </>}
+              <button className="logout-btn" onClick={doLogout}>Cerrar sesión</button>
+            </div>
+          </>
+        )}
 
-      // PROFILE
-      screen==="profile"&&E(React.Fragment,null,
-        E("div",{className:"prof-hd"},
-          E("div",{className:"prof-av"},ini(user.name)),
-          E("div",{className:"prof-name"},user.name),
-          E("div",{className:"prof-handle"},"@",user.handle),
-          E("div",{className:"prof-badge",style:{marginTop:6}},badge?.icon," ",badge?.label)),
-        E("div",{className:"page",style:{paddingTop:0}},
-          E("div",{className:"score-blk"},
-            E("div",{className:"score-big"},user.score),
-            E("div",{className:"score-lbl"},"Puntos cinéfilos"),
-            E("div",{className:"prog-bar"},E("div",{className:"prog-fill",style:{width:prog+"%"}})),
-            E("div",{className:"prog-labels"},E("span",null,badge?.icon," ",badge?.label),nextB&&E("span",null,nextB.label," · ",nextB.min-user.score," pts"))),
-          E("div",{className:"stats-row"},
-            E("div",{className:"stat-card"},E("div",{className:"stat-n"},(user.watched||[]).length),E("div",{className:"stat-l"},"Vistas")),
-            E("div",{className:"stat-card"},E("div",{className:"stat-n"},reviews.filter(r=>r.userId===user.id).length),E("div",{className:"stat-l"},"Reseñas")),
-            E("div",{className:"stat-card"},E("div",{className:"stat-n"},(user.watchlist||[]).length),E("div",{className:"stat-l"},"Lista"))),
-          E("div",{className:"invite-row",onClick:()=>setShowInv(true)},
-            E("div",null,E("div",{className:"ir-t"},"Código de invitación"),E("div",{className:"ir-s",style:{fontFamily:"'DM Serif Display',serif",fontSize:18,color:"var(--acc2)",marginTop:3}},invCode)),
-            E("span",{style:{color:"var(--acc2)"}},"→")),
-          (user.watched||[]).length>0&&E(React.Fragment,null,
-            E("div",{className:"sec"},"Películas vistas"),
-            (user.watched||[]).map((f,i)=>E("div",{key:i,className:"wl-item",onClick:()=>goDetail(f,"profile")},
-              f.poster?E("img",{className:"wl-p",src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"wl-pe"},"🎬"),
-              E("div",{style:{flex:1,minWidth:0}},E("div",{className:"wl-title"},f.titleEs||f.title),E("div",{className:"wl-meta",style:{display:"flex",gap:5,alignItems:"center"}},E(TypePill,{item:f}),f.year)),
-              E("div",{className:"wl-pts"},"+",Math.round((parseFloat(f.score)||5)*10))))),
-          (user.watchlist||[]).length>0&&E(React.Fragment,null,
-            E("div",{className:"sec"},"Mi lista"),
-            (user.watchlist||[]).map((f,i)=>E("div",{key:i,className:"wl-item",onClick:()=>goDetail(f,"profile")},
-              f.poster?E("img",{className:"wl-p",src:f.poster,alt:"",loading:"lazy"}):E("div",{className:"wl-pe"},"🎬"),
-              E("div",{style:{flex:1,minWidth:0}},E("div",{className:"wl-title"},f.titleEs||f.title),E("div",{className:"wl-meta",style:{display:"flex",gap:5,alignItems:"center"}},E(TypePill,{item:f}),f.year))))),
-          E("button",{className:"logout-btn",onClick:doLogout},"Cerrar sesión"))),
-
-      // NAV
-      screen!=="quiz"&&E("nav",{className:"nav"},
-        [{s:"home",l:"Inicio",ic:"🏠"},{s:"search",l:"Buscar",ic:"🔍"},{s:"results",l:"Para ti",ic:"✨",dis:films.length===0},{s:"social",l:"Social",ic:"👥"},{s:"profile",l:"Perfil",ic:"👤"}]
-        .map(({s,l,ic,dis})=>E("button",{key:s,className:"nb"+(screen===s?" active":""),style:{opacity:dis?0.3:1},onClick:dis?undefined:()=>setScreen(s)},
-          E("div",{className:"nb-ic"},ic),E("span",null,l))))
-    )
+        {screen!=="quiz"&&(
+          <nav className="nav">
+            {[
+              {s:"home",l:"Inicio",ic:"🏠"},
+              {s:"search",l:"Buscar",ic:"🔍"},
+              {s:"results",l:"Para ti",ic:"✨",dis:films.length===0},
+              {s:"social",l:"Social",ic:"👥"},
+              {s:"profile",l:"Perfil",ic:"👤"},
+            ].map(({s,l,ic,dis})=>(
+              <button key={s} className={`nb${screen===s?" active":""}`} style={{opacity:dis?0.3:1}} onClick={dis?undefined:()=>setScreen(s)}>
+                <div className="nb-ic">{ic}</div>
+                <span>{l}</span>
+              </button>
+            ))}
+          </nav>
+        )}
+      </>}
+    </div>
   );
 }
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
