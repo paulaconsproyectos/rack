@@ -758,12 +758,12 @@ function App(){
             <div className="tk-feed" onScroll={function(e){setTkIdx(Math.round(e.target.scrollTop/window.innerHeight));}}>
               {tkFilms.map(function(f,i){
                 var bg=f.backdrop||f.poster;
-                var trailerSrc="https://www.youtube.com/embed/"+f.trailerKey+"?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&playlist="+f.trailerKey;
+                var trailerSrc="https://www.youtube.com/embed/"+f.trailerKey+"?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&playsinline=1&rel=0&enablejsapi=1&playlist="+f.trailerKey;
                 return (
                   <div key={i} className="tk-card">
                     {bg && <img className="tk-bg" src={bg} alt=""/>}
                     {!bg && <div className="tk-bg" style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)"}}/>}
-                    {f.trailerKey && i===tkIdx && <iframe className="tk-iframe" src={trailerSrc} allow="autoplay"/>}
+                    {f.trailerKey && i===tkIdx && <iframe key={"yt-"+i+"-"+tkIdx} className="tk-iframe" src={trailerSrc} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>}
                     <div className="tk-grad"/>
                     <div className="tk-top" style={{background:"none",pointerEvents:"none"}}/>
                     <div className="tk-content">
@@ -1493,6 +1493,18 @@ function App(){
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+// Force YouTube autoplay via postMessage when slide changes
+function forceYTPlay() {
+  var iframes = document.querySelectorAll('.tk-iframe');
+  iframes.forEach(function(f) {
+    try {
+      f.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+    } catch(e) {}
+  });
+}
+setInterval(forceYTPlay, 800);
 </script>
 <script>
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
