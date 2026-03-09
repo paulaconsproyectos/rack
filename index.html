@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -23,7 +24,7 @@
   --grn:#22C55E;--red:#EF4444;--ylw:#F59E0B;--prp:#A855F7;--blu:#3B82F6;--org:#F97316;
 }
 html,body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
-#root{max-width:430px;margin:0 auto;min-height:100vh;}
+#root{width:100%;min-height:100vh;}
 button,input,textarea{font-family:'DM Sans',sans-serif;}
 ::-webkit-scrollbar{width:0;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -35,7 +36,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .fade-in{animation:fadeIn .25s ease;}
 .skel{background:linear-gradient(90deg,var(--s2) 25%,var(--s3) 50%,var(--s2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:10px;}
-.app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);}
+.app{width:100%;min-height:100vh;background:var(--bg);}
 .page{padding:0 18px 110px;}
 .ph{padding:52px 18px 14px;display:flex;justify-content:space-between;align-items:center;}
 .logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t);}
@@ -85,7 +86,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .auth-hint{font-size:13px;color:var(--t3);text-align:center;margin-top:16px;}
 .auth-hint button{background:none;border:none;color:var(--acc2);font-size:13px;font-weight:500;cursor:pointer;}
 /* NAV */
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(9,9,11,0.94);backdrop-filter:blur(28px);border-top:1px solid var(--b);padding:6px 0 26px;z-index:100;display:flex;justify-content:space-around;}
+.nav{position:fixed;bottom:0;left:0;width:100%;background:rgba(9,9,11,0.94);backdrop-filter:blur(28px);border-top:1px solid var(--b);padding:6px 0 26px;z-index:100;display:flex;justify-content:space-around;}
 .nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--t4);font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:6px 10px;border-radius:10px;transition:color .2s;min-width:52px;cursor:pointer;}
 .nb.active{color:var(--acc2);}
 .nb-ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
@@ -131,7 +132,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .quiz-next{margin-top:18px;width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;}
 .quiz-next:disabled{opacity:.2;cursor:not-allowed;}
 /* TIKTOK / SWIPE MODE */
-.tk-page{position:fixed;inset:0;background:#000;z-index:200;}
+.tk-page{position:fixed;inset:0;background:#000;z-index:200;width:100%;}
 .tk-feed{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
 .tk-feed::-webkit-scrollbar{display:none;}
 .tk-card{height:100vh;scroll-snap-align:start;position:relative;overflow:hidden;}
@@ -204,7 +205,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .loading-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;}
 .spinner{width:30px;height:30px;border:2px solid var(--s4);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;}
 /* DETAIL */
-.det-back{position:fixed;top:52px;left:50%;transform:translateX(-50%) translateX(-196px);z-index:50;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,.75);border:none;display:flex;align-items:center;justify-content:center;color:var(--t);cursor:pointer;backdrop-filter:blur(8px);}
+.det-back{position:fixed;top:52px;left:16px;z-index:50;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,.75);border:none;display:flex;align-items:center;justify-content:center;color:var(--t);cursor:pointer;backdrop-filter:blur(8px);}
 .det-backdrop{width:100%;height:250px;object-fit:cover;display:block;}
 .det-bd-e{width:100%;height:200px;background:linear-gradient(135deg,var(--s2),var(--s3));}
 .det-body{padding:0 18px 110px;}
@@ -329,6 +330,27 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .code-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;}
 .code-val{font-family:'DM Serif Display',serif;font-size:38px;letter-spacing:.1em;color:var(--acc2);}
 .stream-sec{margin-bottom:18px;}
+/* SHARE CARD */
+.share-card-wrap{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.share-card{width:300px;background:linear-gradient(145deg,#0F0F12,#1a1a2e);border-radius:20px;overflow:hidden;border:1px solid rgba(99,102,241,0.3);}
+.share-card-img{width:100%;height:180px;object-fit:cover;display:block;}
+.share-card-img-e{width:100%;height:180px;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;font-size:48px;}
+.share-card-body{padding:16px;}
+.share-card-type{display:inline-block;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,0.25);color:#a5b4fc;font-size:10px;font-weight:700;margin-bottom:8px;}
+.share-card-title{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px;line-height:1.2;}
+.share-card-meta{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px;}
+.share-card-desc{font-size:11px;color:rgba(255,255,255,.6);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;}
+.share-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);}
+.share-card-rack{font-family:'DM Serif Display',serif;font-size:15px;color:rgba(255,255,255,.4);}
+.share-card-rack span{color:#818CF8;}
+.share-card-score{font-size:13px;color:#F59E0B;font-weight:700;}
+/* COLLAB LISTS */
+.clist-item{background:var(--s2);border:1px solid var(--b);border-radius:13px;padding:14px 16px;margin-bottom:10px;cursor:pointer;}
+.clist-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+.clist-meta{font-size:11px;color:var(--t3);display:flex;gap:8px;}
+.clist-members{display:flex;gap:-4px;margin-top:6px;}
+.clist-av{width:22px;height:22px;border-radius:50%;background:var(--acc);border:2px solid var(--s2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;margin-left:-4px;}
+.clist-av:first-child{margin-left:0;}
 </style>
 </head>
 <body>
@@ -549,6 +571,15 @@ function App(){
   var _=useState(0);var tkIdx=_[0];var setTkIdx=_[1];
   var _=useState(false);var tkLoading=_[0];var setTkLoading=_[1];
   var _=useState(null);var tkPlaying=_[0];var setTkPlaying=_[1];
+  var _=useState(false);var showShareCard=_[0];var setShowShareCard=_[1];
+  var _=useState(false);var generatingImg=_[0];var setGeneratingImg=_[1];
+  var _=useState(false);var showCollabLists=_[0];var setShowCollabLists=_[1];
+  var _=useState(function(){return LS.get("rack_clists",[]);});var collabLists=_[0];var setCollabLists=_[1];
+  var _=useState(null);var activeList=_[0];var setActiveList=_[1];
+  var _=useState(false);var showNewList=_[0];var setShowNewList=_[1];
+  var _=useState("");var newListName=_[0];var setNewListName=_[1];
+  var _=useState("");var newListCode=_[0];var setNewListCode=_[1];
+  var shareCardRef=useRef(null);
   var _=useState(false);var showSupport=_[0];var setShowSupport=_[1];
   var _=useState([]);var chatMsgs=_[0];var setChatMsgs=_[1];
   var _=useState("");var chatInput=_[0];var setChatInput=_[1];
@@ -607,6 +638,55 @@ function App(){
     }, 600);
   }
 
+  async function generateShareImage(){
+    if(!shareCardRef.current||!window.html2canvas)return;
+    setGeneratingImg(true);
+    try{
+      var canvas=await html2canvas(shareCardRef.current,{backgroundColor:null,scale:2,useCORS:true,allowTaint:true});
+      var dataUrl=canvas.toDataURL("image/png");
+      if(navigator.share){
+        var blob=await(await fetch(dataUrl)).blob();
+        var file=new File([blob],"rack-"+((sel&&(sel.titleEs||sel.title))||"film").replace(/\s/g,"-")+".png",{type:"image/png"});
+        await navigator.share({files:[file],title:(sel&&(sel.titleEs||sel.title))||"Rack",text:"Mi recomendación en Rack"});
+      } else {
+        var a=document.createElement("a");a.href=dataUrl;a.download="rack-card.png";a.click();
+        t_("Imagen guardada");
+      }
+    }catch(e){t_("Error al generar imagen");}
+    setGeneratingImg(false);
+  }
+
+  function createCollabList(){
+    if(!newListName.trim())return;
+    var code=Math.random().toString(36).substring(2,8).toUpperCase();
+    var list={id:"cl"+Date.now(),name:newListName.trim(),code:code,owner:user.id,ownerName:user.name,members:[{id:user.id,name:user.name,handle:user.handle}],films:[],created:Date.now()};
+    setCollabLists(function(p){return [list].concat(p);});
+    setActiveList(list);setShowNewList(false);setNewListName("");
+    t_("Lista creada · código: "+code);
+  }
+
+  function joinCollabList(){
+    if(!newListCode.trim())return;
+    var code=newListCode.trim().toUpperCase();
+    var found=collabLists.find(function(l){return l.code===code;});
+    if(!found){t_("Código no válido");return;}
+    if(found.members.find(function(m){return m.id===user.id;})){t_("Ya eres miembro");return;}
+    setCollabLists(function(p){return p.map(function(l){
+      if(l.code!==code)return l;
+      return Object.assign({},l,{members:l.members.concat([{id:user.id,name:user.name,handle:user.handle}])});
+    });});
+    t_("Te has unido a "+found.name);setNewListCode("");
+  }
+
+  function addToCollabList(listId,film){
+    setCollabLists(function(p){return p.map(function(l){
+      if(l.id!==listId)return l;
+      if(l.films.find(function(f){return f.id===film.id;}))return l;
+      return Object.assign({},l,{films:l.films.concat([Object.assign({},film,{addedBy:user.name,addedAt:Date.now()})])});
+    });});
+    t_("Añadida a la lista");
+  }
+
   function completeReto(reto){
     if(retosComp[reto.id])return;
     var week=Math.floor(Date.now()/604800000);
@@ -620,6 +700,7 @@ function App(){
   useEffect(function(){LS.set("rack_reviews",reviews);},[reviews]);
   useEffect(function(){LS.set("rack_streak",streak);},[streak]);
   useEffect(function(){LS.set("rack_retos",retosComp);},[retosComp]);
+  useEffect(function(){LS.set("rack_clists",collabLists);},[collabLists]);
   useEffect(function(){if(chatEndRef.current)chatEndRef.current.scrollTop=chatEndRef.current.scrollHeight;},[chatMsgs]);
 
   function t_(msg){setToast(msg);setTimeout(function(){setToast(null);},2500);}
@@ -939,6 +1020,119 @@ function App(){
               );
             })}
             <button className="btn btn-s" style={{marginTop:16}} onClick={function(){setShowRetos(false);}}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* SHARE CARD MODAL */}
+      {showShareCard && sel && (
+        <div className="share-card-wrap">
+          <div ref={shareCardRef} className="share-card">
+            {sel.backdrop && <img className="share-card-img" src={sel.backdrop} alt="" crossOrigin="anonymous"/>}
+            {!sel.backdrop && sel.poster && <img className="share-card-img" src={sel.poster} alt="" crossOrigin="anonymous"/>}
+            {!sel.backdrop && !sel.poster && <div className="share-card-img-e">🎬</div>}
+            <div className="share-card-body">
+              <div className="share-card-type">{sel.type||"Película"}</div>
+              <div className="share-card-title">{sel.titleEs||sel.title}</div>
+              <div className="share-card-meta">{sel.director&&sel.director+" · "}{sel.year}{sel.genres&&sel.genres[0]?" · "+sel.genres[0]:""}</div>
+              <div className="share-card-desc">{sel.description}</div>
+              <div className="share-card-footer">
+                <div className="share-card-rack">ra<span>ck</span></div>
+                {sel.score && <div className="share-card-score">⭐ {sel.score}</div>}
+              </div>
+            </div>
+          </div>
+          <div style={{marginTop:20,display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:300}}>
+            <button onClick={generateShareImage} disabled={generatingImg} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",opacity:generatingImg?0.6:1}}>
+              {generatingImg?"Generando...":"Compartir imagen"}
+            </button>
+            <button onClick={function(){setShowShareCard(false);}} style={{width:"100%",padding:"12px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:12,fontSize:14,cursor:"pointer"}}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* COLLAB LISTS MODAL */}
+      {showCollabLists && (
+        <div className="overlay" onClick={function(){setShowCollabLists(false);setActiveList(null);setShowNewList(false);}}>
+          <div className="modal" style={{maxHeight:"88vh",overflowY:"auto"}} onClick={function(e){e.stopPropagation();}}>
+            <div className="modal-handle"/>
+            {!activeList && !showNewList && (
+              <div>
+                <div className="modal-title">Listas colaborativas</div>
+                <div className="modal-sub">Crea listas con amigos y añadid películas juntos</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+                  <button onClick={function(){setShowNewList("create");}} style={{padding:"13px",background:"var(--acc3)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:12,color:"var(--acc2)",fontSize:13,fontWeight:600,cursor:"pointer"}}>+ Nueva lista</button>
+                  <button onClick={function(){setShowNewList("join");}} style={{padding:"13px",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:12,color:"var(--t2)",fontSize:13,fontWeight:600,cursor:"pointer"}}>Unirse con código</button>
+                </div>
+                {collabLists.length===0 && (
+                  <div style={{textAlign:"center",padding:"24px 0",color:"var(--t3)"}}>
+                    <div style={{fontSize:32,marginBottom:10}}>👥</div>
+                    <div style={{fontSize:13}}>Crea tu primera lista colaborativa</div>
+                  </div>
+                )}
+                {collabLists.map(function(l){
+                  return (
+                    <div key={l.id} className="clist-item" onClick={function(){setActiveList(l);}}>
+                      <div className="clist-name">{l.name}</div>
+                      <div className="clist-meta">
+                        <span>{l.films.length} películas</span>
+                        <span>{l.members.length} miembros</span>
+                        <span style={{color:"var(--acc2)",fontWeight:600}}>#{l.code}</span>
+                      </div>
+                      <div className="clist-members">
+                        {l.members.slice(0,5).map(function(m,i){return <div key={i} className="clist-av">{(m.name||"?")[0].toUpperCase()}</div>;})}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {showNewList==="create" && (
+              <div>
+                <div className="modal-title">Nueva lista</div>
+                <div className="field" style={{marginTop:12}}><label>Nombre de la lista</label><input placeholder="Ej: Pelis del finde" value={newListName} onChange={function(e){setNewListName(e.target.value);}} style={{width:"100%",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:10,padding:"13px 15px",color:"var(--t)",fontSize:15,outline:"none"}}/></div>
+                <button onClick={createCollabList} disabled={!newListName.trim()} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8,opacity:!newListName.trim()?0.3:1}}>Crear lista</button>
+                <button onClick={function(){setShowNewList(false);}} style={{width:"100%",padding:"12px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:12,fontSize:13,cursor:"pointer"}}>Cancelar</button>
+              </div>
+            )}
+            {showNewList==="join" && (
+              <div>
+                <div className="modal-title">Unirse a una lista</div>
+                <div className="modal-sub">Pide el código a tu amigo</div>
+                <div className="field"><label>Código de lista</label><input placeholder="ABC123" value={newListCode} onChange={function(e){setNewListCode(e.target.value.toUpperCase());}} style={{width:"100%",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:10,padding:"13px 15px",color:"var(--t)",fontSize:18,fontWeight:700,letterSpacing:".1em",outline:"none",textAlign:"center"}}/></div>
+                <button onClick={joinCollabList} disabled={!newListCode.trim()} style={{width:"100%",padding:"14px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8,opacity:!newListCode.trim()?0.3:1}}>Unirse</button>
+                <button onClick={function(){setShowNewList(false);}} style={{width:"100%",padding:"12px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:12,fontSize:13,cursor:"pointer"}}>Cancelar</button>
+              </div>
+            )}
+            {activeList && !showNewList && (
+              <div>
+                <button onClick={function(){setActiveList(null);}} style={{background:"none",border:"none",color:"var(--t3)",fontSize:13,cursor:"pointer",marginBottom:12,padding:0}}>← Volver</button>
+                <div className="modal-title">{activeList.name}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+                  <div className="clist-members">
+                    {activeList.members.slice(0,5).map(function(m,i){return <div key={i} className="clist-av">{(m.name||"?")[0].toUpperCase()}</div>;})}
+                  </div>
+                  <span style={{fontSize:11,color:"var(--t3)"}}>{activeList.members.length} miembros</span>
+                  <button onClick={function(){try{navigator.clipboard.writeText(activeList.code);}catch{}t_("Código copiado: "+activeList.code);}} style={{marginLeft:"auto",background:"var(--acc3)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:8,padding:"5px 10px",color:"var(--acc2)",fontSize:11,fontWeight:700,cursor:"pointer"}}>#{activeList.code}</button>
+                </div>
+                {activeList.films.length===0 && (
+                  <div style={{textAlign:"center",padding:"20px 0",color:"var(--t3)",fontSize:13}}>Sin películas aún. Añade desde la ficha de cualquier título.</div>
+                )}
+                {activeList.films.map(function(f,i){
+                  return (
+                    <div key={i} style={{display:"flex",gap:10,padding:"10px 0",borderBottom:"1px solid var(--b)"}}>
+                      {f.poster && <img src={f.poster} style={{width:42,height:63,borderRadius:7,objectFit:"cover",flexShrink:0}} alt=""/>}
+                      {!f.poster && <div style={{width:42,height:63,borderRadius:7,background:"var(--s3)",flexShrink:0}}/>}
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:13,fontWeight:600,marginBottom:2}}>{f.titleEs||f.title}</div>
+                        <div style={{fontSize:11,color:"var(--t3)",marginBottom:2}}>{f.year}</div>
+                        <div style={{fontSize:10,color:"var(--acc2)"}}>Añadida por {f.addedBy}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1565,11 +1759,15 @@ function App(){
                   )}
                   <StreamLinks film={sel}/>
                   <div className="stream-lbl">Compartir</div>
-                  <div className="share-row">
-                    <a href={"https://twitter.com/intent/tweet?text="+enc('"'+(sel.titleEs||sel.title)+'" en Rack → https://paulaconsproyectos.github.io/rack/')} target="_blank" rel="noopener" style={{flex:1,padding:"10px 6px",borderRadius:9,background:"#000",color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none",textAlign:"center"}}>Twitter</a>
+                  <div className="share-row" style={{marginBottom:8}}>
+                    <button onClick={function(){setShowShareCard(true);}} style={{flex:1,padding:"10px 6px",borderRadius:9,background:"linear-gradient(135deg,var(--acc),#7C3AED)",color:"#fff",border:"none",fontSize:12,fontWeight:600,cursor:"pointer"}}>📸 Imagen</button>
                     <a href={"https://wa.me/?text="+enc('"'+(sel.titleEs||sel.title)+'" en Rack → https://paulaconsproyectos.github.io/rack/')} target="_blank" rel="noopener" style={{flex:1,padding:"10px 6px",borderRadius:9,background:"#25D366",color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none",textAlign:"center"}}>WhatsApp</a>
+                    <a href={"https://twitter.com/intent/tweet?text="+enc('"'+(sel.titleEs||sel.title)+'" en Rack → https://paulaconsproyectos.github.io/rack/')} target="_blank" rel="noopener" style={{flex:1,padding:"10px 6px",borderRadius:9,background:"#000",color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none",textAlign:"center"}}>X</a>
                     <button onClick={function(){try{navigator.clipboard.writeText('"'+(sel.titleEs||sel.title)+'" → https://paulaconsproyectos.github.io/rack/');}catch{}t_("Copiado");}} style={{flex:1,padding:"10px 6px",borderRadius:9,background:"var(--s3)",color:"var(--t2)",border:"1px solid var(--b)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Copiar</button>
                   </div>
+                  <button onClick={function(){setShowCollabLists(true);}} style={{width:"100%",padding:"11px",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:11,fontSize:13,fontWeight:600,color:"var(--t2)",cursor:"pointer",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+                    <span>👥</span> Añadir a lista colaborativa
+                  </button>
                   <div className="sec" style={{marginTop:18}}>Tu reseña</div>
                   <div className="rev-sec">
                     <div style={{fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--t3)",marginBottom:9}}>Puntúa y comenta</div>
@@ -1866,6 +2064,9 @@ function App(){
                     })}
                   </div>
                 )}
+                <button onClick={function(){setShowCollabLists(true);}} style={{width:"100%",padding:"13px",background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:12,fontSize:13,fontWeight:600,color:"var(--t2)",cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                  <span>👥</span> Mis listas colaborativas ({collabLists.length})
+                </button>
                 <button className="logout-btn" onClick={doLogout}>Cerrar sesión</button>
                 <div style={{textAlign:"center",marginTop:16,paddingBottom:8}}>
                   <a href="legal.html" style={{fontSize:11,color:"var(--t4)",textDecoration:"none"}}>Privacidad · Términos · Cookies</a>
