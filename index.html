@@ -347,11 +347,10 @@ const BADGES=[{min:0,label:"Espectador"},{min:100,label:"Aficionado"},{min:300,l
 const PLATFORMS={"Netflix":{color:"#E50914",url:"https://www.netflix.com/search?q="},"HBO Max":{color:"#B012FF",url:"https://www.max.com/search?q="},"Disney+":{color:"#0063E5",url:"https://www.disneyplus.com/search?q="},"Prime Video":{color:"#00A8E1",url:"https://www.amazon.es/s?k="},"Filmin":{color:"#F5A623",url:"https://www.filmin.es/buscar?query="},"Apple TV+":{color:"#555",url:"https://tv.apple.com/search?term="},"Movistar+":{color:"#019FE3",url:"https://ver.movistar.es/search?q="}};
 const QUESTIONS=[
   {id:"mood",q:"¿Cómo estás ahora mismo?",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},
-  {id:"format",q:"¿Qué formato prefieres?",opts:["Película","Miniserie","Serie corta","Serie larga","Lo que sea"]},
-  {id:"company",q:"¿Con quién ves esto?",opts:["Solo/a","En pareja","Con amigos","En familia"]},
   {id:"time",q:"¿Cuánto tiempo tienes?",opts:["Menos de 1h","1–2 horas","Más de 2h","Modo Maratón"]},
-  {id:"platform",q:"¿Qué plataformas tienes?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Movistar+","Todo me vale"]},
+  {id:"format",q:"¿Qué formato prefieres?",opts:["Película","Serie","Lo que sea"]},
   {id:"vibe",q:"¿Qué experiencia buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]},
+  {id:"platform",q:"¿En qué plataformas estás?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Movistar+","Todo me vale"]},
 ];
 const DEMO_REVIEWS=[
   {id:"dr1",userId:"u2",userName:"Marcos Ruiz",handle:"marcosr",film:"Dune: Parte Dos",text:"Villeneuve lo vuelve a hacer.",stars:5,likes:34,likedBy:[]},
@@ -381,6 +380,7 @@ const IcoSearch=()=><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><lin
 const IcoStar=()=><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
 const IcoUsers=()=><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const IcoUser=()=><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+const IcoCal=()=><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
 
 async function enrichItem(item){
   try{
@@ -635,7 +635,7 @@ function App(){
   },[auth]);
 
   useEffect(function(){
-    if(screen==="social"&&socTab==="upcoming")tmdbUpcoming().then(setUpcoming).catch(function(){});
+    if(screen==="estrenos"&&upcoming.length===0)tmdbUpcoming().then(setUpcoming).catch(function(){});
   },[screen,socTab]);
 
   useEffect(function(){
@@ -664,7 +664,7 @@ function App(){
       var d=await r.json();
       var movies=(d.results||[]).slice(0,10).map(function(m){return {id:m.id,title:m.title,titleEs:m.title,year:m.release_date?m.release_date.slice(0,4):"",type:"Película",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};});
       var enriched=await Promise.all(movies.map(enrichItem));
-      setTkFilms(enriched.filter(function(m){return m.trailerKey;}));setTimeout(function(){if(window.initYTPlayers)window.initYTPlayers();},800);
+      setTkFilms(enriched.filter(function(m){return m.trailerKey;}));
     }catch{}
     setTkLoading(false);
   }
@@ -984,22 +984,26 @@ function App(){
             </div>
           )}
           {!tkLoading && (
-            <div className="tk-feed" onScroll={function(e){var idx=Math.round(e.target.scrollTop/window.innerHeight);setTkIdx(idx);setTimeout(function(){if(window.initYTPlayers)window.initYTPlayers();},300);}}>
+            <div className="tk-feed" onScroll={function(e){var idx=Math.round(e.target.scrollTop/window.innerHeight);setTkIdx(idx);}}>
               {tkFilms.map(function(f,i){
                 var bg=f.backdrop||f.poster;
                 var ytThumb=f.trailerKey?"https://img.youtube.com/vi/"+f.trailerKey+"/maxresdefault.jpg":null;
-                var trailerSrc="https://www.youtube.com/embed/"+f.trailerKey+"?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&playsinline=1&rel=0&enablejsapi=1&origin="+encodeURIComponent("https://paulaconsproyectos.github.io")+"&playlist="+f.trailerKey;
+                var ytUrl=f.trailerKey?"https://www.youtube.com/watch?v="+f.trailerKey:null;
                 return (
                   <div key={i} className="tk-card">
                     {(ytThumb||bg) && <img className="tk-bg" src={ytThumb||bg} alt=""/>}
                     {!ytThumb && !bg && <div className="tk-bg" style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)"}}/>}
-                    {f.trailerKey && i===tkIdx && <iframe key={"yt-"+i+"-"+tkIdx} id={"ytf-"+i} className="tk-iframe" src={trailerSrc} allow="autoplay; encrypted-media; picture-in-picture; web-share" allowFullScreen/>}
                     <div className="tk-grad"/>
                     <div className="tk-top" style={{background:"none",pointerEvents:"none"}}/>
+                    {ytUrl && i===tkIdx && (
+                      <a href={ytUrl} target="_blank" rel="noopener" style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:68,height:68,borderRadius:"50%",background:"rgba(0,0,0,0.75)",border:"2px solid rgba(255,255,255,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:4,textDecoration:"none"}}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      </a>
+                    )}
                     <div className="tk-content">
                       <div className="tk-type">{f.type||"Película"}</div>
                       <div className="tk-title">{f.titleEs||f.title}</div>
-                      <div className="tk-meta">{f.year}{f.score?" · "+f.score:""}{f.genres&&f.genres[0]?" · "+f.genres[0]:""}</div>
+                      <div className="tk-meta">{f.year}{f.score?" · ⭐"+f.score:""}{f.genres&&f.genres[0]?" · "+f.genres[0]:""}</div>
                       <div className="tk-desc">{f.description}</div>
                       <div className="tk-row">
                         <button className="tk-btn" style={{background:"var(--acc)",color:"#fff"}} onClick={function(){setTkMode(false);goDetail(f,"results");}}>Ver ficha</button>
@@ -1200,15 +1204,17 @@ function App(){
                   <div style={{width:48,height:48,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>→</div>
                 </button>
 
-                {/* Segunda fila: Maratón + Trailers */}
+                {/* Segunda fila */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-                  <button onClick={function(){goQuiz(true);}} style={{background:"linear-gradient(135deg,#78350F,#B45309)",border:"none",borderRadius:16,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:3}}>Maratón</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",fontWeight:300}}>Sesión épica completa</div>
+                  <button onClick={function(){setShowRetos(true);}} style={{background:"linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:20,marginBottom:4}}>🏆</div>
+                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Retos</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>Esta semana</div>
                   </button>
-                  <button onClick={openTiktok} style={{background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:16,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:15,fontWeight:700,color:"var(--t)",marginBottom:3}}>Trailers</div>
-                    <div style={{fontSize:11,color:"var(--t3)",fontWeight:300}}>Desliza y decide</div>
+                  <button onClick={function(){setShowWrapped(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))",border:"1px solid rgba(99,102,241,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:20,marginBottom:4}}>✨</div>
+                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Wrapped</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>Tu año en cine</div>
                   </button>
                 </div>
 
@@ -1267,18 +1273,6 @@ function App(){
                 )}
 
                 {/* Invite */}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
-                  <button onClick={function(){setShowRetos(true);}} style={{background:"linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:18,marginBottom:4}}>🏆</div>
-                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Retos</div>
-                    <div style={{fontSize:11,color:"var(--t3)"}}>Esta semana</div>
-                  </button>
-                  <button onClick={function(){setShowWrapped(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))",border:"1px solid rgba(99,102,241,0.3)",borderRadius:14,padding:"14px 12px",textAlign:"left",cursor:"pointer"}}>
-                    <div style={{fontSize:18,marginBottom:4}}>✨</div>
-                    <div style={{fontSize:13,fontWeight:700,color:"var(--t)"}}>Wrapped</div>
-                    <div style={{fontSize:11,color:"var(--t3)"}}>Tu año en cine</div>
-                  </button>
-                </div>
                 <div className="invite-row" onClick={function(){setShowInv(true);}}>
                   <div><div className="ir-t">Invitar amigos</div><div className="ir-s">+100 pts con tu código</div></div>
                   <span style={{color:"var(--acc2)"}}>→</span>
@@ -1570,7 +1564,7 @@ function App(){
               <div className="ph"><div className="logo">ra<span>ck</span></div></div>
               <div className="page" style={{paddingTop:0}}>
                 <div className="tab-row">
-                  {[["feed","Feed"],["ranking","Ranking"],["reviews","Reseñas"],["retos","Retos"],["upcoming","Estrenos"]].map(function(item){
+                  {[["feed","Actividad"],["ranking","Ranking"],["reviews","Reseñas"],["retos","Retos"]].map(function(item){
                     return <button key={item[0]} className={"tab-btn"+(socTab===item[0]?" active":"")} onClick={function(){setSocTab(item[0]);}}>{item[1]}</button>;
                   })}
                 </div>
@@ -1647,36 +1641,107 @@ function App(){
                     })}
                   </div>
                 )}
-                {socTab==="upcoming" && (
-                  <div>
-                    {!notif && (
-                      <div className="notif-ban" style={{marginBottom:14}}>
-                        <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Notificaciones de estrenos</div><div style={{fontSize:11,color:"var(--t3)"}}>No te pierdas ninguno</div></div>
-                        <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
-                      </div>
-                    )}
-                    {upcoming.length===0 && <div style={{textAlign:"center",padding:"32px 0"}}><div className="spinner"/></div>}
-                    {upcoming.map(function(f,i){
-                      return (
-                        <div key={i} className="up-item">
-                          {f.poster && <img className="up-p" src={f.poster} alt="" loading="lazy"/>}
-                          {!f.poster && <div className="up-pe">—</div>}
-                          <div style={{flex:1}}>
-                            <div className="up-title">{f.titleEs||f.title}</div>
-                            <div className="up-date">{f.releaseDate||f.year}</div>
-                            <div className="up-desc">{f.description}</div>
-                            <div style={{display:"flex",alignItems:"center",gap:7,marginTop:5}}>
-                              <div className={"tog-track"+(notifF[f.id]?" on":"")} onClick={function(){var nf=Object.assign({},notifF);if(nf[f.id])delete nf[f.id];else nf[f.id]=true;setNotifF(nf);t_(notifF[f.id]?"Cancelado":"Te avisaremos");}}>
-                                <div className="tog-thumb"/>
-                              </div>
-                              <span style={{fontSize:11,color:"var(--t3)"}}>{notifF[f.id]?"Activada":"Avisarme"}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+
+              </div>
+            </div>
+          )}
+
+          {/* DISCOVER */}
+          {screen==="discover" && (
+            <div>
+              <div style={{padding:"52px 18px 14px"}}>
+                <div style={{fontSize:28,fontWeight:700,letterSpacing:"-0.03em",marginBottom:4}}>Descubrir</div>
+                <div style={{fontSize:13,color:"var(--t3)",fontWeight:300}}>Tu próxima película favorita está aquí</div>
+              </div>
+              <div className="page" style={{paddingTop:0}}>
+                <button onClick={function(){goQuiz(false);}} style={{width:"100%",background:"linear-gradient(135deg,#4F46E5,#7C3AED)",border:"none",borderRadius:16,padding:"18px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,cursor:"pointer"}}>
+                  <div style={{textAlign:"left"}}>
+                    <div style={{fontSize:16,fontWeight:700,color:"#fff",marginBottom:2}}>Test de humor</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,0.65)",fontWeight:300}}>5 preguntas · recomendaciones personalizadas</div>
+                  </div>
+                  <div style={{fontSize:22,color:"#fff",opacity:.8}}>→</div>
+                </button>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+                  <button onClick={function(){goQuiz(true);}} style={{background:"linear-gradient(135deg,rgba(120,53,15,0.5),rgba(180,83,9,0.3))",border:"1px solid rgba(180,83,9,0.4)",borderRadius:14,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:22,marginBottom:6}}>🎬</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"var(--t)"}}>Maratón</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>Hasta 12 títulos</div>
+                  </button>
+                  <button onClick={openTiktok} style={{background:"var(--s2)",border:"1px solid var(--b2)",borderRadius:14,padding:"16px 14px",textAlign:"left",cursor:"pointer"}}>
+                    <div style={{fontSize:22,marginBottom:6}}>▶</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"var(--t)"}}>Trailers</div>
+                    <div style={{fontSize:11,color:"var(--t3)"}}>Desliza y decide</div>
+                  </button>
+                </div>
+                {films.length===0 && (
+                  <div style={{textAlign:"center",padding:"40px 0",color:"var(--t3)"}}>
+                    <div style={{fontSize:36,marginBottom:12}}>🎬</div>
+                    <div style={{fontSize:14,marginBottom:16}}>Haz el test para ver tus recomendaciones</div>
+                    <button className="empty-cta" onClick={function(){goQuiz(false);}}>Empezar test</button>
                   </div>
                 )}
+                {films.length>0 && (
+                  <div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                      <div className="sec" style={{margin:0}}>Últimas recomendaciones</div>
+                      <button onClick={function(){setTkFilms(films);setTkIdx(0);setTkMode(true);}} style={{background:"none",border:"none",color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Ver en scroll →</button>
+                    </div>
+                    <div className="fgrid">
+                      {films.map(function(f,i){
+                        return (
+                          <div key={i} className="fthumb" onClick={function(){goDetail(f,"discover");}}>
+                            {f.poster && <img src={f.poster} alt="" loading="lazy"/>}
+                            {!f.poster && <div className="fthumb-e">—</div>}
+                            <div className="fthumb-info">
+                              <div style={{marginBottom:3}}><TypePill item={f}/></div>
+                              <div className="fti-t">{f.titleEs||f.title}</div>
+                              <div className="fti-m"><span className="fti-sc">⭐{f.score}</span><span>{f.year}</span></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button className="btn btn-s" style={{marginTop:14}} onClick={function(){goQuiz(false);}}>Nuevo test</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ESTRENOS */}
+          {screen==="estrenos" && (
+            <div>
+              <div style={{padding:"52px 18px 14px"}}>
+                <div style={{fontSize:28,fontWeight:700,letterSpacing:"-0.03em",marginBottom:4}}>Estrenos</div>
+                <div style={{fontSize:13,color:"var(--t3)",fontWeight:300}}>Lo que llega próximamente</div>
+              </div>
+              <div className="page" style={{paddingTop:0}}>
+                {!notif && (
+                  <div className="notif-ban" style={{marginBottom:16}}>
+                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Activa las notificaciones</div><div style={{fontSize:11,color:"var(--t3)"}}>Entérate de cada estreno</div></div>
+                    <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
+                  </div>
+                )}
+                {upcoming.length===0 && <div style={{textAlign:"center",padding:"48px 0"}}><div className="spinner"/></div>}
+                {upcoming.map(function(f,i){
+                  return (
+                    <div key={i} style={{display:"flex",gap:12,padding:"14px 0",borderBottom:"1px solid var(--b)"}}>
+                      {f.poster && <img src={f.poster} style={{width:60,height:90,borderRadius:9,objectFit:"cover",flexShrink:0}} alt="" loading="lazy"/>}
+                      {!f.poster && <div style={{width:60,height:90,borderRadius:9,background:"var(--s3)",flexShrink:0}}/>}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:14,fontWeight:700,marginBottom:3,lineHeight:1.3}}>{f.titleEs||f.title}</div>
+                        <div style={{fontSize:12,color:"var(--acc2)",fontWeight:600,marginBottom:5}}>{f.releaseDate||f.year}</div>
+                        <div style={{fontSize:12,color:"var(--t3)",lineHeight:1.5,marginBottom:8,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{f.description}</div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div className={"tog-track"+(notifF[f.id]?" on":"")} onClick={function(){var nf=Object.assign({},notifF);if(nf[f.id])delete nf[f.id];else nf[f.id]=true;setNotifF(nf);LS.set("rack_notifF",nf);t_(notifF[f.id]?"Aviso cancelado":"Te avisaremos del estreno");}}>
+                            <div className="tog-thumb"/>
+                          </div>
+                          <span style={{fontSize:12,color:"var(--t3)"}}>{notifF[f.id]?"Avisarme activado":"Avisarme"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1771,9 +1836,9 @@ function App(){
           {/* NAV */}
           {screen!=="quiz" && (
             <nav className="nav">
-              {[{s:"home",l:"Inicio",I:IcoHome},{s:"search",l:"Buscar",I:IcoSearch},{s:"results",l:"Para ti",I:IcoStar,dis:films.length===0},{s:"social",l:"Social",I:IcoUsers},{s:"profile",l:"Perfil",I:IcoUser}].map(function(item){
+              {[{s:"home",l:"Inicio",I:IcoHome},{s:"search",l:"Buscar",I:IcoSearch},{s:"discover",l:"Descubrir",I:IcoStar},{s:"estrenos",l:"Estrenos",I:IcoCal},{s:"profile",l:"Perfil",I:IcoUser}].map(function(item){
                 return (
-                  <button key={item.s} className={"nb"+(screen===item.s?" active":"")} style={{opacity:item.dis?0.3:1}} onClick={item.dis?undefined:function(){setScreen(item.s);}}>
+                  <button key={item.s} className={"nb"+(screen===item.s?" active":"")} onClick={function(){setScreen(item.s);}}>
                     <div className="nb-ic"><item.I/></div>
                     <span>{item.l}</span>
                   </button>
@@ -1789,49 +1854,7 @@ function App(){
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
-<script>
-// YouTube IFrame API
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
 
-var ytPlayers = {};
-
-window.onYouTubeIframeAPIReady = function() {
-  initYTPlayers();
-};
-
-function initYTPlayers() {
-  document.querySelectorAll('.tk-iframe').forEach(function(iframe) {
-    var id = iframe.id;
-    if(id && !ytPlayers[id]) {
-      ytPlayers[id] = new YT.Player(id, {
-        events: {
-          onReady: function(e) {
-            try { e.target.mute(); e.target.playVideo(); } catch(err) {}
-          },
-          onStateChange: function(e) {
-            // YT.PlayerState.ENDED = 0, loop manually
-            if(e.data === 0) { try { e.target.playVideo(); } catch(err) {} }
-          }
-        }
-      });
-    }
-  });
-}
-
-// Aggressive postMessage fallback - fires every 500ms
-setInterval(function() {
-  document.querySelectorAll('.tk-iframe').forEach(function(f) {
-    try {
-      f.contentWindow.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}), '*');
-      f.contentWindow.postMessage(JSON.stringify({event:'command',func:'playVideo',args:[]}), '*');
-    } catch(e) {}
-  });
-  // Re-init any new iframes
-  if(window.YT && window.YT.Player) initYTPlayers();
-}, 500);
-</script>
 <script>
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
 </script>
