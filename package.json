@@ -1,0 +1,36 @@
+{
+  "name": "zineclub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "vite build",
+    "deploy": "gh-pages -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulaconsproyectos/zineclub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/paulaconsproyectos/zineclub/issues"
+  },
+  "homepage": "https://github.com/paulaconsproyectos/zineclub#readme",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "gh-pages": "^6.3.0",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

@@ -1,0 +1,58 @@
+/* ============================================================
+   ZINE CLUB — Design Tokens
+   Premium cinematic palette · DM Serif Display + DM Sans
+   ============================================================ */
+
+:root {
+  /* ── Backgrounds ── */
+  --bg:        #09090B;
+  --bg-1:      #0F0F13;
+  --bg-2:      #17171D;
+  --bg-3:      #1E1E26;
+  --bg-4:      #26262F;
+  --bg-5:      #3A3A46;
+
+  /* ── Borders ── */
+  --border:    rgba(255, 255, 255, 0.06);
+  --border-2:  rgba(255, 255, 255, 0.10);
+  --border-3:  rgba(255, 255, 255, 0.18);
+
+  /* ── Text ── */
+  --text:      #F2F2F4;
+  --text-2:    #9898A8;
+  --text-3:    #636372;
+  --text-4:    #46464F;
+
+  /* ── Accent: cinematic gold (replaces generic indigo) ── */
+  --acc:       #C9A96E;
+  --acc-2:     #DFC08A;
+  --acc-dim:   rgba(201, 169, 110, 0.12);
+  --acc-glow:  rgba(201, 169, 110, 0.24);
+
+  /* ── Semantic ── */
+  --green:     #22C55E;
+  --red:       #EF4444;
+  --amber:     #F59E0B;
+  --blue:      #60A5FA;
+  --purple:    #A855F7;
+
+  /* ── Typography ── */
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
+
+  /* ── Sizing ── */
+  --nav-h:      64px;
+  --bottom-nav: 68px;
+  --max-w:      430px;
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+
+  /* ── Transitions ── */
+  --t-fast:   0.12s ease;
+  --t-base:   0.22s ease;
+  --t-slow:   0.4s ease;
+  --t-cinema: 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
