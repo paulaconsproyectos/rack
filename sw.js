@@ -1,10 +1,10 @@
-const CACHE = 'zineclub-v2';
+const CACHE = 'zineclub-v3';
 const ASSETS = [
-  '/rack/',
-  '/rack/index.html',
-  '/rack/manifest.json',
-  '/rack/icon-192.png',
-  '/rack/icon-512.png',
+  '/zineclub/',
+  '/zineclub/index.html',
+  '/zineclub/manifest.json',
+  '/zineclub/icon-192.png',
+  '/zineclub/icon-512.png',
 ];
 
 self.addEventListener('install', function(e) {
@@ -30,7 +30,6 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
-  // Don't cache API calls
   if (e.request.url.includes('supabase.co')) return;
   if (e.request.url.includes('tmdb.org')) return;
   if (e.request.url.includes('youtube.com')) return;
@@ -47,7 +46,7 @@ self.addEventListener('fetch', function(e) {
         return response;
       }).catch(function() {
         if (e.request.destination === 'document') {
-          return caches.match('/rack/index.html');
+          return caches.match('/zineclub/index.html');
         }
       });
       return cached || fetchPromise;
