@@ -737,84 +737,162 @@ async function tmdbDiscover(answers){
   var platforms=Array.isArray(answers.platform)?answers.platform:[];
   var isMarathon=time==="Toda la noche";
   var isShort=time==="Menos de 1h";
-  var eraParam="";
-  if(era==="Actual (2015+)"){eraParam="&primary_release_date.gte=2015-01-01&first_air_date.gte=2015-01-01";}
-  else if(era==="Clasicos (90s-2000s)"){eraParam="&primary_release_date.gte=1990-01-01&primary_release_date.lte=2014-12-31&first_air_date.gte=1990-01-01&first_air_date.lte=2014-12-31";}
-  else if(era==="Retro (antes del 90)"){eraParam="&primary_release_date.lte=1989-12-31&first_air_date.lte=1989-12-31";}
 
-  var MOOD_MAP={"Euforico":[28,12,35],"Melancolico":[18,10749,9648],"Curioso":[99,878,9648],"Relajado":[35,10751,16],"Intenso":[53,80,27],"Romantico":[10749,18,35]};
-  var VIBE_MAP={"Que me impacte":[18,53],"Que me evada":[12,14,878],"Que me haga reir":[35,16],"Que me asuste":[27,9648],"Arte puro":[18,36],"Buena historia":[18,80]};
-  var PIDS={"Netflix":8,"HBO Max":384,"Max":384,"Disney+":337,"Prime Video":119,"Amazon Prime Video":119,"Filmin":63,"Apple TV+":350,"Movistar+":149};
+  // Era params — separados para movie y tv
+  var eraMovie="";
+  var eraTV="";
+  if(era==="Actual (2015+)"){
+    eraMovie="&primary_release_date.gte=2015-01-01";
+    eraTV="&first_air_date.gte=2015-01-01";
+  } else if(era==="Clasicos (90s-2000s)"){
+    eraMovie="&primary_release_date.gte=1990-01-01&primary_release_date.lte=2014-12-31";
+    eraTV="&first_air_date.gte=1990-01-01&first_air_date.lte=2014-12-31";
+  } else if(era==="Retro (antes del 90)"){
+    eraMovie="&primary_release_date.lte=1989-12-31";
+    eraTV="&first_air_date.lte=1989-12-31";
+  }
 
-  var moodG=(MOOD_MAP[mood]||[18,35,12]).slice(0,2);
+  var MOOD_MAP={
+    "Euforico":[28,12,35],
+    "Melancolico":[18,10749,9648],
+    "Curioso":[99,878,9648],
+    "Relajado":[35,10751,16],
+    "Intenso":[53,80,27],
+    "Romantico":[10749,18,35]
+  };
+  // Géneros TV adaptados (algunos IDs difieren o tienen poco contenido en TV)
+  var MOOD_MAP_TV={
+    "Euforico":[28,12,35],
+    "Melancolico":[18,10749],
+    "Curioso":[99,10765],
+    "Relajado":[35,10751],
+    "Intenso":[80,9648],
+    "Romantico":[10749,18]
+  };
+  var VIBE_MAP={
+    "Que me impacte":[18,53],
+    "Que me evada":[12,14,10765],
+    "Que me haga reir":[35],
+    "Que me asuste":[27,9648],
+    "Arte puro":[18,36],
+    "Buena historia":[18,80]
+  };
+  var PIDS={
+    "Netflix":8,"HBO Max":384,"Max":384,"Disney+":337,
+    "Prime Video":119,"Amazon Prime Video":119,
+    "Filmin":63,"Apple TV+":350,"Movistar+":149
+  };
+
+  var moodGM=(MOOD_MAP[mood]||[18,35,12]).slice(0,2);
+  var moodGT=(MOOD_MAP_TV[mood]||[18,35]).slice(0,2);
   var vibeG=VIBE_MAP[vibe]||[];
-  var allG=[...new Set([...moodG,...vibeG])].slice(0,3);
+
+  var allGM=[].concat(moodGM,vibeG).filter(function(x,i,a){return a.indexOf(x)===i;}).slice(0,3);
+  var allGT=[].concat(moodGT,vibeG).filter(function(x,i,a){return a.indexOf(x)===i;}).slice(0,2);
 
   var todoMeVale=platforms.length===0||platforms.includes("Todo me vale");
   var pids=todoMeVale?[]:platforms.map(function(p){return PIDS[p];}).filter(Boolean);
-  var pParam=pids.length>0?"&with_watch_providers="+pids.join("|")+"&watch_region=ES":"";
+  // watch_region=ES es OBLIGATORIO para que with_watch_providers funcione
+  var pParamM=pids.length>0?"&with_watch_providers="+pids.join("|")+"&watch_region=ES":"";
+  var pParamT=pids.length>0?"&with_watch_providers="+pids.join("|")+"&watch_region=ES":"";
   var durParam=isShort?"&with_runtime.lte=90":"";
 
   var wM=fmt==="Pelicula"||fmt==="Me da igual"||isMarathon;
   var wT=fmt==="Serie"||fmt==="Me da igual"||isMarathon;
 
-  function mMovie(m){return {id:m.id,title:m.title||m.name,titleEs:m.title||m.name,year:(m.release_date||"").slice(0,4),type:"Pelicula",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};}
+  function mMovie(m){return {id:m.id,title:m.title||m.name,titleEs:m.title||m.name,year:(m.release_date||"").slice(0,4),type:"Pelicula",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};  }
   function mTV(m){return {id:m.id,title:m.name||m.title,titleEs:m.name||m.title,year:(m.first_air_date||"").slice(0,4),type:"Serie",mediaType:"tv",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};}
 
-  async function fetchM(g,p,dur,pg,minV,era_p){
-    var ep=era_p!==undefined?era_p:eraParam;
-    try{var r=await fetch(B+"/discover/movie?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte="+(minV||200)+"&with_genres="+g+p+dur+ep+"&page="+pg);var d=await r.json();return (d.results||[]).filter(function(x){return x.poster_path;}).slice(0,isMarathon?6:5).map(mMovie);}catch{return [];}
-  }
-  async function fetchT(g,p,pg,minV,era_p){
-    var ep=era_p!==undefined?era_p:eraParam;
-    try{var r=await fetch(B+"/discover/tv?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte="+(minV||100)+"&with_genres="+g+p+ep+"&page="+pg);var d=await r.json();return (d.results||[]).filter(function(x){return x.poster_path;}).slice(0,isMarathon?4:3).map(mTV);}catch{return [];}
+  async function fetchM(genres,provParam,durP,eraP,pg,minV){
+    try{
+      var url=B+"/discover/movie?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc"
+        +"&vote_count.gte="+(minV||150)
+        +"&with_genres="+genres
+        +provParam+durP+eraP
+        +"&page="+pg;
+      var r=await fetch(url);
+      var d=await r.json();
+      return (d.results||[]).filter(function(x){return x.poster_path&&x.vote_count>50;}).slice(0,isMarathon?6:5).map(mMovie);
+    }catch{return [];}
   }
 
-  var pg=Math.floor(Math.random()*5)+1;
+  async function fetchT(genres,provParam,eraP,pg,minV){
+    try{
+      var url=B+"/discover/tv?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc"
+        +"&vote_count.gte="+(minV||50)
+        +"&with_genres="+genres
+        +provParam+eraP
+        +"&page="+pg;
+      var r=await fetch(url);
+      var d=await r.json();
+      return (d.results||[]).filter(function(x){return x.poster_path&&x.vote_count>20;}).slice(0,isMarathon?5:4).map(mTV);
+    }catch{return [];}
+  }
+
+  var pg=Math.floor(Math.random()*4)+1;
   var all=[];
 
-  var lvl1=[];
-  if(wM)lvl1.push(fetchM(allG.join(","),pParam,durParam,pg,200));
-  if(wT)lvl1.push(fetchT(allG.join(","),pParam,pg,100));
-  if(lvl1.length>0){var r1=await Promise.all(lvl1);all=r1.reduce(function(a,b){return a.concat(b);},[]);}
+  // NIVEL 1: Todos los filtros activos
+  var p1=[];
+  if(wM)p1.push(fetchM(allGM.join(","),pParamM,durParam,eraMovie,pg,150));
+  if(wT)p1.push(fetchT(allGT.join(","),pParamT,eraTV,pg,50));
+  if(p1.length>0){var r1=await Promise.all(p1);all=r1.reduce(function(a,b){return a.concat(b);},[]);}
 
-  if(all.length<3&&pids.length>0){
-    var lvl2=[];
-    if(wM)lvl2.push(fetchM(allG.join(","),"",durParam,pg,200));
-    if(wT)lvl2.push(fetchT(allG.join(","),"",pg,100));
-    var r2=await Promise.all(lvl2);
-    all=r2.reduce(function(a,b){return a.concat(b);},[]);
+  // NIVEL 2: Sin filtro de plataforma (pero mantiene mood+vibe+era)
+  if(all.length<4&&pids.length>0){
+    var p2=[];
+    if(wM)p2.push(fetchM(allGM.join(","),"",durParam,eraMovie,pg,150));
+    if(wT)p2.push(fetchT(allGT.join(","),"",eraTV,pg,50));
+    var r2=await Promise.all(p2);
+    var extra2=r2.reduce(function(a,b){return a.concat(b);},[]);
+    all=all.concat(extra2);
   }
 
-  if(all.length<3){
-    var lvl3=[];
-    if(wM)lvl3.push(fetchM(moodG.join(","),"","",pg,100));
-    if(wT)lvl3.push(fetchT(moodG.join(","),"",pg,50));
-    var r3=await Promise.all(lvl3);
-    all=r3.reduce(function(a,b){return a.concat(b);},[]);
+  // NIVEL 3: Sin vibe, solo mood (mantiene plataforma y era)
+  if(all.length<4){
+    var p3=[];
+    if(wM)p3.push(fetchM(moodGM.join(","),pParamM,durParam,eraMovie,pg,100));
+    if(wT)p3.push(fetchT(moodGT.join(","),pParamT,eraTV,pg,30));
+    var r3=await Promise.all(p3);
+    all=all.concat(r3.reduce(function(a,b){return a.concat(b);},[]));
   }
 
-  if(all.length<3){
-    var g1=String(moodG[0]||18);
-    var lvl4=[];
-    lvl4.push(fetchM(g1,"","",1,30));
-    lvl4.push(fetchT(g1,"",1,15));
-    var r4=await Promise.all(lvl4);
-    all=r4.reduce(function(a,b){return a.concat(b);},[]);
+  // NIVEL 4: Solo mood, sin plataforma ni era
+  if(all.length<4){
+    var p4=[];
+    if(wM)p4.push(fetchM(moodGM.join(","),"","","",1,50));
+    if(wT)p4.push(fetchT(moodGT.join(","),"","",1,20));
+    var r4=await Promise.all(p4);
+    all=all.concat(r4.reduce(function(a,b){return a.concat(b);},[]));
   }
 
-  if(all.length<3){
+  // NIVEL 5: Un solo género, sin restricciones — esto siempre da resultados
+  if(all.length<4){
+    var g1=String(wT?moodGT[0]:moodGM[0]||18);
+    var p5=[];
+    p5.push(fetchM(g1,"","","",1,30));
+    p5.push(fetchT(g1,"","",1,10));
+    var r5=await Promise.all(p5);
+    all=all.concat(r5.reduce(function(a,b){return a.concat(b);},[]));
+  }
+
+  // NIVEL 6: Trending — garantizado
+  if(all.length<4){
     try{
-      var rt=await fetch(B+"/trending/movie/week?api_key="+TMDB_KEY+"&language=es-ES");
+      var endpoint=wT&&!wM?"/trending/tv/week":"/trending/movie/week";
+      var rt=await fetch(B+endpoint+"?api_key="+TMDB_KEY+"&language=es-ES");
       var dt=await rt.json();
-      all=all.concat((dt.results||[]).filter(function(x){return x.poster_path;}).slice(0,8).map(mMovie));
+      var mapper=wT&&!wM?mTV:mMovie;
+      all=all.concat((dt.results||[]).filter(function(x){return x.poster_path;}).slice(0,8).map(mapper));
     }catch{}
   }
 
+  // Deduplicar y devolver
   var seen={};
   all=all.filter(function(f){if(seen[f.id])return false;seen[f.id]=true;return true;});
   return all.filter(function(f){return f.poster;});
 }
+
 
 async function tmdbWeekly(){
   const r=await fetch(B+"/trending/all/week?api_key="+TMDB_KEY+"&language=es-ES");
@@ -1788,22 +1866,24 @@ function App(){
                 {/* TRAILER */}
                 <div className="det-sec">
                   <div className="det-sec-label">Tr&#225;iler</div>
-                  {sel.trailerKey
-                    ? (!showTrailer
-                        ? <div className="trailer-thumb" onClick={function(){setShowTrailer(true);}}>
-                            <img src={"https://img.youtube.com/vi/"+sel.trailerKey+"/hqdefault.jpg"} alt="trailer"/>
-                            <div className="trailer-thumb-overlay">
-                              <div className="trailer-play">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="#09090b"><polygon points="6,3 20,12 6,21"/></svg>
+                  {sel.trailerKey===undefined
+                    ? <div className="trailer-thumb-empty"><div className="spinner" style={{width:24,height:24,margin:"16px auto"}}/></div>
+                    : sel.trailerKey
+                      ? (!showTrailer
+                          ? <div className="trailer-thumb" onClick={function(){setShowTrailer(true);}}>
+                              <img src={"https://img.youtube.com/vi/"+sel.trailerKey+"/hqdefault.jpg"} alt="trailer" loading="eager"/>
+                              <div className="trailer-thumb-overlay">
+                                <div className="trailer-play">
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#09090b"><polygon points="6,3 20,12 6,21"/></svg>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        : <iframe className="trailer-iframe" src={"https://www.youtube.com/embed/"+sel.trailerKey+"?autoplay=1&rel=0"} allow="autoplay;encrypted-media" allowFullScreen/>
-                      )
-                    : <div className="trailer-thumb-empty">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5,3 19,12 5,21"/></svg>
-                        <span>Cargando tr&#225;iler...</span>
-                      </div>
+                          : <iframe className="trailer-iframe" src={"https://www.youtube.com/embed/"+sel.trailerKey+"?autoplay=1&rel=0&playsinline=1"} allow="autoplay;encrypted-media;fullscreen" allowFullScreen/>
+                        )
+                      : <div className="trailer-thumb-empty">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5,3 19,12 5,21"/></svg>
+                          <span>Sin tr&#225;iler disponible</span>
+                        </div>
                   }
                 </div>
 
