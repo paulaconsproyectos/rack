@@ -965,8 +965,8 @@ function StreamLinks(props){
 }
 
 function App(){
-  var _=useState(function(){return LS.get("rack_auth","onboarding");});var auth=_[0];var setAuth=_[1];
-  var _=useState(function(){return LS.get("rack_user",null);});var user=_[0];var setUser=_[1];
+  var _=useState("loading");var auth=_[0];var setAuth=_[1];
+  var _=useState(null);var user=_[0];var setUser=_[1];
   var _=useState(0);var obStep=_[0];var setObStep=_[1];
   var _=useState("login");var authMode=_[0];var setAuthMode=_[1];
   var _=useState("home");var screen=_[0];var setScreen=_[1];
@@ -998,7 +998,7 @@ function App(){
   var _=useState(null);var toast=_[0];var setToast=_[1];
   var _=useState(false);var showInv=_[0];var setShowInv=_[1];
   var _=useState(function(){return LS.get("rack_inv",genCode());});var invCode=_[0];
-  var _=useState("");var lH=_[0];var setLH=_[1];
+  var _=useState("");var lE=_[0];var setLE=_[1];
   var _=useState("");var lP=_[0];var setLP=_[1];
   var _=useState("");var rN=_[0];var setRN=_[1];
   var _=useState("");var rH=_[0];var setRH=_[1];
@@ -1028,8 +1028,28 @@ function App(){
   var stRef=useRef(null);
   var editNameRef=useRef(null);
 
-  useEffect(function(){LS.set("rack_auth",auth);},[auth]);
-  useEffect(function(){LS.set("rack_user",user);},[user]);
+  useEffect(function(){
+    sb.auth.getSession().then(function(result){
+      var session=result.data&&result.data.session;
+      if(session&&session.user){
+        loadProfile(session.user);
+      } else {
+        setAuth("landing");
+      }
+    });
+    var sub=sb.auth.onAuthStateChange(function(event,session){
+      if(event==="SIGNED_IN"&&session&&session.user){
+        loadProfile(session.user);
+      } else if(event==="SIGNED_OUT"){
+        setUser(null);setAuth("landing");setScreen("home");setFilms([]);
+      }
+    });
+    return function(){
+      if(sub&&sub.data&&sub.data.subscription){
+        sub.data.subscription.unsubscribe();
+      }
+    };
+  },[]);
   useEffect(function(){LS.set("rack_reviews",reviews);},[reviews]);
   useEffect(function(){LS.set("rack_streak",streak);},[streak]);
 
@@ -1142,39 +1162,96 @@ function App(){
     else t_("Permisos denegados");
   }
 
-  async function doLogin(){
-    if(!lH.trim()||!lP.trim()){setErr("Rellena todos los campos");return;}
+  async function loadProfile(authUser){
     try{
-      var res=await sb.from("users").select("*").eq("handle",lH.toLowerCase().trim()).eq("password",lP).single();
-      if(res.data&&!res.error){
-        var av=LS.get("rack_av_"+res.data.id,res.data.avatar||null);
-        setUser(Object.assign({},res.data,{watched:LS.get("rack_w_"+res.data.id,[]),watchlist:LS.get("rack_l_"+res.data.id,[]),avatar:av}));
-        setAuth("app");setErr("");updateStreak();return;
+      var res=await sb.from("profiles").select("*").eq("id",authUser.id).single();
+      if(res.data){
+        setUser(Object.assign({},res.data,{
+          email:authUser.email,
+          watched:LS.get("rack_w_"+res.data.id,[]),
+          watchlist:LS.get("rack_l_"+res.data.id,[]),
+          avatar:LS.get("rack_av_"+res.data.id,res.data.avatar||null)
+        }));
+        setAuth("app");
+        updateStreak();
+      } else {
+        setAuth("landing");
       }
-    }catch{}
-    var saved=LS.get("rack_users",[]);
-    var all=DEMO_USERS.map(function(u){return Object.assign({},u,{password:"1234"});}).concat(saved);
-    var found=all.find(function(u){return u.handle===lH.toLowerCase().trim()&&u.password===lP;});
-    if(!found){setErr("Usuario o contraseña incorrectos");return;}
-    setUser(Object.assign({},found,{watched:LS.get("rack_w_"+found.id,[]),watchlist:LS.get("rack_l_"+found.id,[]),avatar:null}));
-    setAuth("app");setErr("");updateStreak();
+    }catch(e){
+      console.error("loadProfile:",e);
+      setAuth("landing");
+    }
+  }
+
+  async function doLogin(){
+    if(!lE.trim()||!lP.trim()){setErr("Rellena todos los campos");return;}
+    setErr("");
+    try{
+      var res=await sb.auth.signInWithPassword({
+        email:lE.trim().toLowerCase(),
+        password:lP
+      });
+      if(res.error){
+        if(res.error.message.includes("Invalid login")){
+          setErr("Email o contrasena incorrectos");
+        } else {
+          setErr(res.error.message);
+        }
+        return;
+      }
+    }catch(e){
+      setErr("Error de conexion. Intenta de nuevo.");
+    }
   }
 
   async function doReg(){
     if(!rN.trim()||!rH.trim()||!rP.trim()||!rE.trim()){setErr("Rellena todos los campos");return;}
     if(rE.indexOf("@")<1||rE.lastIndexOf(".")<rE.indexOf("@")+2){setErr("Email no valido");return;}
+    if(rP.length<6){setErr("La contrasena debe tener al menos 6 caracteres");return;}
     if(!gdprOk){setErr("Acepta la politica de privacidad");return;}
-    var handle=rH.toLowerCase().trim();
-    try{var res=await sb.from("users").select("id").eq("handle",handle).single();if(res.data){setErr("Usuario ya existe");return;}}catch{}
-    var saved=LS.get("rack_users",[]);
-    if(DEMO_USERS.concat(saved).find(function(u){return u.handle===handle;})){setErr("Usuario ya existe");return;}
-    var nu={id:"u"+Date.now(),name:rN.trim(),handle:handle,password:rP,email:rE.trim(),score:0};
-    try{await sb.from("users").insert(nu);}catch{}
-    LS.set("rack_users",saved.concat([nu]));
-    setUser(Object.assign({},nu,{watched:[],watchlist:[],avatar:null}));setAuth("app");setErr("");updateStreak();
+    var handle=rH.toLowerCase().trim().replace(/[^a-z0-9_]/g,"");
+    if(handle.length<3){setErr("Usuario: minimo 3 caracteres, solo a-z 0-9 _");return;}
+    setErr("");
+    try{
+      var hCheck=await sb.from("profiles").select("id").eq("handle",handle).maybeSingle();
+      if(hCheck.data){setErr("Ese usuario ya existe, elige otro");return;}
+    }catch{}
+    try{
+      var res=await sb.auth.signUp({
+        email:rE.trim().toLowerCase(),
+        password:rP,
+        options:{data:{name:rN.trim(),handle:handle}}
+      });
+      if(res.error){
+        if(res.error.message.includes("already registered")){
+          setErr("Ese email ya tiene cuenta. Inicia sesion.");
+        } else {
+          setErr(res.error.message);
+        }
+        return;
+      }
+      var authUser=res.data&&res.data.user;
+      if(!authUser){setErr("Error en el registro. Intenta de nuevo.");return;}
+      await sb.from("profiles").upsert({
+        id:authUser.id,
+        handle:handle,
+        name:rN.trim(),
+        score:0
+      });
+      if(!res.data.session){
+        setAuth("landing");
+        alert("Revisa tu email y confirma tu cuenta para entrar.");
+      }
+    }catch(e){
+      console.error("doReg:",e);
+      setErr("Error en el registro. Intenta de nuevo.");
+    }
   }
 
-  function doLogout(){setUser(null);setAuth("landing");setScreen("home");setFilms([]);}
+  async function doLogout(){
+    await sb.auth.signOut();
+    setUser(null);setAuth("landing");setScreen("home");setFilms([]);
+  }
 
   var q=QUESTIONS[quizStep];
 
@@ -1315,7 +1392,7 @@ function App(){
   var nextB=user?getNext(user.score||0):null;
   var prog=badge&&nextB?clamp(((user.score-badge.min)/(nextB.min-badge.min))*100,0,100):100;
   var filmRevs=sel?reviews.filter(function(r){return r.film===(sel.titleEs||sel.title);}):[];
-  var allUsers=DEMO_USERS.concat(LS.get("rack_users",[]));
+  var allUsers=[];
 
   return (
     <div className="app">
@@ -1455,6 +1532,14 @@ function App(){
         </div>
       )}
 
+      {/* LOADING */}
+      {auth==="loading" && (
+        <div style={{position:"fixed",inset:0,background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
+          <div className="land-logo" style={{fontSize:28}}>Zine <span>Club</span></div>
+          <div style={{color:"var(--t3)",fontSize:13}}>Cargando...</div>
+        </div>
+      )}
+
       {/* LANDING */}
       {auth==="landing" && (
         <div className="land">
@@ -1487,7 +1572,7 @@ function App(){
                 <div className="auth-ttl">Bienvenido de vuelta</div>
                 <div className="auth-sub">Entra en tu cuenta de Zine Club</div>
                 {err && <div className="auth-err">{err}</div>}
-                <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={lH} onChange={function(e){setLH(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
+                <div className="field"><label>Email</label><input type="email" placeholder="tu@email.com" value={lE} onChange={function(e){setLE(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
                 <div className="field"><label>Contrase&#241;a</label><input type="password" placeholder="Contrasena" value={lP} onChange={function(e){setLP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
                 <button className="btn btn-p" style={{marginTop:18}} onClick={doLogin}>Entrar</button>
                 <div className="auth-hint">&#191;Sin cuenta? <button onClick={function(){setAuthMode("register");setErr("");}}>Reg&#237;strate</button></div>
@@ -1984,14 +2069,189 @@ function App(){
                 </div>
                 {socTab==="feed" && (
                   <div>
-                    {DEMO_FEED.map(function(a,i){
+                    {<div style={{textAlign:"center",color:"var(--t3)",fontSize:13,padding:"24px 0"}}>El feed social llega pronto &#127916;</div>}
+                  </div>
+                )}
+                {socTab==="ranking" && (
+                  <div>
+                    {allUsers.concat([{id:user.id,name:user.name,score:user.score||0}])
+                      .filter(function(u,i,a){return a.findIndex(function(x){return x.id===u.id;})===i;})
+                      .sort(function(a,b){return (b.score||0)-(a.score||0);})
+                      .map(function(u,i){
+                        return (
+                          <div key={u.id} className={"rank-row"+(u.id===user.id?" me":"")}>
+                            <div className={"rank-n"+(i===0?" gold":"")}>{i+1}</div>
+                            <div className="rank-av">{ini(u.name)}</div>
+                            <div className="rank-info"><div className="rank-name">{u.name}{u.id===user.id?" (tú)":""}</div><div className="rank-badge">{getBadge(u.score||0).label}</div></div>
+                            <div style={{textAlign:"right"}}><div className="rank-score">{u.score||0}</div><div style={{fontSize:9,color:"var(--t3)"}}>pts</div></div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+                {socTab==="reviews" && (
+                  <div>
+                    {reviews.length===0 && <div className="empty"><div className="empty-t">Sin reseñas aún</div><button className="empty-cta" onClick={function(){goQuiz(false);}}>Descubrir</button></div>}
+                    {reviews.map(function(r){
                       return (
-                        <div key={i} className="act-item">
-                          <div className="act-av">{a.u.split(" ").map(function(w){return w[0];}).join("").slice(0,2)}</div>
-                          <div><div className="act-txt"><strong>{a.u}</strong> {a.a} <em>{a.f}</em></div><div className="act-time">hace {a.t}</div></div>
+                        <div key={r.id} className="rc" style={{paddingTop:13}}>
+                          <div style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--acc2)",marginBottom:6}}>{r.film}</div>
+                          <div className="rc-h">
+                            <div className="rc-ui"><div className="rc-av">{ini(r.userName)}</div><div><div className="rc-name">{r.userName}</div><div className="rc-handle">@{r.handle}</div></div></div>
+                            <div className="rc-stars">{"*".repeat(r.stars||0)}</div>
+                          </div>
+                          <p className="rc-txt" style={{marginTop:7}}>{r.text}</p>
+                          <button className={"rc-like"+((r.likedBy&&r.likedBy.includes(user.id))?" liked":"")} onClick={function(){toggleLike(r.id);}}>&#9829; {r.likes||0}</button>
                         </div>
                       );
                     })}
+                  </div>
+                )}
+                {socTab==="upcoming" && (
+                  <div>
+                    {!notif && (
+                      <div className="notif-ban" style={{marginBottom:14}}>
+                        <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--acc2)",marginBottom:2}}>Notificaciones de estrenos</div><div style={{fontSize:11,color:"var(--t3)"}}>No te pierdas ninguno</div></div>
+                        <button className="notif-ban-btn" onClick={reqNotif}>Activar</button>
+                      </div>
+                    )}
+                    {upcoming.length===0 && <div style={{textAlign:"center",padding:"32px 0"}}><div className="spinner"/></div>}
+                    {upcoming.map(function(f,i){
+                      return (
+                        <div key={i} className="up-item">
+                          {f.poster && <img className="up-p" src={f.poster} alt="" loading="lazy"/>}
+                          {!f.poster && <div className="up-pe">—</div>}
+                          <div style={{flex:1}}>
+                            <div className="up-title">{f.titleEs||f.title}</div>
+                            <div className="up-date">{f.releaseDate||f.year}</div>
+                            <div className="up-desc">{f.description}</div>
+                            <div style={{display:"flex",alignItems:"center",gap:7,marginTop:5}}>
+                              <div className={"tog-track"+(notifF[f.id]?" on":"")} onClick={function(){var nf=Object.assign({},notifF);if(nf[f.id])delete nf[f.id];else nf[f.id]=true;setNotifF(nf);t_(notifF[f.id]?"Cancelado":"Te avisaremos");}}>
+                                <div className="tog-thumb"/>
+                              </div>
+                              <span style={{fontSize:11,color:"var(--t3)"}}>{notifF[f.id]?"Activada":"Avisarme"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* PROFILE */}
+          {screen==="profile" && (
+            <div>
+              <div className="prof-hd">
+                <div style={{position:"relative",width:72,height:72,marginBottom:11}}>
+                  {user.avatar && <img src={user.avatar} style={{width:72,height:72,borderRadius:"50%",objectFit:"cover",border:"2px solid var(--acc)"}} alt=""/>}
+                  {!user.avatar && <div className="prof-av">{ini(user.name)}</div>}
+                  <label style={{position:"absolute",bottom:0,right:0,width:24,height:24,borderRadius:"50%",background:"var(--acc)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11,color:"#fff",fontWeight:700}}>
+                    +<input type="file" accept="image/*" style={{display:"none"}} onChange={handleAvatarChange}/>
+                  </label>
+                </div>
+                {editProf && (
+                  <div>
+                    <input ref={editNameRef} defaultValue={user.name} style={{background:"var(--s2)",border:"1px solid var(--acc)",borderRadius:8,padding:"8px 12px",color:"var(--t)",fontSize:15,marginBottom:8,width:"100%",outline:"none"}}/>
+                    <div style={{display:"flex",gap:6,marginBottom:12}}>
+                      <button style={{flex:1,padding:"9px",background:"var(--acc)",color:"#fff",border:"none",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer"}} onClick={saveProfile}>Guardar</button>
+                      <button style={{flex:1,padding:"9px",background:"var(--s2)",color:"var(--t2)",border:"1px solid var(--b)",borderRadius:9,fontSize:13,cursor:"pointer"}} onClick={function(){setEditProf(false);}}>Cancelar</button>
+                    </div>
+                  </div>
+                )}
+                {!editProf && (
+                  <div>
+                    <div className="prof-name">{user.name}</div>
+                    <div className="prof-handle">@{user.handle}</div>
+                    <div style={{display:"flex",gap:6,alignItems:"center",marginTop:6,marginBottom:4}}>
+                      <div className="prof-badge">{badge&&badge.label}</div>
+                      <button style={{background:"var(--s2)",border:"1px solid var(--b)",borderRadius:20,padding:"3px 10px",fontSize:11,color:"var(--t3)",cursor:"pointer"}} onClick={function(){setEditProf(true);}}>Editar</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="page" style={{paddingTop:0}}>
+                <div className="score-blk">
+                  <div className="score-big">{user.score||0}</div>
+                  <div className="score-lbl">Puntos cinéfilos</div>
+                  <div className="prog-bar"><div className="prog-fill" style={{width:prog+"%"}}/></div>
+                  <div className="prog-labels"><span>{badge&&badge.label}</span>{nextB&&<span>{nextB.label} · {nextB.min-(user.score||0)} pts</span>}</div>
+                </div>
+                <div className="stats-row">
+                  <div className="stat-card"><div className="stat-n">{(user.watched||[]).length}</div><div className="stat-l">Vistas</div></div>
+                  <div className="stat-card"><div className="stat-n">{reviews.filter(function(r){return r.userId===user.id;}).length}</div><div className="stat-l">Reseñas</div></div>
+                  <div className="stat-card"><div className="stat-n">{(user.watchlist||[]).length}</div><div className="stat-l">Lista</div></div>
+                </div>
+                <div className="invite-row" onClick={function(){setShowInv(true);}}>
+                  <div><div className="ir-t">Código de invitación</div><div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:"var(--acc2)",marginTop:3}}>{invCode}</div></div>
+                  <span style={{color:"var(--acc2)"}}>→</span>
+                </div>
+                {(user.watched||[]).length===0 && (user.watchlist||[]).length===0 && (
+                  <div className="empty"><div className="empty-t">Aún no has marcado nada</div><button className="empty-cta" onClick={function(){goQuiz(false);}}>Descubrir ahora</button></div>
+                )}
+                {(user.watched||[]).length>0 && (
+                  <div>
+                    <div className="sec">Películas vistas</div>
+                    {(user.watched||[]).map(function(f,i){
+                      return (
+                        <div key={i} className="wl-item" onClick={function(){goDetail(f,"profile");}}>
+                          {f.poster && <img className="wl-p" src={f.poster} alt="" loading="lazy"/>}
+                          {!f.poster && <div className="wl-pe"/>}
+                          <div style={{flex:1,minWidth:0}}><div className="wl-title">{f.titleEs||f.title}</div><div className="wl-meta">{f.type||""} · {f.year}</div></div>
+                          <div className="wl-pts">+{Math.round((parseFloat(f.score)||5)*10)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {(user.watchlist||[]).length>0 && (
+                  <div>
+                    <div className="sec">Mi lista</div>
+                    {(user.watchlist||[]).map(function(f,i){
+                      return (
+                        <div key={i} className="wl-item" onClick={function(){goDetail(f,"profile");}}>
+                          {f.poster && <img className="wl-p" src={f.poster} alt="" loading="lazy"/>}
+                          {!f.poster && <div className="wl-pe"/>}
+                          <div style={{flex:1,minWidth:0}}><div className="wl-title">{f.titleEs||f.title}</div><div className="wl-meta">{f.type||""} · {f.year}</div></div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <button className="logout-btn" onClick={doLogout}>Cerrar sesión</button>
+              </div>
+            </div>
+          )}
+
+          {/* NAV */}
+          {screen!=="quiz" && (
+            <nav className="nav">
+              {[{s:"home",l:"Inicio",I:IcoHome},{s:"search",l:"Buscar",I:IcoSearch},{s:"results",l:"Para ti",I:IcoStar,dis:films.length===0},{s:"social",l:"Social",I:IcoUsers},{s:"profile",l:"Perfil",I:IcoUser}].map(function(item){
+                return (
+                  <button key={item.s} className={"nb"+(screen===item.s?" active":"")} style={{opacity:item.dis?0.3:1}} onClick={item.dis?undefined:function(){setScreen(item.s);}}>
+                    <div className="nb-ic"><item.I/></div>
+                    <span>{item.l}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+</script>
+</body>
+</html>{[].map(function(a,i){return null;})}
+                    <div style={{textAlign:"center",color:"var(--t3)",fontSize:13,padding:"20px 0"}}>El feed social llega pronto</div>
                   </div>
                 )}
                 {socTab==="ranking" && (
