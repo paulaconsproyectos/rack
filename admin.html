@@ -1,644 +1,1535 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Rack Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Zine Club</title>
+<meta name="theme-color" content="#0a0a0c"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#0A0A0F;--s1:#0F0F18;--s2:#14141F;--s3:#1A1A28;--s4:#22223A;--s5:#2E2E50;
-  --b:rgba(120,120,255,0.08);--b2:rgba(120,120,255,0.14);--b3:rgba(120,120,255,0.22);
-  --t:#F0F0FF;--t2:#A0A0C8;--t3:#6060A0;--t4:#404070;
-  --acc:#7C6FFF;--acc2:#A89BFF;--acc3:rgba(124,111,255,0.15);
-  --grn:#00FF88;--red:#FF4466;--ylw:#FFD700;--ora:#FF8800;
-  --grn2:rgba(0,255,136,0.1);--red2:rgba(255,68,102,0.1);
+  --bg:#0a0a0c;
+  --s1:#0f0f12;
+  --s2:#141418;
+  --s3:#1a1a20;
+  --s4:#222228;
+  --s5:#2e2e38;
+  --t:#f0f0f5;
+  --t2:#a0a0b8;
+  --t3:#606078;
+  --t4:#404055;
+  --acc:#a855f7;
+  --acc2:#c084fc;
+  --acc3:rgba(168,85,247,0.15);
+  --acc4:rgba(168,85,247,0.06);
+  --glass:rgba(168,85,247,0.05);
+  --glass-border:rgba(168,85,247,0.2);
+  --glow:0 0 20px rgba(168,85,247,0.4);
+  --glow-sm:0 0 10px rgba(168,85,247,0.3);
 }
-html,body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:var(--s2);}
-::-webkit-scrollbar-thumb{background:var(--s5);border-radius:2px;}
-button,input,textarea,select{font-family:'DM Sans',sans-serif;}
+html,body{height:100%;background:var(--bg);color:var(--t);font-family:"Spline Sans",sans-serif;overflow:hidden;}
+#root{height:100%;display:flex;flex-direction:column;}
 
-/* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 20%,rgba(124,111,255,0.12),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(0,255,136,0.06),transparent 50%),var(--bg);}
-.login-box{width:360px;padding:40px;}
-.login-logo{font-family:'DM Serif Display',serif;font-size:42px;letter-spacing:-0.02em;margin-bottom:4px;}
-.login-logo span{color:var(--acc2);}
-.login-tag{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:36px;}
-.lf{margin-bottom:14px;}
-.lf label{display:block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;font-family:'DM Mono',monospace;}
-.lf input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px 14px;color:var(--t);font-size:14px;outline:none;transition:all .2s;}
-.lf input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc3);}
-.lf input::placeholder{color:var(--t4);}
-.login-btn{width:100%;padding:13px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:8px;}
-.login-btn:hover{background:var(--acc2);}
-.login-err{font-size:12px;color:var(--red);margin-top:10px;font-family:'DM Mono',monospace;}
+/* GRAIN OVERLAY */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+  opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
 
-/* LAYOUT */
-.layout{display:flex;min-height:100vh;}
-.sidebar{width:220px;background:var(--s1);border-right:1px solid var(--b);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:10;}
-.sb-logo{padding:24px 20px 20px;border-bottom:1px solid var(--b);}
-.sb-logo-t{font-family:'DM Serif Display',serif;font-size:22px;}
-.sb-logo-t span{color:var(--acc2);}
-.sb-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;}
-.sb-nav{flex:1;padding:14px 10px;overflow-y:auto;}
-.sb-section{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--t4);padding:12px 10px 6px;}
-.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--t3);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;margin-bottom:2px;}
-.sb-item:hover{background:var(--s3);color:var(--t2);}
-.sb-item.active{background:var(--acc3);color:var(--acc2);border:1px solid var(--b2);}
-.sb-ic{font-size:15px;width:18px;text-align:center;}
-.sb-badge{margin-left:auto;background:var(--red2);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;font-family:'DM Mono',monospace;}
-.sb-bottom{padding:14px;border-top:1px solid var(--b);}
-.sb-user{display:flex;align-items:center;gap:9px;}
-.sb-av{width:30px;height:30px;border-radius:50%;background:var(--acc3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--acc2);}
-.sb-uname{font-size:12px;font-weight:600;}
-.sb-urole{font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;}
-.logout-sb{margin-top:8px;width:100%;padding:8px;background:transparent;border:1px solid var(--b);border-radius:7px;color:var(--t3);font-size:12px;cursor:pointer;transition:all .2s;}
-.logout-sb:hover{border-color:var(--red);color:var(--red);}
+/* AMBIENT GLOW BG */
+.amb{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.amb-1{position:absolute;top:-20%;left:-10%;width:60%;height:60%;border-radius:50%;background:rgba(168,85,247,0.08);filter:blur(120px);}
+.amb-2{position:absolute;bottom:-20%;right:-10%;width:50%;height:50%;border-radius:50%;background:rgba(168,85,247,0.05);filter:blur(100px);}
 
-/* MAIN */
-.main{margin-left:220px;flex:1;min-height:100vh;}
-.topbar{padding:20px 28px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);}
-.page-title{font-size:20px;font-weight:700;letter-spacing:-0.02em;}
-.page-sub{font-size:12px;color:var(--t3);margin-top:2px;font-family:'DM Mono',monospace;}
-.content{padding:24px 28px;}
+/* SCROLLABLE PAGE */
+.page{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 90px 0;}
+.page::-webkit-scrollbar{display:none;}
 
-/* CARDS */
-.cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-.kpi{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:18px;}
-.kpi-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
-.kpi-val{font-family:'DM Serif Display',serif;font-size:36px;line-height:1;margin-bottom:4px;}
-.kpi-sub{font-size:11px;color:var(--t3);}
-.kpi-grn .kpi-val{color:var(--grn);}
-.kpi-acc .kpi-val{color:var(--acc2);}
-.kpi-ylw .kpi-val{color:var(--ylw);}
-.kpi-red .kpi-val{color:var(--red);}
+/* NAV */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(10,10,12,0.85);backdrop-filter:blur(20px);
+  border-top:1px solid var(--glass-border);
+  padding:12px 0 max(20px,env(safe-area-inset-bottom));
+}
+.nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:480px;margin:0 auto;}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--t3);transition:color .2s;padding:4px 16px;}
+.nav-btn.active{color:var(--acc);}
+.nav-btn svg{width:24px;height:24px;}
+.nav-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
 
-/* TABLE */
-.table-wrap{background:var(--s1);border:1px solid var(--b);border-radius:12px;overflow:hidden;margin-bottom:20px;}
-.table-hd{padding:16px 20px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;}
-.table-title{font-size:14px;font-weight:600;}
-.table-sub{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:1px;}
-.tbl{width:100%;border-collapse:collapse;}
-.tbl th{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:10px 20px;text-align:left;border-bottom:1px solid var(--b);}
-.tbl td{padding:12px 20px;font-size:13px;border-bottom:1px solid var(--b);vertical-align:middle;}
-.tbl tr:last-child td{border-bottom:none;}
-.tbl tr:hover td{background:var(--s2);}
-.tbl-av{width:28px;height:28px;border-radius:50%;background:var(--acc3);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--acc2);margin-right:8px;vertical-align:middle;}
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;}
-.badge-grn{background:var(--grn2);color:var(--grn);}
-.badge-red{background:var(--red2);color:var(--red);}
-.badge-acc{background:var(--acc3);color:var(--acc2);}
-.badge-ylw{background:rgba(255,215,0,0.1);color:var(--ylw);}
-.tbl-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .15s;}
-.tbl-btn-acc{background:var(--acc3);color:var(--acc2);}
-.tbl-btn-acc:hover{background:var(--acc);color:#fff;}
-.tbl-btn-red{background:var(--red2);color:var(--red);}
-.tbl-btn-red:hover{background:var(--red);color:#fff;}
-.tbl-btn-grn{background:var(--grn2);color:var(--grn);}
-.tbl-btn-grn:hover{background:var(--grn);color:#000;}
+/* GLASS CARD */
+.glass{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:16px;}
+.glass-sm{background:var(--glass);backdrop-filter:blur(8px);border:1px solid rgba(168,85,247,0.12);border-radius:12px;}
+
+/* TYPOGRAPHY */
+.serif{font-family:"Newsreader",serif;}
+.serif-italic{font-family:"Newsreader",serif;font-style:italic;}
+h1,h2,h3{font-family:"Newsreader",serif;}
+
+/* BUTTONS */
+.btn-primary{
+  background:var(--acc);color:#fff;border:none;border-radius:50px;
+  padding:16px 36px;font-size:16px;font-weight:700;cursor:pointer;
+  box-shadow:var(--glow);transition:all .2s;letter-spacing:.03em;
+  font-family:"Spline Sans",sans-serif;width:100%;
+}
+.btn-primary:active{transform:scale(0.97);box-shadow:0 0 30px rgba(168,85,247,0.6);}
+.btn-primary:hover{background:#9333ea;}
+.btn-ghost{
+  background:transparent;color:var(--t2);border:1px solid var(--glass-border);border-radius:50px;
+  padding:12px 28px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;
+  font-family:"Spline Sans",sans-serif;
+}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc);}
+.btn-icon{
+  width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.3);
+  backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;
+}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;padding:0 20px;margin-bottom:14px;}
+.sec-title{font-size:20px;font-weight:700;letter-spacing:-.01em;}
+.sec-more{font-size:12px;font-weight:700;color:var(--acc);letter-spacing:.06em;text-transform:uppercase;background:none;border:none;cursor:pointer;}
+
+/* PILL */
+.pill{display:inline-block;padding:4px 12px;border-radius:50px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--acc3);color:var(--acc2);border:1px solid rgba(168,85,247,0.2);}
+
+/* STAR */
+.star{color:var(--acc);font-size:14px;}
+
+/* INPUT */
+.inp{
+  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+  border-radius:12px;padding:14px 16px;color:var(--t);font-size:15px;
+  font-family:"Spline Sans",sans-serif;outline:none;transition:border .2s;
+}
+.inp:focus{border-color:var(--acc);box-shadow:var(--glow-sm);}
+.inp::placeholder{color:var(--t4);}
+
+/* POSTER */
+.poster{border-radius:12px;object-fit:cover;background:var(--s3);}
+
+/* BADGE */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;border-radius:50px;
+  background:var(--acc3);color:var(--acc2);
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes pulse{0%,100%{box-shadow:var(--glow);}50%{box-shadow:0 0 30px rgba(168,85,247,0.6);}}
+.fade-up{animation:fadeUp .4s ease both;}
+.fade-in{animation:fadeIn .3s ease both;}
+
+/* HERO CARD */
+.hero-card{
+  margin:0 20px;border-radius:24px;padding:36px 28px;
+  background:linear-gradient(135deg,rgba(88,28,135,0.7) 0%,rgba(126,34,206,0.5) 50%,rgba(88,28,135,0.4) 100%);
+  border:1px solid rgba(168,85,247,0.4);
+  position:relative;overflow:hidden;text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6),0 0 60px rgba(168,85,247,0.1);
+  cursor:pointer;
+}
+.hero-card::before{
+  content:"";position:absolute;top:-40%;right:-20%;width:80%;height:80%;
+  border-radius:50%;background:rgba(168,85,247,0.2);filter:blur(60px);pointer-events:none;
+}
+.hero-card::after{
+  content:"";position:absolute;bottom:-30%;left:-10%;width:60%;height:60%;
+  border-radius:50%;background:rgba(147,51,234,0.15);filter:blur(50px);pointer-events:none;
+}
+
+/* POSTER ROW */
+.poster-row{display:flex;gap:12px;overflow-x:auto;padding:0 20px 8px;scrollbar-width:none;}
+.poster-row::-webkit-scrollbar{display:none;}
+
+/* MOVIE CARD */
+.movie-card{flex-shrink:0;width:120px;cursor:pointer;}
+.movie-card img{width:120px;height:180px;border-radius:12px;object-fit:cover;background:var(--s3);display:block;}
+.movie-card-title{font-size:11px;color:var(--t2);margin-top:6px;line-height:1.3;text-align:center;font-weight:500;}
+
+/* DETAIL BACKDROP */
+.detail-backdrop{width:100%;height:50vw;max-height:280px;object-fit:cover;display:block;}
+.detail-grad{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to bottom,transparent,var(--bg));}
+
+/* QUIZ */
+.quiz-opt{
+  width:100%;padding:16px 20px;background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:14px;color:var(--t);font-size:15px;font-weight:500;
+  cursor:pointer;text-align:left;transition:all .2s;margin-bottom:10px;
+  font-family:"Spline Sans",sans-serif;
+}
+.quiz-opt:hover{background:var(--acc3);border-color:var(--acc);}
+.quiz-opt.sel{background:var(--acc3);border-color:var(--acc);box-shadow:var(--glow-sm);color:var(--acc2);}
+.quiz-opt-multi{display:flex;align-items:center;gap:10px;}
+.quiz-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--t3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.quiz-opt.sel .quiz-check{background:var(--acc);border-color:var(--acc);}
+
+/* MOOD GRID */
+.mood-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px;}
+.mood-card{
+  aspect-ratio:4/5;border-radius:16px;border:1px solid var(--glass-border);
+  display:flex;flex-direction:column;justify-content:flex-end;padding:16px;
+  cursor:pointer;overflow:hidden;position:relative;transition:all .2s;
+}
+.mood-card.sel{border-color:var(--acc);box-shadow:var(--glow);}
+.mood-card-lbl{font-family:"Newsreader",serif;font-style:italic;font-size:20px;position:relative;z-index:2;}
+
+/* PROFILE */
+.stat-card{background:var(--s2);border:1px solid var(--s4);border-radius:14px;padding:16px;text-align:center;}
+.stat-num{font-family:"Newsreader",serif;font-size:32px;font-weight:700;color:var(--acc2);}
+.stat-lbl{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:2px;}
+
+/* REVIEW CARD */
+.review-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;padding:16px;}
+
+/* ACTIVITY FEED */
+.feed-item{display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid var(--s3);}
+.feed-av{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--s3);flex-shrink:0;}
+
+/* ONBOARDING */
+.ob-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center;}
+
+/* PROGRESS BAR */
+.prog-bar{height:3px;background:var(--s4);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .3s;}
 
 /* SEARCH BAR */
-.search-bar{display:flex;gap:10px;margin-bottom:16px;align-items:center;}
-.sb-input{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:9px 14px;color:var(--t);font-size:13px;outline:none;transition:all .2s;}
-.sb-input:focus{border-color:var(--acc);}
-.sb-input::placeholder{color:var(--t4);}
-.filter-btn{padding:9px 14px;border-radius:8px;border:1px solid var(--b2);background:var(--s2);color:var(--t3);font-size:12px;cursor:pointer;transition:all .15s;}
-.filter-btn.on{background:var(--acc3);border-color:var(--acc);color:var(--acc2);}
+.search-bar{
+  display:flex;align-items:center;gap:10px;background:var(--s2);
+  border:1px solid var(--s4);border-radius:14px;padding:12px 16px;
+  margin:0 20px 20px;
+}
+.search-bar input{background:none;border:none;outline:none;color:var(--t);font-size:15px;flex:1;font-family:"Spline Sans",sans-serif;}
+.search-bar input::placeholder{color:var(--t4);}
 
-/* NOTIF COMPOSER */
-.notif-box{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:20px;margin-bottom:20px;}
-.notif-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.nf{margin-bottom:12px;}
-.nf label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px;font-family:'DM Mono',monospace;}
-.nf input,.nf textarea,.nf select{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px 13px;color:var(--t);font-size:13px;outline:none;transition:all .2s;font-family:'DM Sans',sans-serif;}
-.nf textarea{resize:none;height:80px;}
-.nf input:focus,.nf textarea:focus,.nf select:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc3);}
-.nf select option{background:var(--s2);}
-.send-btn{padding:11px 22px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
-.send-btn:hover{background:var(--acc2);}
-.send-btn:disabled{opacity:.3;cursor:not-allowed;}
-
-/* COPY EDITOR */
-.copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
-.copy-card{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:18px;}
-.copy-key{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
-.copy-val{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:10px;}
-.copy-edit-btn{padding:5px 12px;border-radius:6px;background:var(--s3);border:1px solid var(--b2);color:var(--t2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;}
-.copy-edit-btn:hover{background:var(--acc3);color:var(--acc2);border-color:var(--acc);}
-
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
-.modal{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:26px;width:480px;max-height:80vh;overflow-y:auto;}
-.modal-title{font-size:17px;font-weight:700;margin-bottom:16px;letter-spacing:-0.01em;}
-.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
-.mf-btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
-.mf-cancel{background:var(--s3);color:var(--t2);}
-.mf-save{background:var(--acc);color:#fff;}
-.mf-save:hover{background:var(--acc2);}
-.mf-delete{background:var(--red2);color:var(--red);}
-.mf-delete:hover{background:var(--red);color:#fff;}
+/* RETO CARD */
+.reto-card{
+  margin:0 20px;padding:14px 16px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(88,28,135,0.3),rgba(126,34,206,0.15));
+  border:1px solid rgba(168,85,247,0.2);
+  display:flex;align-items:center;gap:12px;
+}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);color:var(--t);border:1px solid var(--b2);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:500;z-index:999;animation:tin .22s ease;box-shadow:0 8px 32px rgba(0,0,0,.5);}
-@keyframes tin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+  background:var(--s3);border:1px solid var(--glass-border);border-radius:50px;
+  padding:10px 20px;font-size:13px;font-weight:600;z-index:9000;
+  animation:fadeUp .3s ease both;white-space:nowrap;
+}
 
-/* ACTIVITY */
-.act-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--b);}
-.act-item:last-child{border-bottom:none;}
-.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.act-grn{background:var(--grn);}
-.act-acc{background:var(--acc);}
-.act-ylw{background:var(--ylw);}
-.act-txt{font-size:12px;color:var(--t2);line-height:1.5;}
-.act-txt strong{color:var(--t);font-weight:600;}
-.act-time{font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:2px;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:flex-end;}
+.modal-sheet{background:var(--s1);border-radius:24px 24px 0 0;padding:24px;width:100%;max-height:85vh;overflow-y:auto;}
+.modal-sheet::-webkit-scrollbar{display:none;}
 
-/* LOADING */
-.spinner{width:24px;height:24px;border:2px solid var(--s4);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;margin:40px auto;display:block;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.empty-state{text-align:center;padding:48px 20px;color:var(--t3);}
-.empty-state-i{font-size:32px;margin-bottom:10px;}
-.empty-state-t{font-size:13px;font-family:'DM Mono',monospace;}
+/* PLATFORM LOGOS */
+.plat-icon{width:48px;height:48px;border-radius:12px;border:1px solid var(--s4);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;}
+.plat-icon:hover{border-color:var(--acc);}
 
-/* STATS CHART */
-.chart-bar-wrap{display:flex;flex-direction:column;gap:8px;padding:4px 0;}
-.chart-bar-row{display:flex;align-items:center;gap:10px;}
-.chart-bar-label{font-size:11px;color:var(--t2);width:80px;text-align:right;font-family:'DM Mono',monospace;flex-shrink:0;}
-.chart-bar-track{flex:1;height:6px;background:var(--s4);border-radius:3px;overflow:hidden;}
-.chart-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s cubic-bezier(.4,0,.2,1);}
-.chart-bar-val{font-size:11px;color:var(--t3);width:30px;font-family:'DM Mono',monospace;}
-
-/* TWO COL */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
-.box{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:18px;}
-.box-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
-.box-title-sm{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;font-weight:400;}
-  </style>
+/* HEADER */
+.page-hdr{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,10,12,0.8);backdrop-filter:blur(16px);
+  padding:16px 20px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--s3);
+}
+</style>
 </head>
 <body>
+<div class="amb"><div class="amb-1"></div><div class="amb-2"></div></div>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback} = React;
+const SUPA_URL="https://scqoqwmkptyxwpiwhkyk.supabase.co";
+const SUPA_KEY="sb_publishable_GPGtFCLX8xNSIvyCznVDrg_K3xhtb4N";
+const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+const TMDB_KEY="10f1051018046e4262a70010b517415c";
+const TMDB="https://api.themoviedb.org/3";
+const IMG="https://image.tmdb.org/t/p/w500";
+const ORIG="https://image.tmdb.org/t/p/original";
 
-<div id="app"></div>
-
-<script>
-const SUPA_URL = "https://scqoqwmkptyxwpiwhkyk.supabase.co";
-const SUPA_KEY = "sb_publishable_GPGtFCLX8xNSIvyCznVDrg_K3xhtb4N";
-const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
-
-const ADMIN_PASS = "rack2025admin";
-const COPIES = {
-  "onboarding_1_title": "Descubre tu próxima peli",
-  "onboarding_1_sub": "Test de humor en 30 segundos. Rack encuentra el cine exacto para ti.",
-  "onboarding_2_title": "Películas, series y más",
-  "onboarding_2_sub": "Distingue entre películas, miniseries, series cortas y largas automáticamente.",
-  "onboarding_3_title": "Modo Maratón",
-  "onboarding_3_sub": "¿Tienes todo el día? Rack te arma una sesión épica completa.",
-  "quiz_cta_title": "¿Qué veo hoy?",
-  "quiz_cta_sub": "Test de estado de ánimo · personalizado",
-  "potw_tag": "✦ TRENDING ESTA SEMANA",
-  "marathon_title": "🍿 Modo Maratón",
-  "marathon_sub": "Tengo tiempo. Dame todo.",
+const MOOD_GENRES={
+  "Eufórico":[28,12,35,10402],
+  "Melancólico":[18,10749,9648],
+  "Curioso":[99,36,9648,878],
+  "Relajado":[35,10751,16,10402],
+  "Intenso":[53,27,80,28],
+  "Romántico":[10749,18,35]
 };
-
-let state = {
-  auth: localStorage.getItem("rack_admin_auth") === "1",
-  screen: "dashboard",
-  users: [], reviews: [], watched: [], watchlist: [],
-  loading: false, toast: null, modal: null,
-  searchQ: "", filterType: "all",
-  copies: JSON.parse(localStorage.getItem("rack_copies") || JSON.stringify(COPIES)),
-  notifTitle: "", notifBody: "", notifTarget: "all",
+const VIBE_GENRES={
+  "Que me impacte":[18,53,27],
+  "Que me evada":[12,14,878,28],
+  "Que me haga reír":[35,10751,16],
+  "Que me asuste":[27,53,9648],
+  "Arte puro":[18,36,10752],
+  "Buena historia":[18,80,9648,53]
 };
+const PLATFORMS={
+  "Netflix":{color:"#E50914",id:"8"},
+  "HBO Max":{color:"#0063E5",id:"384"},
+  "Disney+":{color:"#0063E5",id:"337"},
+  "Prime Video":{color:"#00A8E1",id:"119"},
+  "Filmin":{color:"#F5A623",id:"63"},
+  "Apple TV+":{color:"#555",id:"350"},
+  "Movistar+":{color:"#019FE3",id:"149"},
+  "Todo me vale":{color:"#a855f7",id:"all"}
+};
+const QUESTIONS=[
+  {id:"format",q:"¿Película o serie?",opts:["Película","Serie","Me da igual"]},
+  {id:"mood",q:"¿Cómo estás ahora?",type:"mood",opts:["Eufórico","Melancólico","Curioso","Relajado","Intenso","Romántico"]},
+  {id:"time",q:"¿Cuánto tiempo tienes?",opts:["Menos de 1h","1-2 horas","Más de 2h","Modo Maratón"]},
+  {id:"vibe",q:"¿Qué buscas?",opts:["Que me impacte","Que me evada","Que me haga reír","Que me asuste","Arte puro","Buena historia"]},
+  {id:"platform",q:"¿Dónde ves?",multi:true,opts:["Netflix","HBO Max","Disney+","Prime Video","Filmin","Apple TV+","Movistar+","Todo me vale"]}
+];
+const MOOD_COLORS={
+  "Eufórico":"radial-gradient(circle at 70% 20%, #7c3aed 0%, #1a1a20 70%)",
+  "Melancólico":"radial-gradient(circle at 20% 30%, #1e3a5f 0%, #0a0a0c 70%)",
+  "Curioso":"radial-gradient(circle at 50% 50%, #064e3b 0%, #0a0a0c 70%)",
+  "Relajado":"radial-gradient(circle at 30% 70%, #3b1f5e 0%, #0a0a0c 60%)",
+  "Intenso":"radial-gradient(circle at 80% 20%, #7f1d1d 0%, #0a0a0c 70%)",
+  "Romántico":"radial-gradient(circle at 40% 40%, #831843 0%, #0a0a0c 70%)"
+};
+const BADGES=[
+  {min:0,label:"Espectador",icon:"🎭"},
+  {min:100,label:"Aficionado",icon:"🎬"},
+  {min:300,label:"Cinéfilo",icon:"🎞"},
+  {min:1000,label:"Crítico",icon:"🏆"},
+  {min:2000,label:"Maestro",icon:"⭐"},
+  {min:5000,label:"Leyenda",icon:"🌟"}
+];
+const ONBOARDING=[
+  {icon:"🎬",title:"El cine exacto\npara ti",sub:"Zine Club aprende tu estado de ánimo y te recomienda qué ver en segundos."},
+  {icon:"🌙",title:"Tu Mood,\ntu pantalla",sub:"¿Estás melancólico? ¿Eufórico? Cuéntanos y encontramos la película perfecta."},
+  {icon:"🎞",title:"Una comunidad\ncinéfila",sub:"Comparte reseñas, descubre qué ven tus amigos y construye tu filmoteca."}
+];
+const RETO_SEMANAL={id:"r1",titulo:"Ve una película de los 70",desc:"Clásicos que definieron el cine moderno",pts:150,icon:"📽"};
+const DEMO_REVIEWS=[
+  {id:"dr1",user_id:"u2",user_name:"Marcos R.",handle:"marcosr",film:"Dune: Parte Dos",text:"Villeneuve lo vuelve a hacer. Épica visual y emotiva.",stars:5,likes:34,likedBy:[]},
+  {id:"dr2",user_id:"u3",user_name:"Laia T.",handle:"laiat",film:"Pobres Criaturas",text:"Yorgos en estado puro. Absurda y brillante.",stars:5,likes:28,likedBy:[]}
+];
+const DEMO_USERS=[
+  {id:"u1",name:"Sofía Martín",handle:"sofiam",score:847,avatar:""},
+  {id:"u2",name:"Marcos Ruiz",handle:"marcosr",score:1204,avatar:""},
+  {id:"u3",name:"Laia Torres",handle:"laiat",score:563,avatar:""},
+  {id:"u4",name:"Andrés Bernal",handle:"andresb",score:2891,avatar:""}
+];
 
-function setState(patch) {
-  Object.assign(state, patch);
-  render();
+function getBadge(score){
+  var b=BADGES[0];
+  for(var i=0;i<BADGES.length;i++){if(score>=BADGES[i].min)b=BADGES[i];}
+  return b;
+}
+function ls(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function t_(msg,setT){setT(msg);setTimeout(function(){setT(null);},2000);}
+function fmtDate(d){
+  var now=new Date(),dt=new Date(d),diff=Math.floor((now-dt)/60000);
+  if(diff<60)return "hace "+diff+"m";
+  if(diff<1440)return "hace "+Math.floor(diff/60)+"h";
+  return "hace "+Math.floor(diff/1440)+"d";
+}
+function Stars(props){
+  var n=props.n||0,size=props.size||14;
+  return React.createElement("span",{style:{fontSize:size,letterSpacing:1}},
+    [1,2,3,4,5].map(function(i){
+      return React.createElement("span",{key:i,style:{color:i<=n?"#a855f7":"#404055"}}, i<=n?"★":"☆");
+    })
+  );
 }
 
-function showToast(msg, type="") {
-  setState({toast:{msg,type}});
-  setTimeout(()=>setState({toast:null}), 2800);
-}
+/* ===== ICONS ===== */
+function IcoHome(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round",strokeLinejoin:"round"},React.createElement("path",{d:"M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"}),React.createElement("path",{d:"M9 21V12h6v9"}));}
+function IcoSearch(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("circle",{cx:11,cy:11,r:8}),React.createElement("line",{x1:21,y1:21,x2:16.65,y2:16.65}));}
+function IcoFilm(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("rect",{x:2,y:2,width:20,height:20,rx:2}),React.createElement("line",{x1:7,y1:2,x2:7,y2:22}),React.createElement("line",{x1:17,y1:2,x2:17,y2:22}),React.createElement("line",{x1:2,y1:12,x2:22,y2:12}),React.createElement("line",{x1:2,y1:7,x2:7,y2:7}),React.createElement("line",{x1:17,y1:7,x2:22,y2:7}),React.createElement("line",{x1:17,y1:17,x2:22,y2:17}),React.createElement("line",{x1:2,y1:17,x2:7,y2:17}));}
+function IcoUser(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("path",{d:"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"}),React.createElement("circle",{cx:12,cy:7,r:4}));}
+function IcoBack(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round"},React.createElement("polyline",{points:"15 18 9 12 15 6"}));}
+function IcoCheck(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.5,strokeLinecap:"round"},React.createElement("polyline",{points:"20 6 9 17 4 12"}));}
+function IcoPlus(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round"},React.createElement("line",{x1:12,y1:5,x2:12,y2:19}),React.createElement("line",{x1:5,y1:12,x2:19,y2:12}));}
+function IcoClose(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round"},React.createElement("line",{x1:18,y1:6,x2:6,y2:18}),React.createElement("line",{x1:6,y1:6,x2:18,y2:18}));}
+function IcoShare(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("circle",{cx:18,cy:5,r:3}),React.createElement("circle",{cx:6,cy:12,r:3}),React.createElement("circle",{cx:18,cy:19,r:3}),React.createElement("line",{x1:8.59,y1:13.51,x2:15.42,y2:17.49}),React.createElement("line",{x1:15.41,y1:6.51,x2:8.59,y2:10.49}));}
+function IcoPlay(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"currentColor"},React.createElement("polygon",{points:"5 3 19 12 5 21 5 3"}));}
+function IcoStar(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"currentColor"},React.createElement("polygon",{points:"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"}));}
+function IcoBell(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("path",{d:"M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"}),React.createElement("path",{d:"M13.73 21a2 2 0 01-3.46 0"}));}
+function IcoHeart(props){return React.createElement("svg",{viewBox:"0 0 24 24",fill:props.filled?"currentColor":"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("path",{d:"M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"}));}
+function IcoEye(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("path",{d:"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"}),React.createElement("circle",{cx:12,cy:12,r:3}));}
+function IcoList(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("line",{x1:8,y1:6,x2:21,y2:6}),React.createElement("line",{x1:8,y1:12,x2:21,y2:12}),React.createElement("line",{x1:8,y1:18,x2:21,y2:18}),React.createElement("line",{x1:3,y1:6,x2:3.01,y2:6}),React.createElement("line",{x1:3,y1:12,x2:3.01,y2:12}),React.createElement("line",{x1:3,y1:18,x2:3.01,y2:18}));}
+function IcoSettings(){return React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round"},React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"}));}
 
-// DATA
-async function loadAll() {
-  setState({loading:true});
-  try {
-    const [u, r, w, wl] = await Promise.all([
-      supa.from("users").select("*").order("created_at",{ascending:false}),
-      supa.from("reviews").select("*").order("created_at",{ascending:false}),
-      supa.from("watched").select("*").order("created_at",{ascending:false}),
-      supa.from("watchlist").select("*").order("created_at",{ascending:false}),
-    ]);
-    setState({users:u.data||[], reviews:r.data||[], watched:w.data||[], watchlist:wl.data||[], loading:false});
-  } catch(e) {
-    setState({loading:false});
-    showToast("Error cargando datos","err");
-  }
-}
-
-async function deleteUser(id) {
-  await supa.from("users").delete().eq("id",id);
-  setState({users: state.users.filter(u=>u.id!==id), modal:null});
-  showToast("Usuario eliminado","ok");
-}
-async function deleteReview(id) {
-  await supa.from("reviews").delete().eq("id",id);
-  setState({reviews: state.reviews.filter(r=>r.id!==id), modal:null});
-  showToast("Reseña eliminada","ok");
-}
-async function updateUserScore(id, score) {
-  await supa.from("users").update({score}).eq("id",id);
-  setState({users: state.users.map(u=>u.id===id?{...u,score}:u), modal:null});
-  showToast("Puntuación actualizada","ok");
-}
-async function sendNotification() {
-  if(!state.notifTitle.trim()||!state.notifBody.trim()) return;
-  // Store notification in Supabase as a broadcast
-  try {
-    await supa.from("reviews").insert({
-      id: "notif_"+Date.now(),
-      user_id: "admin",
-      user_name: "Rack Admin",
-      handle: "rack_admin",
-      film: "📢 " + state.notifTitle,
-      text: state.notifBody,
-      stars: 0,
-      likes: 0,
+/* ===== TMDB FETCH ===== */
+async function fetchFilms(answers){
+  var genres=[];
+  if(answers.mood&&MOOD_GENRES[answers.mood])genres=genres.concat(MOOD_GENRES[answers.mood]);
+  if(answers.vibe&&VIBE_GENRES[answers.vibe])genres=genres.concat(VIBE_GENRES[answers.vibe]);
+  var uniqueGenres=[...new Set(genres)].slice(0,3).join(",");
+  var mediaType=answers.format==="Película"?"movie":answers.format==="Serie"?"tv":"movie";
+  var params="language=es-ES&sort_by=popularity.desc&vote_count.gte=100&with_genres="+uniqueGenres;
+  if(answers.time==="Menos de 1h")params+="&with_runtime.lte=60";
+  else if(answers.time==="1-2 horas")params+="&with_runtime.gte=60&with_runtime.lte=130";
+  else if(answers.time==="Más de 2h")params+="&with_runtime.gte=120";
+  var url=TMDB+"/discover/"+mediaType+"?api_key="+TMDB_KEY+"&"+params;
+  try{
+    var r=await fetch(url);
+    var d=await r.json();
+    var results=(d.results||[]).slice(0,answers.time==="Modo Maratón"?9:3);
+    return results.map(function(f){
+      return {
+        id:f.id,
+        title:f.title||f.name,
+        titleEs:f.title||f.name,
+        poster:f.poster_path?IMG+f.poster_path:null,
+        backdrop:f.backdrop_path?ORIG+f.backdrop_path:null,
+        year:(f.release_date||f.first_air_date||"").slice(0,4),
+        rating:Math.round((f.vote_average||0)/2*10)/10,
+        overview:f.overview||"",
+        genres:(f.genre_ids||[]).slice(0,3),
+        mediaType:mediaType
+      };
     });
-    showToast("📢 Notificación enviada","ok");
-    setState({notifTitle:"", notifBody:""});
-  } catch(e) {
-    showToast("Error al enviar","err");
+  }catch(e){return [];}
+}
+async function fetchSearch(q){
+  var url=TMDB+"/search/multi?api_key="+TMDB_KEY+"&language=es-ES&query="+encodeURIComponent(q);
+  try{
+    var r=await fetch(url);
+    var d=await r.json();
+    return (d.results||[]).filter(function(f){return f.media_type!=="person";}).slice(0,10).map(function(f){
+      return {id:f.id,title:f.title||f.name,titleEs:f.title||f.name,
+        poster:f.poster_path?IMG+f.poster_path:null,backdrop:f.backdrop_path?ORIG+f.backdrop_path:null,
+        year:(f.release_date||f.first_air_date||"").slice(0,4),
+        rating:Math.round((f.vote_average||0)/2*10)/10,overview:f.overview||"",
+        genres:(f.genre_ids||[]).slice(0,3),mediaType:f.media_type};
+    });
+  }catch(e){return [];}
+}
+async function fetchTrailer(filmId,mediaType){
+  var url=TMDB+"/"+(mediaType||"movie")+"/"+filmId+"/videos?api_key="+TMDB_KEY;
+  try{
+    var r=await fetch(url);
+    var d=await r.json();
+    var trailer=(d.results||[]).find(function(v){return v.type==="Trailer"&&v.site==="YouTube";});
+    return trailer?trailer.key:null;
+  }catch(e){return null;}
+}
+async function fetchTrending(){
+  var url=TMDB+"/trending/movie/week?api_key="+TMDB_KEY+"&language=es-ES";
+  try{
+    var r=await fetch(url);
+    var d=await r.json();
+    return (d.results||[]).slice(0,6).map(function(f){
+      return {id:f.id,title:f.title||f.name,titleEs:f.title||f.name,
+        poster:f.poster_path?IMG+f.poster_path:null,backdrop:f.backdrop_path?ORIG+f.backdrop_path:null,
+        year:(f.release_date||"").slice(0,4),
+        rating:Math.round((f.vote_average||0)/2*10)/10,
+        overview:f.overview||"",genres:(f.genre_ids||[]).slice(0,3),mediaType:"movie"};
+    });
+  }catch(e){return [];}
+}
+
+/* ===== APP ===== */
+function App(){
+  var [screen,setScreen]=useState("landing");
+  var [user,setUser]=useState(ls("zc_user",null));
+  var [toast,setToast]=useState(null);
+  var [detail,setDetail]=useState(null);
+  var [detailFrom,setDetailFrom]=useState("home");
+  var [quizAnswers,setQuizAnswers]=useState({});
+  var [quizStep,setQuizStep]=useState(0);
+  var [quizResults,setQuizResults]=useState([]);
+  var [quizLoading,setQuizLoading]=useState(false);
+  var [marathon,setMarathon]=useState(false);
+  var [reviews,setReviews]=useState(ls("zc_reviews",DEMO_REVIEWS));
+  var [watched,setWatched]=useState(ls("zc_w_"+(user?user.id:""),[]));
+  var [watchlist,setWatchlist]=useState(ls("zc_l_"+(user?user.id:""),[]));
+  var [obStep,setObStep]=useState(0);
+  var [trending,setTrending]=useState([]);
+  var [showWrapped,setShowWrapped]=useState(false);
+  var [showSupport,setShowSupport]=useState(false);
+  var [showSettings,setShowSettings]=useState(false);
+  var [showCollab,setShowCollab]=useState(false);
+  var [trailerKey,setTrailerKey]=useState(null);
+  var [showTrailer,setShowTrailer]=useState(false);
+
+  useEffect(function(){
+    fetchTrending().then(function(r){setTrending(r);});
+    if(!ls("zc_auth",null)&&screen==="landing"){
+      var seen=ls("zc_ob_seen",false);
+      if(!seen)setScreen("onboarding");
+    }
+  },[]);
+
+  useEffect(function(){
+    if(user){
+      var w=ls("zc_w_"+user.id,[]);
+      var l=ls("zc_l_"+user.id,[]);
+      setWatched(w);
+      setWatchlist(l);
+    }
+  },[user]);
+
+  function toast_(msg){t_(msg,setToast);}
+  function goDetail(film,from){setDetail(film);setDetailFrom(from||screen);setScreen("detail");}
+  function goBack(){setScreen(detailFrom||"home");}
+
+  function runQuiz(isMarathon){
+    setMarathon(isMarathon||false);
+    if(isMarathon){
+      setQuizAnswers({time:"Modo Maratón"});
+    }else{
+      setQuizAnswers({});
+    }
+    setQuizStep(0);
+    setQuizResults([]);
+    setScreen("quiz");
   }
-}
-function saveCopy(key, val) {
-  const copies = {...state.copies, [key]:val};
-  localStorage.setItem("rack_copies", JSON.stringify(copies));
-  setState({copies, modal:null});
-  showToast("Copy guardado","ok");
+
+  async function finishQuiz(finalAnswers){
+    setQuizLoading(true);
+    var results=await fetchFilms(finalAnswers);
+    setQuizResults(results);
+    setQuizLoading(false);
+    setScreen("results");
+    if(user){
+      var pts=(user.score||0)+10;
+      var updated=Object.assign({},user,{score:pts});
+      setUser(updated);
+      lsSet("zc_user",updated);
+    }
+  }
+
+  function markWatched(film){
+    if(!user){toast_("Inicia sesión primero");return;}
+    var key="zc_w_"+user.id;
+    var list=ls(key,[]);
+    var exists=list.find(function(f){return f.id===film.id;});
+    if(!exists){
+      var updated=[{id:film.id,title:film.titleEs||film.title,poster:film.poster,rating:film.rating,year:film.year,ts:Date.now()}].concat(list);
+      lsSet(key,updated);
+      setWatched(updated);
+      var pts=(user.score||0)+20;
+      var u2=Object.assign({},user,{score:pts});
+      setUser(u2);lsSet("zc_user",u2);
+      toast_("Marcada como vista +20pts");
+    }else{toast_("Ya está en tu historial");}
+  }
+
+  function addToList(film){
+    if(!user){toast_("Inicia sesión primero");return;}
+    var key="zc_l_"+user.id;
+    var list=ls(key,[]);
+    var exists=list.find(function(f){return f.id===film.id;});
+    if(!exists){
+      var updated=[{id:film.id,title:film.titleEs||film.title,poster:film.poster,rating:film.rating,year:film.year}].concat(list);
+      lsSet(key,updated);
+      setWatchlist(updated);
+      toast_("Añadida a tu lista");
+    }else{toast_("Ya está en tu lista");}
+  }
+
+  function removeFromList(filmId){
+    if(!user)return;
+    var key="zc_l_"+user.id;
+    var updated=watchlist.filter(function(f){return f.id!==filmId;});
+    lsSet(key,updated);
+    setWatchlist(updated);
+    toast_("Eliminada de la lista");
+  }
+
+  async function openTrailer(film){
+    var key=await fetchTrailer(film.id,film.mediaType);
+    if(key){setTrailerKey(key);setShowTrailer(true);}
+    else toast_("Trailer no disponible");
+  }
+
+  function logout(){
+    lsSet("zc_auth",null);lsSet("zc_user",null);
+    setUser(null);setScreen("landing");toast_("Sesión cerrada");
+  }
+
+  /* ===== LANDING ===== */
+  if(screen==="landing"){
+    return React.createElement("div",{style:{position:"fixed",inset:0,zIndex:1,display:"flex",flexDirection:"column"}},
+      /* BACKDROP FOTO */
+      React.createElement("div",{style:{position:"absolute",inset:0}},
+        React.createElement("img",{
+          src:"https://image.tmdb.org/t/p/original/ilRyazdMJwN3CKGV6RYrP2KMCnQ.jpg",
+          style:{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"},
+          onError:function(e){e.target.style.display="none";}
+        }),
+        React.createElement("div",{style:{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.5) 40%,rgba(0,0,0,0.85) 70%,rgba(10,10,12,1) 100%)"}})
+      ),
+      /* CONTENT */
+      React.createElement("div",{style:{position:"relative",zIndex:2,flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",padding:"0 28px 48px"}},
+        /* LOGO */
+        React.createElement("div",{className:"fade-up",style:{textAlign:"center",marginBottom:40}},
+          React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontSize:64,fontWeight:700,letterSpacing:"-0.02em",lineHeight:1,color:"#fff",textShadow:"0 2px 20px rgba(0,0,0,0.5)"}},
+            "ZINE ",React.createElement("span",{style:{color:"var(--acc)"}},"CLUB")
+          ),
+          React.createElement("div",{style:{fontFamily:"Spline Sans,sans-serif",fontSize:11,color:"rgba(255,255,255,0.5)",letterSpacing:".25em",textTransform:"uppercase",marginTop:10}},"Todo lo que mereces ver")
+        ),
+        /* BUTTONS */
+        React.createElement("div",{className:"fade-up",style:{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:12,animationDelay:".15s"}},
+          React.createElement("button",{
+            style:{width:"100%",padding:"17px",background:"var(--acc)",border:"none",borderRadius:14,color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer",letterSpacing:".04em",fontFamily:"Spline Sans,sans-serif",boxShadow:"0 4px 24px rgba(168,85,247,0.4)"},
+            onClick:function(){setScreen("register");}
+          },"Crear cuenta"),
+          React.createElement("button",{
+            style:{width:"100%",padding:"17px",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:14,color:"#fff",fontSize:16,fontWeight:600,cursor:"pointer",letterSpacing:".04em",fontFamily:"Spline Sans,sans-serif",backdropFilter:"blur(8px)"},
+            onClick:function(){setScreen("login");}
+          },"Iniciar sesión")
+        ),
+        React.createElement("div",{style:{marginTop:20,fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:".1em",textTransform:"uppercase"}},"© 2025 Zine Club")
+      )
+    );
+  }
+  /* ===== ONBOARDING ===== */
+  if(screen==="onboarding"){
+    var ob=ONBOARDING[obStep];
+    return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column"}},
+      React.createElement("div",{style:{flex:1,position:"relative",overflow:"hidden"}},
+        React.createElement("div",{className:"ob-slide fade-in",key:obStep},
+          React.createElement("div",{style:{fontSize:80,marginBottom:24}},ob.icon),
+          React.createElement("div",{className:"serif",style:{fontSize:36,fontWeight:700,lineHeight:1.2,marginBottom:16,whiteSpace:"pre-line"}},ob.title),
+          React.createElement("div",{style:{fontSize:16,color:"var(--t2)",lineHeight:1.6,maxWidth:280}},ob.sub)
+        )
+      ),
+      React.createElement("div",{style:{padding:"0 32px 48px",display:"flex",flexDirection:"column",gap:16}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:8,marginBottom:8}},
+          ONBOARDING.map(function(_,i){
+            return React.createElement("div",{key:i,style:{width:i===obStep?24:8,height:8,borderRadius:4,background:i===obStep?"var(--acc)":"var(--s4)",transition:"all .3s"}});
+          })
+        ),
+        obStep<ONBOARDING.length-1
+          ? React.createElement("button",{className:"btn-primary",onClick:function(){setObStep(obStep+1);}},"Siguiente")
+          : React.createElement("button",{className:"btn-primary",onClick:function(){lsSet("zc_ob_seen",true);setScreen("landing");}},"\u00a1Empezar!"),
+        obStep===0&&React.createElement("button",{className:"btn-ghost",style:{fontSize:13},onClick:function(){lsSet("zc_ob_seen",true);setScreen("landing");}},"Saltar")
+      )
+    );
+  }
+
+  /* ===== LOGIN ===== */
+  if(screen==="login"||screen==="register"){
+    return React.createElement(AuthScreen,{
+      mode:screen,
+      onSuccess:function(u){
+        setUser(u);lsSet("zc_user",u);lsSet("zc_auth",true);
+        setWatched(ls("zc_w_"+u.id,[]));
+        setWatchlist(ls("zc_l_"+u.id,[]));
+        setScreen("home");toast_("Bienvenido/a "+u.name.split(" ")[0]);
+      },
+      onSwitch:function(){setScreen(screen==="login"?"register":"login");},
+      onBack:function(){setScreen("landing");}
+    });
+  }
+
+  /* ===== QUIZ ===== */
+  if(screen==="quiz"){
+    var activeQuestions=QUESTIONS;
+    if(marathon){
+      activeQuestions=QUESTIONS.filter(function(q){return q.id!=="time";});
+    }
+    return React.createElement(QuizScreen,{
+      questions:activeQuestions,
+      step:quizStep,
+      answers:quizAnswers,
+      loading:quizLoading,
+      onAnswer:function(qId,val){
+        var updated=Object.assign({},quizAnswers);
+        updated[qId]=val;
+        setQuizAnswers(updated);
+        if(quizStep<activeQuestions.length-1){
+          setQuizStep(quizStep+1);
+        }else{
+          if(marathon)updated.time="Modo Maratón";
+          finishQuiz(updated);
+        }
+      },
+      onMultiNext:function(qId,vals){
+        var updated=Object.assign({},quizAnswers);
+        updated[qId]=vals;
+        if(marathon)updated.time="Modo Maratón";
+        finishQuiz(updated);
+      },
+      onBack:function(){
+        if(quizStep===0){setScreen("home");}
+        else{setQuizStep(quizStep-1);}
+      }
+    });
+  }
+
+  /* ===== RESULTS ===== */
+  if(screen==="results"){
+    return React.createElement(ResultsScreen,{
+      results:quizResults,
+      marathon:marathon,
+      loading:quizLoading,
+      user:user,
+      onDetail:function(f){goDetail(f,"results");},
+      onWatched:markWatched,
+      onList:addToList,
+      onTrailer:openTrailer,
+      onBack:function(){setScreen("home");},
+      toast:toast_
+    });
+  }
+
+  /* ===== DETAIL ===== */
+  if(screen==="detail"&&detail){
+    return React.createElement(DetailScreen,{
+      film:detail,
+      user:user,
+      reviews:reviews,
+      watched:watched,
+      watchlist:watchlist,
+      onWatched:markWatched,
+      onList:addToList,
+      onTrailer:openTrailer,
+      onBack:goBack,
+      onReview:function(r){
+        var updated=[r].concat(reviews);
+        setReviews(updated);lsSet("zc_reviews",updated);
+        var pts=(user.score||0)+30;
+        var u2=Object.assign({},user,{score:pts});
+        setUser(u2);lsSet("zc_user",u2);
+        toast_("Reseña publicada +30pts");
+      },
+      toast:toast_
+    });
+  }
+
+  /* ===== MAIN APP ===== */
+  var navScreens=["home","search","mypelis","profile"];
+  var currentNav=navScreens.includes(screen)?screen:"home";
+
+  return React.createElement("div",{style:{height:"100%",display:"flex",flexDirection:"column",position:"relative",zIndex:1}},
+
+    /* SCREENS */
+    screen==="home"&&React.createElement(HomeScreen,{
+      user:user,trending:trending,watched:watched,watchlist:watchlist,reviews:reviews,
+      onQuiz:function(){runQuiz(false);},
+      onMarathon:function(){runQuiz(true);},
+      onDetail:function(f){goDetail(f,"home");},
+      toast:toast_
+    }),
+    screen==="search"&&React.createElement(SearchScreen,{
+      user:user,
+      onDetail:function(f){goDetail(f,"search");},
+      onList:addToList,
+      toast:toast_
+    }),
+    screen==="mypelis"&&React.createElement(MyPelisScreen,{
+      user:user,watched:watched,watchlist:watchlist,reviews:reviews,
+      onDetail:function(f){goDetail(f,"mypelis");},
+      onRemoveList:removeFromList,
+      onMarkWatched:markWatched,
+      toast:toast_
+    }),
+    screen==="profile"&&React.createElement(ProfileScreen,{
+      user:user,watched:watched,watchlist:watchlist,reviews:reviews,
+      allUsers:DEMO_USERS,
+      onLogout:logout,
+      onWrapped:function(){setShowWrapped(true);},
+      onSupport:function(){setShowSupport(true);},
+      onSettings:function(){setShowSettings(true);},
+      onCollab:function(){setShowCollab(true);},
+      toast:toast_
+    }),
+
+    /* BOTTOM NAV */
+    React.createElement("nav",{className:"nav"},
+      React.createElement("div",{className:"nav-inner"},
+        React.createElement("button",{className:"nav-btn"+(currentNav==="home"?" active":""),onClick:function(){setScreen("home");}},
+          React.createElement(IcoHome),React.createElement("span",{className:"nav-lbl"},"Inicio")),
+        React.createElement("button",{className:"nav-btn"+(currentNav==="search"?" active":""),onClick:function(){setScreen("search");}},
+          React.createElement(IcoSearch),React.createElement("span",{className:"nav-lbl"},"Buscar")),
+        React.createElement("button",{className:"nav-btn"+(currentNav==="mypelis"?" active":""),onClick:function(){setScreen("mypelis");}},
+          React.createElement(IcoFilm),React.createElement("span",{className:"nav-lbl"},"Mis Pelis")),
+        React.createElement("button",{className:"nav-btn"+(currentNav==="profile"?" active":""),onClick:function(){setScreen("profile");}},
+          React.createElement(IcoUser),React.createElement("span",{className:"nav-lbl"},"Perfil"))
+      )
+    ),
+
+    /* TOAST */
+    toast&&React.createElement("div",{className:"toast"},toast),
+
+    /* TRAILER MODAL */
+    showTrailer&&trailerKey&&React.createElement("div",{
+      className:"modal-overlay",style:{alignItems:"center",padding:16},
+      onClick:function(e){if(e.target===e.currentTarget){setShowTrailer(false);setTrailerKey(null);}}
+    },
+      React.createElement("div",{style:{width:"100%",maxWidth:640,borderRadius:16,overflow:"hidden",background:"#000",position:"relative"}},
+        React.createElement("button",{
+          style:{position:"absolute",top:8,right:8,zIndex:10,background:"rgba(0,0,0,0.5)",border:"none",color:"#fff",borderRadius:"50%",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"},
+          onClick:function(){setShowTrailer(false);setTrailerKey(null);}
+        },React.createElement(IcoClose)),
+        React.createElement("iframe",{
+          width:"100%",height:240,
+          src:"https://www.youtube.com/embed/"+trailerKey+"?autoplay=1",
+          frameBorder:0,allow:"autoplay;encrypted-media",allowFullScreen:true
+        })
+      )
+    ),
+
+    /* WRAPPED MODAL */
+    showWrapped&&React.createElement(WrappedModal,{user:user,watched:watched,reviews:reviews,onClose:function(){setShowWrapped(false);}}),
+    showSupport&&React.createElement(SupportModal,{onClose:function(){setShowSupport(false);},user:user}),
+    showSettings&&React.createElement(SettingsModal,{user:user,onClose:function(){setShowSettings(false);},toast:toast_})
+  );
 }
 
-// RENDER HELPERS
-function ini(n){return(n||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();}
-function timeAgo(ts){
-  if(!ts)return"—";
-  const d=new Date(ts),now=new Date();
-  const diff=Math.floor((now-d)/1000);
-  if(diff<60)return"ahora";if(diff<3600)return Math.floor(diff/60)+"min";
-  if(diff<86400)return Math.floor(diff/3600)+"h";return Math.floor(diff/86400)+"d";
+/* ===== AUTH SCREEN ===== */
+function AuthScreen(props){
+  var [name,setName]=useState("");
+  var [handle,setHandle]=useState("");
+  var [email,setEmail]=useState("");
+  var [pass,setPass]=useState("");
+  var [err,setErr]=useState("");
+  var [loading,setLoading]=useState(false);
+  var isReg=props.mode==="register";
+
+  function submit(){
+    if(isReg&&(!name||!handle||!pass)){setErr("Completa todos los campos");return;}
+    if(!isReg&&(!handle||!pass)){setErr("Completa todos los campos");return;}
+    setLoading(true);setErr("");
+    var h=handle.toLowerCase().split("").filter(function(c){var ok="abcdefghijklmnopqrstuvwxyz0123456789_";return ok.indexOf(c)>=0;}).join("");
+    if(!h){setErr("Handle inválido");setLoading(false);return;}
+    if(isReg){
+      var allUsers=ls("zc_users",[]);
+      var exists=allUsers.find(function(u){return u.handle===h;});
+      if(exists){setErr("Ese handle ya existe");setLoading(false);return;}
+      var newUser={id:"u_"+Date.now(),name:name,handle:h,email:email||"",password:pass,score:0,created_at:new Date().toISOString()};
+      lsSet("zc_users",[...allUsers,newUser]);
+      sb.from("users").insert({name:name,handle:h,email:email||null,password:pass,score:0}).then(function(){}).catch(function(){});
+      setLoading(false);
+      props.onSuccess(newUser);
+    }else{
+      var allUsers2=ls("zc_users",[]);
+      var found=allUsers2.find(function(u){return u.handle===h&&u.password===pass;});
+      if(found){setLoading(false);props.onSuccess(found);return;}
+      var demo=DEMO_USERS.find(function(u){return u.handle===h&&pass==="1234";});
+      if(demo){setLoading(false);props.onSuccess(Object.assign({},demo,{password:"1234"}));return;}
+      sb.from("users").select("*").eq("handle",h).eq("password",pass).single().then(function(res){
+        setLoading(false);
+        if(res.data){
+          var us=ls("zc_users",[]);
+          if(!us.find(function(u){return u.handle===h;}))lsSet("zc_users",[...us,res.data]);
+          props.onSuccess(res.data);
+        }else{setErr("Handle o contraseña incorrectos");}
+      }).catch(function(){setErr("Handle o contraseña incorrectos");setLoading(false);});
+    }
+  }
+
+  return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px"}},
+    React.createElement("button",{
+      onClick:props.onBack,
+      style:{position:"absolute",top:20,left:20,background:"none",border:"none",color:"var(--t3)",cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14}
+    },React.createElement(IcoBack),React.createElement("span",null,"Volver")),
+    React.createElement("div",{style:{width:"100%",maxWidth:360}},
+      React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontSize:52,fontWeight:700,textAlign:"center",marginBottom:8,letterSpacing:"-.02em"}},isReg?"Únete":"Accede"),
+      React.createElement("div",{style:{fontSize:15,color:"var(--t3)",textAlign:"center",marginBottom:32,fontStyle:"italic",fontFamily:"Newsreader,serif"}},isReg?"Crea tu cuenta de Zine Club":"Tu cuenta de Zine Club"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+        isReg&&React.createElement("input",{className:"inp",placeholder:"Nombre completo",value:name,onChange:function(e){setName(e.target.value);}}),
+        React.createElement("input",{className:"inp",placeholder:"@handle (tu usuario)",value:handle,onChange:function(e){setHandle(e.target.value);},autoCapitalize:"none"}),
+        isReg&&React.createElement("input",{className:"inp",type:"email",placeholder:"Email (opcional)",value:email,onChange:function(e){setEmail(e.target.value);}}),
+        React.createElement("input",{className:"inp",type:"password",placeholder:"Contraseña",value:pass,onChange:function(e){setPass(e.target.value);}}),
+        err&&React.createElement("div",{style:{fontSize:12,color:"#f87171",textAlign:"center",padding:"8px 0"}},err),
+        React.createElement("button",{className:"btn-primary",style:{marginTop:8},onClick:submit,disabled:loading},
+          loading?"...":isReg?"Crear cuenta":"Entrar"
+        ),
+        React.createElement("button",{
+          style:{background:"none",border:"none",color:"var(--t3)",fontSize:13,cursor:"pointer",marginTop:4,fontFamily:"Spline Sans,sans-serif"},
+          onClick:props.onSwitch
+        },isReg?"¿Ya tienes cuenta? Inicia sesión":"¿No tienes cuenta? Regístrate")
+      )
+    )
+  );
 }
 
-// SCREENS
-function renderDashboard() {
-  const totalUsers = state.users.length;
-  const totalReviews = state.reviews.length;
-  const totalWatched = state.watched.length;
-  const avgScore = totalUsers>0 ? Math.round(state.users.reduce((a,u)=>a+(u.score||0),0)/totalUsers) : 0;
-  const topUsers = [...state.users].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5);
-  const recentAct = [...state.watched.slice(0,4).map(w=>({type:"watched",u:w.user_id,f:w.film_title,t:w.created_at,dot:"act-grn"})),
-    ...state.reviews.slice(0,3).map(r=>({type:"review",u:r.user_name,f:r.film,t:r.created_at,dot:"act-acc"}))].sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,8);
-  const maxScore = topUsers[0]?.score||1;
+/* ===== QUIZ SCREEN ===== */
+function QuizScreen(props){
+  var q=props.questions[props.step];
+  var [multi,setMulti]=useState([]);
+  var total=props.questions.length;
 
-  return `
-    <div class="cards-row">
-      <div class="kpi kpi-grn"><div class="kpi-label">Usuarios totales</div><div class="kpi-val">${totalUsers}</div><div class="kpi-sub">registrados en Supabase</div></div>
-      <div class="kpi kpi-acc"><div class="kpi-label">Reseñas</div><div class="kpi-val">${totalReviews}</div><div class="kpi-sub">publicadas</div></div>
-      <div class="kpi kpi-ylw"><div class="kpi-label">Películas vistas</div><div class="kpi-val">${totalWatched}</div><div class="kpi-sub">marcadas en total</div></div>
-      <div class="kpi kpi-red"><div class="kpi-label">Pts promedio</div><div class="kpi-val">${avgScore}</div><div class="kpi-sub">por usuario</div></div>
-    </div>
-    <div class="two-col">
-      <div class="box">
-        <div class="box-title">Top usuarios <span class="box-title-sm">por puntos</span></div>
-        <div class="chart-bar-wrap">
-          ${topUsers.map(u=>`
-            <div class="chart-bar-row">
-              <div class="chart-bar-label">${u.name?.split(" ")[0]||u.handle}</div>
-              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round((u.score||0)/maxScore*100)}%"></div></div>
-              <div class="chart-bar-val">${u.score||0}</div>
-            </div>
-          `).join("")}
-          ${topUsers.length===0?'<div class="empty-state"><div class="empty-state-t">sin usuarios aún</div></div>':""}
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">Actividad reciente</div>
-        <div>
-          ${recentAct.map(a=>`
-            <div class="act-item">
-              <div class="act-dot ${a.dot}"></div>
-              <div><div class="act-txt"><strong>${a.u||"?"}</strong> ${a.type==="watched"?"marcó como vista":"reseñó"} <em style="color:var(--acc2)">${a.f||"?"}</em></div><div class="act-time">${timeAgo(a.t)}</div></div>
-            </div>
-          `).join("")}
-          ${recentAct.length===0?'<div class="empty-state"><div class="empty-state-t">sin actividad aún</div></div>':""}
-        </div>
-      </div>
-    </div>
-  `;
-}
+  useEffect(function(){setMulti([]);},[ props.step]);
 
-function renderUsers() {
-  const q = state.searchQ.toLowerCase();
-  const users = state.users.filter(u=>!q||(u.name||"").toLowerCase().includes(q)||(u.handle||"").toLowerCase().includes(q));
-  return `
-    <div class="search-bar">
-      <input class="sb-input" placeholder="Buscar usuario..." value="${state.searchQ}" oninput="setState({searchQ:this.value})"/>
-      <button class="tbl-btn tbl-btn-acc" onclick="loadAll()">↻ Actualizar</button>
-    </div>
-    <div class="table-wrap">
-      <div class="table-hd">
-        <div><div class="table-title">Usuarios registrados</div><div class="table-sub">${users.length} usuarios</div></div>
-      </div>
-      <table class="tbl">
-        <thead><tr>
-          <th>Usuario</th><th>Handle</th><th>Email</th><th>Puntos</th><th>Vistas</th><th>Reseñas</th><th>Registrado</th><th>Acciones</th>
-        </tr></thead>
-        <tbody>
-          ${users.map(u=>{
-            const wCount = state.watched.filter(w=>w.user_id===u.id).length;
-            const rCount = state.reviews.filter(r=>r.user_id===u.id).length;
-            return `<tr>
-              <td>${u.avatar?`<img src="${u.avatar.slice(0,200)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle" onerror="this.style.display='none'"/>`:`<span class="tbl-av">${ini(u.name)}</span>`}${u.name||"—"}</td>
-              <td style="font-family:'DM Mono',monospace;color:var(--t3)">@${u.handle||"—"}</td>
-              <td style="font-size:11px;color:var(--t3)">${u.email||"—"}</td>
-              <td><span class="badge badge-acc">${u.score||0} pts</span></td>
-              <td>${wCount}</td>
-              <td>${rCount}</td>
-              <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)">${timeAgo(u.created_at)}</td>
-              <td>
-                <button class="tbl-btn tbl-btn-acc" style="margin-right:4px" onclick='openEditUser(${JSON.stringify(u)})'>✏️ Editar</button>
-                <button class="tbl-btn tbl-btn-red" onclick='confirmDelete("user","${u.id}","${u.name||u.handle}")'>🗑</button>
-              </td>
-            </tr>`;
-          }).join("")}
-          ${users.length===0?`<tr><td colspan="7"><div class="empty-state"><div class="empty-state-i">👤</div><div class="empty-state-t">sin usuarios</div></div></td></tr>`:""}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
+  if(!q)return null;
+  if(props.loading){
+    return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}},
+      React.createElement("div",{className:"serif-italic",style:{fontSize:24,color:"var(--acc2)"},"data-text":"true"},"Buscando tu película..."),
+      React.createElement("div",{style:{width:48,height:48,borderRadius:"50%",border:"3px solid var(--acc3)",borderTopColor:"var(--acc)",animation:"spin 1s linear infinite"}}),
+      React.createElement("style",null,"@keyframes spin{to{transform:rotate(360deg);}}")
+    );
+  }
 
-function renderReviews() {
-  const q = state.searchQ.toLowerCase();
-  const reviews = state.reviews.filter(r=>!q||(r.film||"").toLowerCase().includes(q)||(r.user_name||"").toLowerCase().includes(q));
-  return `
-    <div class="search-bar">
-      <input class="sb-input" placeholder="Buscar reseña o película..." value="${state.searchQ}" oninput="setState({searchQ:this.value})"/>
-    </div>
-    <div class="table-wrap">
-      <div class="table-hd">
-        <div><div class="table-title">Reseñas publicadas</div><div class="table-sub">${reviews.length} reseñas</div></div>
-      </div>
-      <table class="tbl">
-        <thead><tr><th>Usuario</th><th>Película</th><th>Reseña</th><th>Estrellas</th><th>Likes</th><th>Fecha</th><th></th></tr></thead>
-        <tbody>
-          ${reviews.map(r=>`<tr>
-            <td><span class="tbl-av">${ini(r.user_name)}</span>${r.user_name||"—"}</td>
-            <td style="font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.film||"—"}</td>
-            <td style="max-width:200px;color:var(--t2);font-size:12px">${(r.text||"").slice(0,80)}${(r.text||"").length>80?"...":""}</td>
-            <td><span style="color:var(--ylw)">${"★".repeat(r.stars||0)}</span></td>
-            <td>${r.likes||0}</td>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)">${timeAgo(r.created_at)}</td>
-            <td><button class="tbl-btn tbl-btn-red" onclick='confirmDelete("review","${r.id}","${(r.film||"").replace(/'/g,"")}")'>🗑</button></td>
-          </tr>`).join("")}
-          ${reviews.length===0?`<tr><td colspan="7"><div class="empty-state"><div class="empty-state-i">⭐</div><div class="empty-state-t">sin reseñas</div></div></td></tr>`:""}
-        </tbody>
-      </table>
-    </div>
-  `;
+  var prog=(props.step/total)*100;
+
+  if(q.type==="mood"){
+    return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column"}},
+      React.createElement("div",{style:{padding:"20px 20px 12px",display:"flex",alignItems:"center",gap:12}},
+        React.createElement("button",{className:"btn-icon",onClick:props.onBack,style:{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",display:"flex"}},React.createElement(IcoBack)),
+        React.createElement("div",{className:"prog-bar",style:{flex:1}},
+          React.createElement("div",{className:"prog-fill",style:{width:prog+"%"}}))
+      ),
+      React.createElement("div",{style:{padding:"8px 20px 20px"}},
+        React.createElement("div",{style:{fontSize:13,color:"var(--acc2)",fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",marginBottom:6}},"Pregunta "+(props.step+1)+" de "+total),
+        React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontStyle:"italic",fontSize:34,fontWeight:400,lineHeight:1.2,color:"var(--t)"}},q.q)
+      ),
+      React.createElement("div",{className:"mood-grid fade-up"},
+        q.opts.map(function(opt){
+          return React.createElement("div",{
+            key:opt,
+            className:"mood-card"+(props.answers[q.id]===opt?" sel":""),
+            style:{background:MOOD_COLORS[opt]||"var(--s2)"},
+            onClick:function(){props.onAnswer(q.id,opt);}
+          },
+            React.createElement("div",{className:"mood-card-lbl"},opt)
+          );
+        })
+      )
+    );
+  }
+
+  return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column"}},
+    React.createElement("div",{style:{padding:"20px 20px 12px",display:"flex",alignItems:"center",gap:12}},
+      React.createElement("button",{className:"btn-icon",onClick:props.onBack,style:{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",display:"flex"}},React.createElement(IcoBack)),
+      React.createElement("div",{className:"prog-bar",style:{flex:1}},
+        React.createElement("div",{className:"prog-fill",style:{width:prog+"%"}}))
+    ),
+    React.createElement("div",{className:"page"},
+      React.createElement("div",{style:{padding:"8px 20px 24px"}},
+        React.createElement("div",{style:{fontSize:13,color:"var(--acc2)",fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",marginBottom:6}},"Pregunta "+(props.step+1)+" de "+total),
+        React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontStyle:"italic",fontSize:34,fontWeight:400,lineHeight:1.2,color:"var(--t)"}},q.q),
+        q.multi&&React.createElement("div",{style:{fontSize:13,color:"var(--t3)",marginTop:6}},"Selecciona todas las que quieras")
+      ),
+      React.createElement("div",{style:{padding:"0 20px"}},
+        q.opts.map(function(opt){
+          if(q.multi){
+            var isSel=multi.includes(opt);
+            return React.createElement("button",{
+              key:opt,className:"quiz-opt"+(isSel?" sel":""),
+              onClick:function(){
+                if(opt==="Todo me vale"){setMulti(["Todo me vale"]);}
+                else{
+                  var nm=multi.filter(function(x){return x!=="Todo me vale";});
+                  setMulti(isSel?nm.filter(function(x){return x!==opt;}):[...nm,opt]);
+                }
+              }
+            },
+              React.createElement("div",{className:"quiz-opt-multi"},
+                React.createElement("div",{className:"quiz-check"},isSel&&React.createElement(IcoCheck)),
+                React.createElement("span",null,opt)
+              )
+            );
+          }
+          return React.createElement("button",{
+            key:opt,className:"quiz-opt"+(props.answers[q.id]===opt?" sel":""),
+            onClick:function(){props.onAnswer(q.id,opt);}
+          },opt);
+        }),
+        q.multi&&React.createElement("button",{
+          className:"btn-primary",style:{width:"100%",marginTop:12},
+          disabled:multi.length===0,
+          onClick:function(){props.onMultiNext(q.id,multi);}
+        },"Ver recomendaciones")
+      )
+    )
+  );
 }
 
-function renderNotifs() {
-  return `
-    <div class="notif-box">
-      <div class="notif-title">📢 Enviar notificación push</div>
-      <div class="nf"><label>Título</label><input placeholder="ej: Nueva función disponible" value="${state.notifTitle}" oninput="setState({notifTitle:this.value})"/></div>
-      <div class="nf"><label>Mensaje</label><textarea placeholder="Escribe el mensaje..." oninput="setState({notifBody:this.value})">${state.notifBody}</textarea></div>
-      <div class="nf"><label>Destinatarios</label>
-        <select onchange="setState({notifTarget:this.value})">
-          <option value="all" ${state.notifTarget==="all"?"selected":""}>Todos los usuarios</option>
-          <option value="active" ${state.notifTarget==="active"?"selected":""}>Usuarios activos (últimos 7 días)</option>
-          <option value="new" ${state.notifTarget==="new"?"selected":""}>Nuevos (últimos 30 días)</option>
-        </select>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <button class="send-btn" onclick="sendNotification()" ${!state.notifTitle||!state.notifBody?"disabled":""}>📢 Enviar ahora</button>
-        <span style="font-size:12px;color:var(--t3)">Se publicará como anuncio en el feed de la app</span>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <div class="table-hd"><div><div class="table-title">Historial de notificaciones</div></div></div>
-      <table class="tbl">
-        <thead><tr><th>Título</th><th>Mensaje</th><th>Enviada</th></tr></thead>
-        <tbody>
-          ${state.reviews.filter(r=>r.user_id==="admin").map(n=>`<tr>
-            <td style="font-weight:600">${(n.film||"").replace("📢 ","")}</td>
-            <td style="color:var(--t2);font-size:12px">${n.text||""}</td>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)">${timeAgo(n.created_at)}</td>
-          </tr>`).join("")}
-          ${state.reviews.filter(r=>r.user_id==="admin").length===0?`<tr><td colspan="3"><div class="empty-state"><div class="empty-state-t">sin notificaciones enviadas</div></div></td></tr>`:""}
-        </tbody>
-      </table>
-    </div>
-  `;
+/* ===== RESULTS SCREEN ===== */
+function ResultsScreen(props){
+  if(props.loading||props.results.length===0){
+    return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}},
+      React.createElement("div",{style:{textAlign:"center",padding:32}},
+        React.createElement("div",{className:"serif-italic",style:{fontSize:22,color:"var(--acc2)",marginBottom:12}},props.loading?"Buscando...":"No encontramos resultados"),
+        !props.loading&&React.createElement("button",{className:"btn-ghost",onClick:props.onBack},"Volver")
+      )
+    );
+  }
+  return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column"}},
+    React.createElement("div",{className:"page-hdr"},
+      React.createElement("button",{onClick:props.onBack,style:{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",display:"flex"}},React.createElement(IcoBack)),
+      React.createElement("div",{style:{flex:1}},
+        React.createElement("div",{className:"serif-italic",style:{fontSize:18,fontWeight:600}},"Para ti ahora mismo"),
+        React.createElement("div",{style:{fontSize:12,color:"var(--t3)"}},(props.marathon?"Modo Maratón · ":"")+props.results.length+" recomendaciones")
+      )
+    ),
+    React.createElement("div",{className:"page"},
+      props.results.map(function(film,i){
+        return React.createElement("div",{key:film.id,className:"fade-up",style:{animationDelay:(i*0.08)+"s",margin:"0 20px 16px",background:"var(--s2)",border:"1px solid var(--s4)",borderRadius:18,overflow:"hidden"}},
+          React.createElement("div",{style:{display:"flex",gap:0,cursor:"pointer"},onClick:function(){props.onDetail(film);}},
+            film.poster&&React.createElement("img",{src:film.poster,style:{width:100,height:150,objectFit:"cover",flexShrink:0}}),
+            !film.poster&&React.createElement("div",{style:{width:100,height:150,background:"var(--s3)",flexShrink:0}}),
+            React.createElement("div",{style:{padding:"14px 14px",flex:1,display:"flex",flexDirection:"column",justifyContent:"space-between"}},
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:16,fontWeight:700,lineHeight:1.2,marginBottom:6}},film.titleEs||film.title),
+                React.createElement("div",{style:{fontSize:12,color:"var(--t3)",marginBottom:8}},film.year),
+                React.createElement(Stars,{n:Math.round(film.rating)})
+              ),
+              React.createElement("div",{style:{fontSize:12,color:"var(--t2)",lineHeight:1.4}},
+                (film.overview||"").slice(0,80)+(film.overview&&film.overview.length>80?"...":"")
+              )
+            )
+          ),
+          React.createElement("div",{style:{display:"flex",gap:8,padding:"10px 12px",borderTop:"1px solid var(--s4)"}},
+            React.createElement("button",{
+              style:{flex:1,padding:"8px 0",background:"var(--acc3)",border:"1px solid rgba(168,85,247,0.3)",borderRadius:10,color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Spline Sans,sans-serif"},
+              onClick:function(){props.onWatched(film);}
+            },"Ya la vi"),
+            React.createElement("button",{
+              style:{flex:1,padding:"8px 0",background:"var(--s3)",border:"1px solid var(--s4)",borderRadius:10,color:"var(--t2)",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Spline Sans,sans-serif"},
+              onClick:function(){props.onList(film);}
+            },"+ Lista"),
+            React.createElement("button",{
+              style:{padding:"8px 12px",background:"var(--s3)",border:"1px solid var(--s4)",borderRadius:10,color:"var(--t2)",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:4,fontFamily:"Spline Sans,sans-serif"},
+              onClick:function(){props.onTrailer(film);}
+            },React.createElement(IcoPlay,null),"Trailer")
+          )
+        );
+      })
+    )
+  );
 }
 
-function renderCopies() {
-  return `
-    <div style="margin-bottom:16px;font-size:13px;color:var(--t3)">Edita los textos de la app. Los cambios se guardan localmente — próximamente sincronizados con Supabase.</div>
-    <div class="copy-grid">
-      ${Object.entries(state.copies).map(([k,v])=>`
-        <div class="copy-card">
-          <div class="copy-key">${k.replace(/_/g," ")}</div>
-          <div class="copy-val">${v}</div>
-          <button class="copy-edit-btn" onclick='openEditCopy("${k}","${v.replace(/"/g,"&quot;")}")'>✏️ Editar</button>
-        </div>
-      `).join("")}
-    </div>
-  `;
+/* ===== DETAIL SCREEN ===== */
+function DetailScreen(props){
+  var film=props.film;
+  var [showReview,setShowReview]=useState(false);
+  var [revText,setRevText]=useState("");
+  var [revStars,setRevStars]=useState(0);
+  var filmReviews=props.reviews.filter(function(r){return r.film===film.title||r.film===(film.titleEs);});
+  var isWatched=props.watched.find(function(f){return f.id===film.id;});
+  var inList=props.watchlist.find(function(f){return f.id===film.id;});
+
+  function submitReview(){
+    if(!revText||!revStars){props.toast("Añade texto y estrellas");return;}
+    props.onReview({
+      id:"r"+Date.now(),user_id:props.user?props.user.id:"anon",
+      user_name:props.user?props.user.name:"Tú",handle:props.user?props.user.handle:"anon",
+      film:film.titleEs||film.title,text:revText,stars:revStars,likes:0,likedBy:[],ts:Date.now()
+    });
+    setRevText("");setRevStars(0);setShowReview(false);
+  }
+
+  return React.createElement("div",{style:{position:"relative",zIndex:1,height:"100%",display:"flex",flexDirection:"column"}},
+    React.createElement("div",{className:"page"},
+      /* BACKDROP */
+      React.createElement("div",{style:{position:"relative"}},
+        film.backdrop
+          ? React.createElement("img",{src:film.backdrop,className:"detail-backdrop"})
+          : React.createElement("div",{style:{width:"100%",height:200,background:"var(--s2)"}}),
+        React.createElement("div",{className:"detail-grad"}),
+        React.createElement("div",{style:{position:"absolute",top:16,left:16,display:"flex",gap:8}},
+          React.createElement("button",{className:"btn-icon",onClick:props.onBack},React.createElement(IcoBack)),
+          React.createElement("button",{className:"btn-icon",onClick:function(){props.onTrailer(film);}},React.createElement(IcoPlay))
+        ),
+        React.createElement("div",{style:{position:"absolute",top:16,right:16}},
+          React.createElement("button",{className:"btn-icon"},React.createElement(IcoShare))
+        )
+      ),
+      /* INFO */
+      React.createElement("div",{style:{padding:"0 20px"}},
+        React.createElement("div",{style:{display:"flex",gap:14,alignItems:"flex-end",marginTop:-40,marginBottom:16,position:"relative",zIndex:2}},
+          film.poster&&React.createElement("img",{src:film.poster,style:{width:90,height:135,borderRadius:12,objectFit:"cover",border:"2px solid rgba(168,85,247,0.3)",flexShrink:0,boxShadow:"0 8px 24px rgba(0,0,0,0.5)"}}),
+          React.createElement("div",{style:{paddingBottom:8}},
+            React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontSize:26,fontWeight:700,lineHeight:1.2,marginBottom:4}},film.titleEs||film.title),
+            React.createElement("div",{style:{fontSize:13,color:"var(--t3)",marginBottom:6}},film.year+" · "+film.mediaType),
+            React.createElement(Stars,{n:Math.round(film.rating),size:16})
+          )
+        ),
+        /* ACTIONS */
+        React.createElement("div",{style:{display:"flex",gap:10,marginBottom:20}},
+          React.createElement("button",{
+            style:{flex:2,padding:"12px 0",background:isWatched?"var(--s3)":"var(--acc)",border:"none",borderRadius:12,color:isWatched?"var(--t3)":"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Spline Sans,sans-serif",boxShadow:isWatched?"none":"var(--glow-sm)"},
+            onClick:function(){props.onWatched(film);}
+          },isWatched?"Vista ✓":"Marcar como vista"),
+          React.createElement("button",{
+            style:{flex:1,padding:"12px 0",background:inList?"var(--s3)":"var(--s2)",border:"1px solid var(--s4)",borderRadius:12,color:inList?"var(--t3)":"var(--t2)",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"Spline Sans,sans-serif"},
+            onClick:function(){props.onList(film);}
+          },inList?"En lista":"+ Lista")
+        ),
+        /* OVERVIEW */
+        film.overview&&React.createElement("div",{style:{marginBottom:20}},
+          React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"var(--acc2)",letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}},"Sinopsis"),
+          React.createElement("div",{className:"serif-italic",style:{fontSize:15,color:"var(--t2)",lineHeight:1.6}},film.overview)
+        ),
+        /* TRAILER BTN */
+        React.createElement("button",{
+          style:{width:"100%",padding:"14px",background:"var(--glass)",border:"1px solid var(--glass-border)",borderRadius:14,color:"var(--t)",fontSize:14,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20,fontFamily:"Spline Sans,sans-serif"},
+          onClick:function(){props.onTrailer(film);}
+        },React.createElement(IcoPlay),React.createElement("span",null,"Ver trailer")),
+        /* REVIEWS */
+        React.createElement("div",{style:{marginBottom:16}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
+            React.createElement("div",{style:{fontSize:16,fontWeight:700}},"Reseñas"),
+            props.user&&React.createElement("button",{
+              style:{background:"var(--acc3)",border:"1px solid rgba(168,85,247,0.3)",borderRadius:20,padding:"6px 14px",color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Spline Sans,sans-serif"},
+              onClick:function(){setShowReview(!showReview);}
+            },"+ Reseñar")
+          ),
+          showReview&&React.createElement("div",{style:{background:"var(--s2)",borderRadius:14,padding:16,marginBottom:12}},
+            React.createElement("div",{style:{display:"flex",gap:4,marginBottom:10}},
+              [1,2,3,4,5].map(function(n){
+                return React.createElement("button",{
+                  key:n,style:{background:"none",border:"none",cursor:"pointer",fontSize:24,color:n<=revStars?"var(--acc)":"var(--t4)"},
+                  onClick:function(){setRevStars(n);}
+                },"★");
+              })
+            ),
+            React.createElement("textarea",{
+              className:"inp",style:{resize:"none",height:80,fontSize:14},
+              placeholder:"¿Qué te pareció?",value:revText,
+              onChange:function(e){setRevText(e.target.value);}
+            }),
+            React.createElement("button",{className:"btn-primary",style:{width:"100%",marginTop:10},onClick:submitReview},"Publicar reseña")
+          ),
+          filmReviews.length===0&&React.createElement("div",{style:{color:"var(--t3)",fontSize:13,textAlign:"center",padding:"20px 0",fontStyle:"italic",fontFamily:"Newsreader,serif"}},"Sé el primero en reseñar esta película"),
+          filmReviews.slice(0,5).map(function(r){
+            return React.createElement("div",{key:r.id,className:"review-card",style:{marginBottom:10}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+                React.createElement("div",{style:{fontWeight:700,fontSize:13}},r.user_name),
+                React.createElement(Stars,{n:r.stars,size:13})
+              ),
+              React.createElement("div",{style:{fontSize:13,color:"var(--t2)",lineHeight:1.5}},r.text)
+            );
+          })
+        )
+      )
+    )
+  );
 }
 
-function renderWatched() {
-  const q = state.searchQ.toLowerCase();
-  const items = state.watched.filter(w=>!q||(w.film_title||"").toLowerCase().includes(q));
-  return `
-    <div class="search-bar">
-      <input class="sb-input" placeholder="Buscar película..." value="${state.searchQ}" oninput="setState({searchQ:this.value})"/>
-    </div>
-    <div class="table-wrap">
-      <div class="table-hd"><div><div class="table-title">Películas marcadas como vistas</div><div class="table-sub">${items.length} registros</div></div></div>
-      <table class="tbl">
-        <thead><tr><th>Usuario</th><th>Película</th><th>Cuándo</th></tr></thead>
-        <tbody>
-          ${items.map(w=>`<tr>
-            <td style="font-family:'DM Mono',monospace;color:var(--t3)">@${w.user_id?.slice(0,8)||"?"}</td>
-            <td style="font-weight:600">${w.film_title||"—"}</td>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)">${timeAgo(w.created_at)}</td>
-          </tr>`).join("")}
-          ${items.length===0?`<tr><td colspan="3"><div class="empty-state"><div class="empty-state-i">🎬</div><div class="empty-state-t">sin datos</div></div></td></tr>`:""}
-        </tbody>
-      </table>
-    </div>
-  `;
+/* ===== HOME SCREEN ===== */
+function HomeScreen(props){
+  var user=props.user;
+  var badge=user?getBadge(user.score||0):null;
+  var hour=new Date().getHours();
+  var greeting=hour<13?"Buenos días":hour<20?"Buenas tardes":"Buenas noches";
+
+  return React.createElement("div",{className:"page"},
+    /* HEADER */
+    React.createElement("div",{style:{padding:"20px 20px 8px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:14,color:"var(--t3)"}},greeting+","),
+        React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontSize:40,fontWeight:700,letterSpacing:"-.02em",lineHeight:1}},
+          user?user.name.split(" ")[0]:"Cinéfilo")
+      ),
+      user&&badge&&React.createElement("div",{className:"badge"},badge.icon+" "+badge.label)
+    ),
+
+    /* HERO */
+    React.createElement("div",{style:{padding:"16px 20px 0"}},
+      React.createElement("div",{className:"hero-card",onClick:props.onQuiz},
+        React.createElement("div",{style:{fontFamily:"Newsreader,serif",fontStyle:"italic",fontSize:40,fontWeight:400,color:"var(--t)",marginBottom:8,position:"relative",zIndex:1,lineHeight:1.1}},"¿Qué veo hoy?"),
+        React.createElement("div",{style:{fontSize:13,color:"rgba(255,255,255,0.6)",marginBottom:20,position:"relative",zIndex:1}},"5 preguntas · recomendación exacta"),
+        React.createElement("button",{
+          className:"btn-ghost",
+          style:{position:"relative",zIndex:1,pointerEvents:"none",borderColor:"rgba(255,255,255,0.3)",color:"rgba(255,255,255,0.9)"},
+          onClick:function(e){e.stopPropagation();props.onQuiz();}
+        },"Hacer Test de Mood")
+      )
+    ),
+
+    /* RETO SEMANAL */
+    React.createElement("div",{style:{padding:"20px 0 0"}},
+      React.createElement("div",{className:"reto-card"},
+        React.createElement("div",{style:{fontSize:28}},RETO_SEMANAL.icon),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontSize:11,color:"var(--acc2)",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",marginBottom:2}},"Reto semanal"),
+          React.createElement("div",{style:{fontSize:14,fontWeight:700,marginBottom:2}},RETO_SEMANAL.titulo),
+          React.createElement("div",{style:{fontSize:11,color:"var(--t3)"}},RETO_SEMANAL.desc)
+        ),
+        React.createElement("div",{className:"badge"},"+"+RETO_SEMANAL.pts)
+      )
+    ),
+
+    /* TRENDING */
+    props.trending.length>0&&React.createElement("div",{style:{marginTop:24}},
+      React.createElement("div",{className:"sec-hdr"},
+        React.createElement("div",{className:"sec-title serif"},"Tendencia"),
+        React.createElement("button",{className:"sec-more"},"Ver todo")
+      ),
+      React.createElement("div",{className:"poster-row"},
+        props.trending.map(function(f){
+          return React.createElement("div",{key:f.id,className:"movie-card",onClick:function(){props.onDetail(f);}},
+            f.poster
+              ? React.createElement("img",{src:f.poster,style:{width:120,height:180,borderRadius:12,objectFit:"cover",display:"block"}})
+              : React.createElement("div",{style:{width:120,height:180,background:"var(--s3)",borderRadius:12}}),
+            React.createElement("div",{className:"movie-card-title"},f.titleEs||f.title)
+          );
+        })
+      )
+    ),
+
+    /* ACTIVIDAD */
+    user&&React.createElement("div",{style:{margin:"24px 20px 0"}},
+      React.createElement("div",{className:"serif",style:{fontSize:20,fontWeight:700,marginBottom:14}},"Mi Actividad"),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}},
+        React.createElement("div",{className:"stat-card"},
+          React.createElement("div",{className:"stat-num"},props.watched.length),
+          React.createElement("div",{className:"stat-lbl"},"Vistas")
+        ),
+        React.createElement("div",{className:"stat-card"},
+          React.createElement("div",{className:"stat-num"},props.watchlist.length),
+          React.createElement("div",{className:"stat-lbl"},"Lista")
+        ),
+        React.createElement("div",{className:"stat-card"},
+          React.createElement("div",{className:"stat-num"},props.reviews.filter(function(r){return user&&r.user_id===user.id;}).length),
+          React.createElement("div",{className:"stat-lbl"},"Reseñas")
+        )
+      )
+    ),
+
+    /* MODO MARATHON */
+    React.createElement("div",{style:{margin:"20px 20px 0",display:"flex",gap:10}},
+      React.createElement("button",{
+        onClick:props.onMarathon,
+        style:{flex:1,padding:"14px 12px",background:"var(--s2)",border:"1px solid var(--s4)",borderRadius:16,cursor:"pointer",textAlign:"left"}},
+        React.createElement("div",{style:{fontSize:20,marginBottom:4}},"🍿"),
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"var(--t)"}},"Modo Maratón"),
+        React.createElement("div",{style:{fontSize:11,color:"var(--t3)",marginTop:2}},"Tengo tiempo")
+      ),
+      React.createElement("button",{
+        onClick:function(){props.onQuiz();},
+        style:{flex:1,padding:"14px 12px",background:"var(--s2)",border:"1px solid var(--s4)",borderRadius:16,cursor:"pointer",textAlign:"left"}},
+        React.createElement("div",{style:{fontSize:20,marginBottom:4}},"🎲"),
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"var(--t)"}},"Mood Test"),
+        React.createElement("div",{style:{fontSize:11,color:"var(--t3)",marginTop:2}},"En 60 segundos")
+      )
+    ),
+
+    React.createElement("div",{style:{height:8}})
+  );
 }
 
-// MODAL HELPERS
-function openEditUser(u) {
-  setState({modal:{type:"editUser",user:u,score:u.score||0}});
-}
-function openEditCopy(key, val) {
-  setState({modal:{type:"editCopy",key,val}});
-}
-function confirmDelete(type, id, name) {
-  setState({modal:{type:"confirmDelete",dtype:type,id,name}});
-}
-function closeModal(){setState({modal:null});}
+/* ===== SEARCH SCREEN ===== */
+function SearchScreen(props){
+  var [q,setQ]=useState("");
+  var [results,setResults]=useState([]);
+  var [loading,setLoading]=useState(false);
+  var timer=useRef(null);
 
-function renderModal() {
-  if(!state.modal) return "";
-  const m = state.modal;
-  if(m.type==="confirmDelete") return `
-    <div class="overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-title">¿Eliminar ${m.dtype==="user"?"usuario":"reseña"}?</div>
-        <p style="font-size:13px;color:var(--t2);line-height:1.6">Vas a eliminar <strong>${m.name}</strong>. Esta acción no se puede deshacer.</p>
-        <div class="modal-footer">
-          <button class="mf-btn mf-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="mf-btn mf-delete" onclick="${m.dtype==="user"?`deleteUser("${m.id}")`:`deleteReview("${m.id}")`}">Eliminar</button>
-        </div>
-      </div>
-    </div>`;
-  if(m.type==="editUser") return `
-    <div class="overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-title">Editar usuario · ${m.user.handle}</div>
-        <div class="nf"><label>Nombre</label><input value="${m.user.name||""}" id="eu-name"/></div>
-        <div class="nf"><label>Puntuación</label><input type="number" value="${m.user.score||0}" id="eu-score"/></div>
-        <div class="modal-footer">
-          <button class="mf-btn mf-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="mf-btn mf-delete" onclick='confirmDelete("user","${m.user.id}","${m.user.name||m.user.handle}")'>Eliminar</button>
-          <button class="mf-btn mf-save" onclick="updateUserScore('${m.user.id}',parseInt(document.getElementById('eu-score').value)||0)">Guardar</button>
-        </div>
-      </div>
-    </div>`;
-  if(m.type==="editCopy") return `
-    <div class="overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-title">Editar copy</div>
-        <div class="nf"><label>${m.key.replace(/_/g," ")}</label><textarea id="copy-ta" style="height:100px">${m.val}</textarea></div>
-        <div class="modal-footer">
-          <button class="mf-btn mf-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="mf-btn mf-save" onclick="saveCopy('${m.key}',document.getElementById('copy-ta').value)">Guardar</button>
-        </div>
-      </div>
-    </div>`;
-  return "";
+  useEffect(function(){
+    if(!q.trim()){setResults([]);return;}
+    clearTimeout(timer.current);
+    timer.current=setTimeout(function(){
+      setLoading(true);
+      fetchSearch(q).then(function(r){setResults(r);setLoading(false);});
+    },400);
+  },[q]);
+
+  return React.createElement("div",{className:"page",style:{paddingBottom:90}},
+    React.createElement("div",{style:{padding:"20px 0 0"}},
+      React.createElement("div",{style:{padding:"0 20px 16px"}},
+        React.createElement("div",{className:"serif",style:{fontSize:28,fontWeight:700,marginBottom:16}},"Buscar"),
+        React.createElement("div",{className:"search-bar"},
+          React.createElement(IcoSearch),
+          React.createElement("input",{placeholder:"Películas, series...",value:q,onChange:function(e){setQ(e.target.value);}})
+        )
+      ),
+      loading&&React.createElement("div",{style:{textAlign:"center",padding:32,color:"var(--t3)"}},"Buscando..."),
+      !loading&&results.length>0&&React.createElement("div",{style:{padding:"0 20px"}},
+        results.map(function(film){
+          return React.createElement("div",{
+            key:film.id,
+            style:{display:"flex",gap:12,padding:"10px 0",borderBottom:"1px solid var(--s3)",cursor:"pointer",alignItems:"center"},
+            onClick:function(){props.onDetail(film);}
+          },
+            film.poster
+              ? React.createElement("img",{src:film.poster,style:{width:50,height:75,borderRadius:8,objectFit:"cover",flexShrink:0}})
+              : React.createElement("div",{style:{width:50,height:75,background:"var(--s3)",borderRadius:8,flexShrink:0}}),
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontWeight:700,fontSize:14,marginBottom:2}},film.titleEs||film.title),
+              React.createElement("div",{style:{fontSize:12,color:"var(--t3)",marginBottom:4}},film.year+" · "+(film.mediaType==="tv"?"Serie":"Película")),
+              React.createElement(Stars,{n:Math.round(film.rating),size:13})
+            )
+          );
+        })
+      ),
+      !loading&&q&&results.length===0&&React.createElement("div",{style:{textAlign:"center",padding:40,color:"var(--t3)",fontStyle:"italic",fontFamily:"Newsreader,serif"}},"Sin resultados para \""+q+"\"")
+    )
+  );
 }
 
-// MAIN RENDER
-function render() {
-  const screens = {
-    dashboard:{label:"Dashboard",sub:"Resumen general"},
-    users:{label:"Usuarios",sub:"Gestión de cuentas"},
-    reviews:{label:"Reseñas",sub:"Moderación de contenido"},
-    watched:{label:"Películas vistas",sub:"Actividad de usuarios"},
-    notifs:{label:"Notificaciones",sub:"Comunicación con usuarios"},
-    copies:{label:"Copies",sub:"Textos de la app"},
-  };
-  const nav = [
-    {id:"dashboard",ic:"📊",label:"Dashboard"},
-    {id:"users",ic:"👥",label:"Usuarios"},
-    {id:"reviews",ic:"⭐",label:"Reseñas"},
-    {id:"watched",ic:"🎬",label:"Películas vistas"},
-    {id:"notifs",ic:"📢",label:"Notificaciones"},
-    {id:"copies",ic:"✏️",label:"Copies"},
+/* ===== MY PELIS SCREEN ===== */
+function MyPelisScreen(props){
+  var [tab,setTab]=useState("vistas");
+  var userReviews=props.reviews.filter(function(r){return props.user&&r.user_id===props.user.id;});
+
+  return React.createElement("div",{style:{height:"100%",display:"flex",flexDirection:"column"}},
+    React.createElement("div",{className:"page-hdr"},
+      React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:700,flex:1}},"Mis Películas")
+    ),
+    /* TABS */
+    React.createElement("div",{style:{display:"flex",borderBottom:"1px solid var(--s3)",background:"var(--bg)"}},
+      ["vistas","lista","reseñas"].map(function(t){
+        return React.createElement("button",{
+          key:t,
+          style:{flex:1,padding:"12px 0",background:"none",border:"none",cursor:"pointer",fontSize:13,fontWeight:700,letterSpacing:".04em",textTransform:"uppercase",color:tab===t?"var(--acc)":"var(--t3)",borderBottom:tab===t?"2px solid var(--acc)":"2px solid transparent",fontFamily:"Spline Sans,sans-serif",transition:"all .2s"},
+          onClick:function(){setTab(t);}
+        },t);
+      })
+    ),
+    React.createElement("div",{className:"page"},
+      /* VISTAS */
+      tab==="vistas"&&React.createElement("div",{style:{padding:"16px 0"}},
+        props.watched.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"60px 32px",color:"var(--t3)"}},
+          React.createElement("div",{style:{fontSize:40,marginBottom:12}},"🎬"),
+          React.createElement("div",{className:"serif-italic",style:{fontSize:18}}),"Aún no has marcado películas")
+        ,
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,padding:"0 12px"}},
+          props.watched.map(function(f){
+            return React.createElement("div",{key:f.id,style:{position:"relative",cursor:"pointer"},onClick:function(){props.onDetail(f);}},
+              f.poster
+                ? React.createElement("img",{src:f.poster,style:{width:"100%",aspectRatio:"2/3",objectFit:"cover",borderRadius:10,display:"block"}})
+                : React.createElement("div",{style:{width:"100%",aspectRatio:"2/3",background:"var(--s3)",borderRadius:10}}),
+              React.createElement("div",{style:{position:"absolute",top:6,left:6,background:"rgba(0,0,0,0.7)",borderRadius:6,padding:"2px 6px",fontSize:11,fontWeight:700,color:"var(--acc2)"}},"★ "+f.rating)
+            );
+          })
+        )
+      ),
+      /* LISTA */
+      tab==="lista"&&React.createElement("div",{style:{padding:"16px 20px"}},
+        props.watchlist.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"60px 0",color:"var(--t3)"}},
+          React.createElement("div",{style:{fontSize:40,marginBottom:12}},"📋"),
+          React.createElement("div",{className:"serif-italic",style:{fontSize:18}},"Tu lista está vacía")
+        ),
+        props.watchlist.map(function(f){
+          return React.createElement("div",{
+            key:f.id,
+            style:{display:"flex",gap:12,padding:"10px 0",borderBottom:"1px solid var(--s3)",alignItems:"center"}
+          },
+            React.createElement("div",{style:{cursor:"pointer",display:"flex",gap:12,flex:1,alignItems:"center"},onClick:function(){props.onDetail(f);}},
+              f.poster
+                ? React.createElement("img",{src:f.poster,style:{width:48,height:72,borderRadius:8,objectFit:"cover",flexShrink:0}})
+                : React.createElement("div",{style:{width:48,height:72,background:"var(--s3)",borderRadius:8,flexShrink:0}}),
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontWeight:700,fontSize:14,marginBottom:2}},f.title),
+                React.createElement("div",{style:{fontSize:12,color:"var(--t3)"}},f.year),
+                React.createElement(Stars,{n:Math.round(f.rating||0),size:13})
+              )
+            ),
+            React.createElement("button",{
+              style:{background:"var(--acc3)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:8,padding:"6px 10px",color:"var(--acc2)",fontSize:11,fontWeight:600,cursor:"pointer",flexShrink:0,fontFamily:"Spline Sans,sans-serif"},
+              onClick:function(){props.onMarkWatched(f);}
+            },"Vista"),
+            React.createElement("button",{
+              style:{background:"none",border:"none",color:"var(--t4)",cursor:"pointer",fontSize:18,padding:"4px"},
+              onClick:function(){props.onRemoveList(f.id);}
+            },"×")
+          );
+        })
+      ),
+      /* RESEÑAS */
+      tab==="reseñas"&&React.createElement("div",{style:{padding:"16px 20px"}},
+        userReviews.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"60px 0",color:"var(--t3)"}},
+          React.createElement("div",{style:{fontSize:40,marginBottom:12}},"✍️"),
+          React.createElement("div",{className:"serif-italic",style:{fontSize:18}},"Aún no has escrito reseñas")
+        ),
+        userReviews.map(function(r){
+          return React.createElement("div",{key:r.id,className:"review-card",style:{marginBottom:12}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:6}},
+              React.createElement("div",{style:{fontWeight:700,fontSize:14}},r.film),
+              React.createElement(Stars,{n:r.stars,size:14})
+            ),
+            React.createElement("div",{style:{fontSize:13,color:"var(--t2)",lineHeight:1.5}},r.text)
+          );
+        })
+      )
+    )
+  );
+}
+
+/* ===== PROFILE SCREEN ===== */
+function ProfileScreen(props){
+  var user=props.user;
+  if(!user){
+    return React.createElement("div",{style:{height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:32,textAlign:"center"}},
+      React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🎞"),
+      React.createElement("div",{className:"serif-italic",style:{fontSize:24,marginBottom:8}},"Tu perfil cinéfilo"),
+      React.createElement("div",{style:{color:"var(--t3)",marginBottom:24}},"Inicia sesión para ver tu historial y reseñas"),
+      React.createElement("button",{className:"btn-primary",onClick:props.onLogout},"Iniciar sesión")
+    );
+  }
+  var badge=getBadge(user.score||0);
+  var nextBadge=BADGES.find(function(b){return b.min>(user.score||0);});
+  var progPct=nextBadge?Math.min(100,((user.score||0)-badge.min)/(nextBadge.min-badge.min)*100):100;
+  var allUsers=props.allUsers||[];
+  var sortedUsers=[...allUsers].sort(function(a,b){return b.score-a.score;});
+
+  return React.createElement("div",{style:{height:"100%",display:"flex",flexDirection:"column"}},
+    React.createElement("div",{className:"page-hdr"},
+      React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:700,flex:1}},"Perfil"),
+      React.createElement("button",{
+        style:{background:"none",border:"none",color:"var(--t3)",cursor:"pointer"},
+        onClick:props.onSettings
+      },React.createElement(IcoSettings))
+    ),
+    React.createElement("div",{className:"page"},
+      /* USER INFO */
+      React.createElement("div",{style:{padding:"20px",textAlign:"center"}},
+        React.createElement("div",{style:{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc),var(--acc2))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px",fontSize:32,fontWeight:700,color:"#fff"}},
+          user.name?user.name[0].toUpperCase():"Z"),
+        React.createElement("div",{className:"serif",style:{fontSize:24,fontWeight:700}}),user.name,
+        React.createElement("div",{style:{fontSize:13,color:"var(--t3)",marginTop:2}},"@"+user.handle),
+        React.createElement("div",{className:"badge",style:{marginTop:10,display:"inline-flex"}},badge.icon+" "+badge.label),
+        React.createElement("div",{style:{margin:"14px 0 4px",fontSize:12,color:"var(--t3)",display:"flex",justifyContent:"space-between"}},
+          React.createElement("span",null,user.score||0+" pts"),
+          nextBadge&&React.createElement("span",null,nextBadge.label+" · "+nextBadge.min+" pts")
+        ),
+        React.createElement("div",{className:"prog-bar"},
+          React.createElement("div",{className:"prog-fill",style:{width:progPct+"%"}})
+        )
+      ),
+      /* STATS */
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,padding:"0 20px",marginBottom:20}},
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},props.watched.length),React.createElement("div",{className:"stat-lbl"},"Vistas")),
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},props.watchlist.length),React.createElement("div",{className:"stat-lbl"},"Lista")),
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},props.reviews.filter(function(r){return r.user_id===user.id;}).length),React.createElement("div",{className:"stat-lbl"},"Reseñas"))
+      ),
+      /* RANKING */
+      React.createElement("div",{style:{padding:"0 20px",marginBottom:20}},
+        React.createElement("div",{className:"serif",style:{fontSize:18,fontWeight:700,marginBottom:12}},"Ranking Zine Club"),
+        sortedUsers.slice(0,5).map(function(u,i){
+          var isMe=user&&u.id===user.id;
+          return React.createElement("div",{
+            key:u.id,
+            style:{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid var(--s3)",background:isMe?"var(--acc4)":""  ,borderRadius:isMe?8:0,paddingLeft:isMe?8:0}
+          },
+            React.createElement("div",{style:{width:24,fontSize:14,fontWeight:700,color:i===0?"#fbbf24":i===1?"#a0aec0":i===2?"#cd7c3f":"var(--t4)",textAlign:"center"}},"#"+(i+1)),
+            React.createElement("div",{style:{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc3),var(--s3))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}},u.name?u.name[0]:"?"),
+            React.createElement("div",{style:{flex:1}},
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:isMe?"var(--acc2)":"var(--t)"}},u.name+(isMe?" (tú)":"")),
+              React.createElement("div",{style:{fontSize:11,color:"var(--t3)"}},"@"+u.handle)
+            ),
+            React.createElement("div",{className:"badge"},u.score+"pts")
+          );
+        })
+      ),
+      /* ACTIONS */
+      React.createElement("div",{style:{padding:"0 20px",display:"flex",flexDirection:"column",gap:10,marginBottom:20}},
+        React.createElement("button",{
+          style:{padding:"14px 16px",background:"var(--s2)",border:"1px solid var(--s4)",borderRadius:14,color:"var(--t)",fontSize:14,fontWeight:600,cursor:"pointer",textAlign:"left",fontFamily:"Spline Sans,sans-serif",display:"flex",alignItems:"center",gap:10},
+          onClick:props.onWrapped
+        },"🎬  Ver mi Wrapped del año"),
+        React.createElement("button",{
+          style:{padding:"14px 16px",background:"var(--s2)",border:"1px solid var(--s4)",borderRadius:14,color:"var(--t)",fontSize:14,fontWeight:600,cursor:"pointer",textAlign:"left",fontFamily:"Spline Sans,sans-serif",display:"flex",alignItems:"center",gap:10},
+          onClick:props.onSupport
+        },"💬  Soporte"),
+        React.createElement("button",{
+          style:{padding:"14px 16px",background:"none",border:"1px solid rgba(239,68,68,0.3)",borderRadius:14,color:"#f87171",fontSize:14,fontWeight:600,cursor:"pointer",textAlign:"left",fontFamily:"Spline Sans,sans-serif"},
+          onClick:props.onLogout
+        },"Cerrar sesión")
+      )
+    )
+  );
+}
+
+/* ===== WRAPPED MODAL ===== */
+function WrappedModal(props){
+  var watched=props.watched||[];
+  var reviews=props.reviews||[];
+  var user=props.user;
+  var userReviews=reviews.filter(function(r){return user&&r.user_id===user.id;});
+  var totalHrs=Math.round(watched.length*1.8);
+
+  return React.createElement("div",{className:"modal-overlay",style:{alignItems:"center",padding:20},onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
+    React.createElement("div",{style:{background:"var(--s1)",borderRadius:24,padding:32,width:"100%",maxWidth:360,textAlign:"center",border:"1px solid var(--glass-border)"}},
+      React.createElement("div",{style:{fontSize:48,marginBottom:12}},"🎬"),
+      React.createElement("div",{className:"serif-italic",style:{fontSize:28,marginBottom:4,color:"var(--acc2)"}},"Tu Wrapped 2025"),
+      React.createElement("div",{style:{fontSize:14,color:"var(--t3)",marginBottom:24}},"Un año de gran cine"),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24}},
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},watched.length),React.createElement("div",{className:"stat-lbl"},"Películas")),
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},totalHrs+"h"),React.createElement("div",{className:"stat-lbl"},"Viendo")),
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},userReviews.length),React.createElement("div",{className:"stat-lbl"},"Reseñas")),
+        React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},user?user.score||0:0),React.createElement("div",{className:"stat-lbl"},"Puntos"))
+      ),
+      React.createElement("button",{className:"btn-ghost",style:{width:"100%"},onClick:props.onClose},"Cerrar")
+    )
+  );
+}
+
+/* ===== SUPPORT MODAL ===== */
+function SupportModal(props){
+  var [msg,setMsg]=useState("");
+  var [sent,setSent]=useState(false);
+  var faqs=[
+    {q:"¿Cómo funciona el test?",a:"Responde 5 preguntas sobre tu mood y te recomendamos películas o series adaptadas a ese momento."},
+    {q:"¿Puedo cambiar mis plataformas?",a:"Sí, desde Ajustes en tu perfil puedes actualizar tus plataformas en cualquier momento."},
+    {q:"¿Cómo sumo puntos?",a:"Marcando películas como vistas (+20pts), escribiendo reseñas (+30pts) y haciendo el test de mood (+10pts)."}
   ];
-  const cur = screens[state.screen]||screens.dashboard;
-
-  if(!state.auth) {
-    document.getElementById("app").innerHTML = `
-      <div class="login-wrap">
-        <div class="login-box">
-          <div class="login-logo">ra<span>ck</span></div>
-          <div class="login-tag">Admin Panel · Acceso restringido</div>
-          <div class="lf"><label>Contraseña</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"/></div>
-          <button class="login-btn" onclick="doAdminLogin()">Entrar →</button>
-          <div class="login-err" id="login-err"></div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  const contentMap = {
-    dashboard: renderDashboard,
-    users: renderUsers,
-    reviews: renderReviews,
-    watched: renderWatched,
-    notifs: renderNotifs,
-    copies: renderCopies,
-  };
-  const contentFn = contentMap[state.screen]||renderDashboard;
-
-  document.getElementById("app").innerHTML = `
-    <div class="layout">
-      <div class="sidebar">
-        <div class="sb-logo">
-          <div class="sb-logo-t">ra<span>ck</span></div>
-          <div class="sb-tag">Admin Panel</div>
-        </div>
-        <div class="sb-nav">
-          <div class="sb-section">General</div>
-          ${nav.map(n=>`<button class="sb-item${state.screen===n.id?" active":""}" onclick="setState({screen:'${n.id}',searchQ:''})"><span class="sb-ic">${n.ic}</span>${n.label}${n.id==="reviews"&&state.reviews.length>0?`<span class="sb-badge">${state.reviews.length}</span>`:""}</button>`).join("")}
-        </div>
-        <div class="sb-bottom">
-          <div class="sb-user">
-            <div class="sb-av">A</div>
-            <div><div class="sb-uname">Admin</div><div class="sb-urole">rack_admin</div></div>
-          </div>
-          <button class="logout-sb" onclick="doAdminLogout()">Cerrar sesión</button>
-        </div>
-      </div>
-      <div class="main">
-        <div class="topbar">
-          <div><div class="page-title">${cur.label}</div><div class="page-sub">${cur.sub}</div></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span style="font-size:11px;color:var(--t3);font-family:'DM Mono',monospace">${state.users.length} usuarios · ${state.reviews.length} reseñas</span>
-            <button class="tbl-btn tbl-btn-acc" onclick="loadAll()">↻</button>
-          </div>
-        </div>
-        <div class="content">
-          ${state.loading?'<div class="spinner"></div>':contentFn()}
-        </div>
-      </div>
-    </div>
-    ${renderModal()}
-    ${state.toast?`<div class="toast" style="${state.toast.type==="ok"?"border-color:var(--grn);color:var(--grn)":state.toast.type==="err"?"border-color:var(--red);color:var(--red)":""}">${state.toast.msg}</div>`:""}
-  `;
+  return React.createElement("div",{className:"modal-overlay",onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
+    React.createElement("div",{className:"modal-sheet"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}},
+        React.createElement("button",{style:{background:"none",border:"none",cursor:"pointer",color:"var(--t3)",display:"flex",alignItems:"center",gap:6,fontSize:14,fontFamily:"Spline Sans,sans-serif"},onClick:props.onClose},
+          React.createElement(IcoBack),React.createElement("span",null,"Volver")),
+        React.createElement("div",{className:"serif",style:{fontSize:20,fontWeight:700}},"Soporte"),
+        React.createElement("div",{style:{width:60}})
+      ),
+      faqs.map(function(f,i){
+        return React.createElement("div",{key:i,style:{marginBottom:16,padding:"14px",background:"var(--s2)",borderRadius:12}},
+          React.createElement("div",{style:{fontWeight:700,fontSize:14,marginBottom:6}},f.q),
+          React.createElement("div",{style:{fontSize:13,color:"var(--t2)",lineHeight:1.5}},f.a)
+        );
+      }),
+      !sent&&React.createElement("div",{style:{marginTop:16}},
+        React.createElement("div",{style:{fontSize:14,fontWeight:600,marginBottom:8}},"¿Otra pregunta?"),
+        React.createElement("textarea",{className:"inp",style:{resize:"none",height:80,marginBottom:10},placeholder:"Escribe tu duda...",value:msg,onChange:function(e){setMsg(e.target.value);}}),
+        React.createElement("button",{className:"btn-primary",style:{width:"100%"},onClick:function(){setSent(true);}},"Enviar")
+      ),
+      sent&&React.createElement("div",{style:{textAlign:"center",padding:16,color:"var(--acc2)",fontStyle:"italic",fontFamily:"Newsreader,serif"}},"Mensaje enviado. Te respondemos en 24h.")
+    )
+  );
 }
 
-function doAdminLogin() {
-  const p = document.getElementById("admin-pass")?.value;
-  if(p===ADMIN_PASS){
-    localStorage.setItem("rack_admin_auth","1");
-    setState({auth:true});
-    loadAll();
-  } else {
-    document.getElementById("login-err").textContent = "Contraseña incorrecta";
-  }
-}
-function doAdminLogout() {
-  localStorage.removeItem("rack_admin_auth");
-  setState({auth:false,users:[],reviews:[],watched:[],watchlist:[]});
+/* ===== SETTINGS MODAL ===== */
+function SettingsModal(props){
+  var [inv,setInv]=useState(ls("zc_inv","ZC"+Math.random().toString(36).slice(2,8).toUpperCase()));
+  lsSet("zc_inv",inv);
+  return React.createElement("div",{className:"modal-overlay",onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
+    React.createElement("div",{className:"modal-sheet"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}},
+        React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:700}},"Ajustes"),
+        React.createElement("button",{style:{background:"none",border:"none",cursor:"pointer",color:"var(--t3)"},onClick:props.onClose},React.createElement(IcoClose))
+      ),
+      React.createElement("div",{style:{marginBottom:20}},
+        React.createElement("div",{style:{fontSize:12,color:"var(--t3)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:8}},"Código de invitación"),
+        React.createElement("div",{style:{background:"var(--s2)",border:"1px solid var(--glass-border)",borderRadius:12,padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+          React.createElement("div",{className:"serif",style:{fontSize:24,letterSpacing:".1em",color:"var(--acc2)"}},inv),
+          React.createElement("button",{
+            style:{background:"var(--acc3)",border:"none",borderRadius:8,padding:"6px 12px",color:"var(--acc2)",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Spline Sans,sans-serif"},
+            onClick:function(){try{navigator.clipboard.writeText(inv);}catch(e){}props.toast("Copiado");}
+          },"Copiar")
+        )
+      ),
+      React.createElement("button",{className:"btn-ghost",style:{width:"100%"},onClick:props.onClose},"Cerrar")
+    )
+  );
 }
 
-// Init
-render();
-if(state.auth) loadAll();
+ReactDOM.render(React.createElement(App),document.getElementById("root"));
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
