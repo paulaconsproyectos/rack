@@ -1167,7 +1167,17 @@ function App(){
                         </div>
                         <span className="tk-lbl">{isL(f)?"Guardado":"Guardar"}</span>
                       </button>
-                      <button className="tk-action" onClick={function(){try{navigator.clipboard.writeText('"'+(f.titleEs||f.title)+'" en Zine Club');}catch{}t_("Copiado");}}>
+                      <button className="tk-action" onClick={function(){
+                          var title=f.titleEs||f.title;
+                          var shareText="Mira \""+title+"\" en Zine Club";
+                          var shareUrl="https://paulaconsproyectos.github.io/rack/";
+                          if(navigator.share){
+                            navigator.share({title:"Zine Club",text:shareText,url:shareUrl}).catch(function(){});
+                          } else {
+                            try{navigator.clipboard.writeText(shareText+" "+shareUrl);}catch(e){}
+                            t_("Enlace copiado");
+                          }
+                        }}>
                         <div className="tk-ic">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
