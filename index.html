@@ -72,11 +72,11 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 
 
 .back-btn{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);cursor:pointer;}
-.auth-ttl{font-size:28px;font-weight:700;letter-spacing:-0.04em;margin-bottom:8px;line-height:1.1;}
-.auth-sub{font-size:14px;color:var(--t3);margin-bottom:28px;}
+.auth-ttl{font-size:30px;font-weight:700;letter-spacing:-0.04em;margin-bottom:8px;line-height:1.1;color:#fff;}
+.auth-sub{font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:28px;}
 .field{margin-bottom:16px;}
 .field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:7px;}
-.field input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:15px 16px;color:var(--t);font-size:15px;outline:none;transition:all .2s;}
+.field input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:15px 16px;color:var(--t);font-size:15px;outline:none;transition:all .2s;backdrop-filter:blur(4px);}
 .field input:focus{border-color:rgba(99,102,241,0.6);background:rgba(99,102,241,0.05);}
 .field input::placeholder{color:var(--t4);}
 .auth-err{font-size:13px;color:var(--red);margin-bottom:12px;padding:10px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;}
@@ -386,7 +386,7 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .auth-logo-mini span{color:var(--acc);}
 .auth-divider{width:32px;height:2px;background:var(--acc);border-radius:4px;margin:0 0 24px;opacity:0.6;}
 
-.auth-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(99,102,241,0.12) 0%,transparent 70%);}
+
 .auth-top{width:100%;max-width:420px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:36px;}
 .auth-top .back-btn{position:absolute;left:0;background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:4px;}
 .auth-logo{font-family:'DM Serif Display',serif;font-size:14px;letter-spacing:0.06em;color:rgba(255,255,255,0.35);}
@@ -542,6 +542,17 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 
 .logo-btn{background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;display:flex;align-items:center;}
 .logo-btn-img{width:36px;height:36px;border-radius:9px;object-fit:cover;display:block;}
+.auth-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden;}
+.auth-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:background-image 1.5s ease;}
+.auth-bg-overlay{position:fixed;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(9,9,11,0.82) 40%,rgba(9,9,11,0.97) 100%);}
+.auth-top{width:100%;max-width:420px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:32px;z-index:2;}
+.auth-top .back-btn{position:absolute;left:0;background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer;padding:4px;}
+.auth-logo{font-family:'DM Serif Display',serif;font-size:15px;letter-spacing:0.06em;color:rgba(255,255,255,0.4);}
+.auth-logo span{color:var(--acc);opacity:1;}
+.auth-form-wrap{width:100%;max-width:420px;position:relative;z-index:2;}
+.auth-film-credit{position:fixed;bottom:100px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);z-index:2;letter-spacing:0.05em;}
+
+.estren-hero{position:relative;width:100%;height:200px;border-radius:18px;overflow:hidden;cursor:pointer;background:#1a1a2e;}
 </style>
 </head>
 <body>
@@ -851,6 +862,17 @@ function App(){
   var _=useState("");var rP=_[0];var setRP=_[1];
   var _=useState("");var rE=_[0];var setRE=_[1];
   var _=useState(false);var gdprOk=_[0];var setGdprOk=_[1];
+  var AUTH_BGS=[
+    {url:"https://image.tmdb.org/t/p/original/tM7ObJa8Mh3UEhGEiNbTMiHAHi2.jpg",title:"El Padrino"},
+    {url:"https://image.tmdb.org/t/p/original/gNBCvtYyGPbjPCT1k3MvJuNuXR6.jpg",title:"Pulp Fiction"},
+    {url:"https://image.tmdb.org/t/p/original/xMMrBziwJqrggerqyXfjbKSpCEG.jpg",title:"Goodfellas"},
+    {url:"https://image.tmdb.org/t/p/original/loRmRzQXZeqG78TqZunIbdALteQ.jpg",title:"2001: Odisea en el Espacio"},
+    {url:"https://image.tmdb.org/t/p/original/5M0j0B18abtBI5gi2RhfjjurTqb.jpg",title:"Blade Runner 2049"},
+    {url:"https://image.tmdb.org/t/p/original/AkJQpZp9WoNdj7pLYSj1L0RcMMN.jpg",title:"Mulholland Drive"},
+    {url:"https://image.tmdb.org/t/p/original/hziiv14OpD73u9gApdeiZ9N4Vhz.jpg",title:"Hereditary"},
+    {url:"https://image.tmdb.org/t/p/original/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg",title:"Dune"},
+  ];
+  var _=useState(function(){return Math.floor(Math.random()*8);});var authBgIdx=_[0];var setAuthBgIdx=_[1];
   var _=useState("");var err=_[0];var setErr=_[1];
   var _=useState(null);var ptsFloat=_[0];var setPtsFloat=_[1];
   var _=useState(false);var editProf=_[0];var setEditProf=_[1];
@@ -894,6 +916,15 @@ function App(){
   useEffect(function(){
     if(screen==="social"&&socTab==="upcoming")tmdbUpcoming().then(setUpcoming).catch(function(){});
   },[screen,socTab]);
+
+  useEffect(function(){
+    if(auth==="auth"){
+      var interval=setInterval(function(){
+        setAuthBgIdx(function(i){return (i+1)%AUTH_BGS.length;});
+      },5000);
+      return function(){clearInterval(interval);};
+    }
+  },[auth]);
 
   useEffect(function(){
     if(screen==="detail"&&sel&&sel.tmdbId){
@@ -1247,41 +1278,52 @@ function App(){
       {/* AUTH */}
       {auth==="auth" && (
         <div className="auth-page">
+          {/* Cinematic background */}
+          <div className="auth-bg" style={{backgroundImage:"url("+AUTH_BGS[authBgIdx].url+")"}}/>
+          <div className="auth-bg-overlay"/>
+
           <div className="auth-top">
             <button className="back-btn" onClick={function(){setAuth("landing");setErr("");}}>&#8592;</button>
             <div className="auth-logo">Zine <span>Club</span></div>
           </div>
-          {authMode==="login" && (
-            <div>
-              <div style={{width:32,height:2,background:"var(--acc)",borderRadius:4,marginBottom:20,opacity:0.6}}/><div className="auth-ttl">Bienvenido de vuelta</div>
-              <div className="auth-sub">Entra en tu cuenta de Zine Club</div>
-              {err && <div className="auth-err">{err}</div>}
-              <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={lH} onChange={function(e){setLH(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
-              <div className="field"><label>Contraseña</label><input type="password" placeholder="Contrasena" value={lP} onChange={function(e){setLP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
-              
-              <button className="btn btn-p" style={{marginTop:16}} onClick={doLogin}>Entrar</button>
-              <div className="auth-hint">¿Sin cuenta? <button onClick={function(){setAuthMode("register");setErr("");}}>Regístrate</button></div>
-            </div>
-          )}
-          {authMode==="register" && (
-            <div>
-              <div style={{width:32,height:2,background:"var(--acc)",borderRadius:4,marginBottom:20,opacity:0.6}}/><div className="auth-ttl">Únete a Zine Club</div>
-              <div className="auth-sub">Crea tu perfil de cinéfilo</div>
-              {err && <div className="auth-err">{err}</div>}
-              <div className="field"><label>Nombre completo</label><input placeholder="Tu nombre" value={rN} onChange={function(e){setRN(e.target.value);}}/></div>
-              <div className="field"><label>Email</label><input type="email" placeholder="tu@email.com" value={rE} onChange={function(e){setRE(e.target.value);}}/></div>
-              <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={rH} onChange={function(e){setRH(e.target.value);}}/></div>
-              <div className="field"><label>Contraseña</label><input type="password" placeholder="Contrasena" value={rP} onChange={function(e){setRP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doReg();}}/></div>
-              <div style={{display:"flex",alignItems:"flex-start",gap:10,margin:"16px 0 4px",padding:"12px",background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:12}}>
-                <input type="checkbox" id="gdpr" checked={gdprOk} onChange={function(e){setGdprOk(e.target.checked);}} style={{marginTop:2,accentColor:"var(--acc)",flexShrink:0,width:16,height:16,cursor:"pointer"}}/>
-                <label htmlFor="gdpr" style={{fontSize:12,color:"var(--t3)",lineHeight:1.5,cursor:"pointer"}}>
-                  Acepto que mis datos se utilicen para personalizar mis recomendaciones. <a href="legal.html" target="_blank" style={{color:"var(--acc)",textDecoration:"underline"}}>Leer política de privacidad</a>
-                </label>
+
+          <div className="auth-form-wrap">
+            {authMode==="login" && (
+              <div>
+                <div style={{width:32,height:2,background:"var(--acc)",borderRadius:4,marginBottom:20,opacity:0.7}}/>
+                <div className="auth-ttl">Bienvenido de vuelta</div>
+                <div className="auth-sub">Entra en tu cuenta de Zine Club</div>
+                {err && <div className="auth-err">{err}</div>}
+                <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={lH} onChange={function(e){setLH(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
+                <div className="field"><label>Contrase&#241;a</label><input type="password" placeholder="Contrasena" value={lP} onChange={function(e){setLP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
+                <button className="btn btn-p" style={{marginTop:18}} onClick={doLogin}>Entrar</button>
+                <div className="auth-hint">&#191;Sin cuenta? <button onClick={function(){setAuthMode("register");setErr("");}}>Reg&#237;strate</button></div>
               </div>
-              <button className="btn btn-p" style={{marginTop:16,opacity:gdprOk?1:0.5}} onClick={doReg} disabled={!gdprOk}>Crear cuenta</button>
-              <div className="auth-hint">¿Ya tienes cuenta? <button onClick={function(){setAuthMode("login");setErr("");}}>Inicia sesión</button></div>
-            </div>
-          )}
+            )}
+            {authMode==="register" && (
+              <div>
+                <div style={{width:32,height:2,background:"var(--acc)",borderRadius:4,marginBottom:20,opacity:0.7}}/>
+                <div className="auth-ttl">&#218;nete a Zine Club</div>
+                <div className="auth-sub">Crea tu perfil de cin&#233;filo</div>
+                {err && <div className="auth-err">{err}</div>}
+                <div className="field"><label>Nombre completo</label><input placeholder="Tu nombre" value={rN} onChange={function(e){setRN(e.target.value);}}/></div>
+                <div className="field"><label>Email</label><input type="email" placeholder="tu@email.com" value={rE} onChange={function(e){setRE(e.target.value);}}/></div>
+                <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={rH} onChange={function(e){setRH(e.target.value);}}/></div>
+                <div className="field"><label>Contrase&#241;a</label><input type="password" placeholder="Contrasena" value={rP} onChange={function(e){setRP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doReg();}}/></div>
+                <div style={{display:"flex",alignItems:"flex-start",gap:10,margin:"16px 0 4px",padding:"12px",background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:12}}>
+                  <input type="checkbox" id="gdpr" checked={gdprOk} onChange={function(e){setGdprOk(e.target.checked);}} style={{marginTop:2,accentColor:"var(--acc)",flexShrink:0,width:16,height:16,cursor:"pointer"}}/>
+                  <label htmlFor="gdpr" style={{fontSize:12,color:"var(--t3)",lineHeight:1.5,cursor:"pointer"}}>
+                    Acepto que mis datos se utilicen para personalizar mis recomendaciones. <a href="legal.html" target="_blank" style={{color:"var(--acc)",textDecoration:"underline"}}>Leer pol&#237;tica de privacidad</a>
+                  </label>
+                </div>
+                <button className="btn btn-p" style={{marginTop:16,opacity:gdprOk?1:0.5}} onClick={doReg} disabled={!gdprOk}>Crear cuenta</button>
+                <div className="auth-hint">&#191;Ya tienes cuenta? <button onClick={function(){setAuthMode("login");setErr("");}}>Inicia sesi&#243;n</button></div>
+              </div>
+            )}
+          </div>
+
+          {/* Film credit bottom */}
+          <div className="auth-film-credit">Ahora en pantalla · {AUTH_BGS[authBgIdx].title}</div>
         </div>
       )}
 
@@ -1371,19 +1413,43 @@ function App(){
 
               {/* ESTRENOS */}
               {trending.length>0 && (
-                <div className="mood-section">
-                  <div className="mood-sec-title">Estrenos</div>
-                  <div className="mood-reel">
-                    {trending.map(function(f,i){
-                      var isMain=i===0;
-                      return (
-                        <div key={i} className={"mood-item "+(isMain?"mood-item-main":"mood-item-side")} onClick={function(){goDetail(f,"home");}}>
-                          {f.poster ? <img src={f.poster} alt={f.title}/> : <div style={{width:"100%",height:"100%",background:"var(--s2)"}}/>}
-                          {isMain && <div className="mood-poster-title">{(f.titleEs||f.title).toUpperCase()}</div>}
-                        </div>
-                      );
-                    })}
+                <div style={{padding:"28px 0 0"}}>
+                  <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",padding:"0 20px",marginBottom:14}}>
+                    <div className="mood-sec-title" style={{margin:0}}>En cines ahora</div>
+                    <div style={{fontSize:11,color:"var(--acc)",fontWeight:600,letterSpacing:"0.04em"}}>VER TODO</div>
                   </div>
+                  {/* Featured first film big card */}
+                  {trending[0] && (
+                    <div style={{padding:"0 20px",marginBottom:12}}>
+                      <div className="estren-hero" onClick={function(){goDetail(trending[0],"home");}}>
+                        {trending[0].backdrop
+                          ? <img src={trending[0].backdrop} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+                          : trending[0].poster
+                            ? <img src={trending[0].poster} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+                            : null
+                        }
+                        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.2) 60%,transparent 100%)"}}/>
+                        <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"16px 14px"}}>
+                          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.1em",color:"var(--acc)",marginBottom:5,textTransform:"uppercase"}}>Estreno</div>
+                          <div style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:"-0.02em",lineHeight:1.2,marginBottom:4}}>{(trending[0].titleEs||trending[0].title).toUpperCase()}</div>
+                          <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>{trending[0].year}{trending[0].score?" · "+trending[0].score:""}</div>
+                        </div>
+                        <div style={{position:"absolute",top:12,right:12,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(8px)",borderRadius:20,padding:"4px 10px",fontSize:10,fontWeight:700,color:"#fff",border:"1px solid rgba(255,255,255,0.2)"}}>CINES</div>
+                      </div>
+                    </div>
+                  )}
+                  {/* Rest as horizontal scroll */}
+                  {trending.length>1 && (
+                    <div className="mood-reel" style={{paddingLeft:20}}>
+                      {trending.slice(1).map(function(f,i){
+                        return (
+                          <div key={i} className="mood-item mood-item-side" onClick={function(){goDetail(f,"home");}}>
+                            {f.poster ? <img src={f.poster} alt={f.title}/> : <div style={{width:"100%",height:"100%",background:"var(--s2)"}}/>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
