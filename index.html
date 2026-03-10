@@ -69,15 +69,15 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .btn-s{background:var(--s2);color:var(--t2);border:1px solid var(--b2);}
 .btn-ghost{background:none;border:none;color:var(--t3);font-size:13px;padding:8px;width:100%;cursor:pointer;}
 /* AUTH */
-.auth-page{min-height:100vh;padding:0 24px 48px;display:flex;flex-direction:column;}
-.auth-top{padding:52px 0 28px;}
+
+
 .back-btn{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);cursor:pointer;}
-.auth-ttl{font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:4px;}
-.auth-sub{font-size:13px;color:var(--t3);margin-bottom:22px;}
-.field{margin-bottom:11px;}
-.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px;}
-.field input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:13px 15px;color:var(--t);font-size:15px;outline:none;transition:all .2s;}
-.field input:focus{border-color:var(--acc);}
+.auth-ttl{font-size:28px;font-weight:700;letter-spacing:-0.04em;margin-bottom:8px;line-height:1.1;}
+.auth-sub{font-size:14px;color:var(--t3);margin-bottom:28px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:7px;}
+.field input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:15px 16px;color:var(--t);font-size:15px;outline:none;transition:all .2s;}
+.field input:focus{border-color:rgba(99,102,241,0.6);background:rgba(99,102,241,0.05);}
 .field input::placeholder{color:var(--t4);}
 .auth-err{font-size:13px;color:var(--red);margin-bottom:12px;padding:10px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;}
 .demo-hint{margin-top:11px;padding:10px 13px;background:var(--s2);border:1px solid var(--b);border-radius:9px;font-size:12px;color:var(--t3);line-height:1.6;}
@@ -375,6 +375,23 @@ button,input,textarea{font-family:'DM Sans',sans-serif;}
 .stream-logo-btn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:72px;gap:5px;text-decoration:none;border-radius:14px;padding:10px 4px 8px;background:var(--s2);border:1px solid var(--s4);}
 .stream-logo-img{width:40px;height:40px;object-fit:contain;border-radius:8px;}
 .stream-logo-name{font-size:9px;color:var(--t3);text-align:center;font-weight:600;line-height:1.2;word-break:break-word;}
+
+
+.auth-top .back-btn{position:absolute;left:0;background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px 8px;}
+.auth-top .logo{margin:0;}
+
+
+.auth-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px 24px;margin-top:4px;}
+.auth-logo-mini{font-family:'DM Serif Display',serif;font-size:13px;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:28px;}
+.auth-logo-mini span{color:var(--acc);}
+.auth-divider{width:32px;height:2px;background:var(--acc);border-radius:4px;margin:0 0 24px;opacity:0.6;}
+
+.auth-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(99,102,241,0.12) 0%,transparent 70%);}
+.auth-top{width:100%;max-width:420px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:36px;}
+.auth-top .back-btn{position:absolute;left:0;background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:4px;}
+.auth-logo{font-family:'DM Serif Display',serif;font-size:14px;letter-spacing:0.06em;color:rgba(255,255,255,0.35);}
+.auth-logo span{color:var(--acc);opacity:1;}
+.auth-card{width:100%;max-width:420px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:22px;padding:28px 24px 24px;}
 </style>
 </head>
 <body>
@@ -494,17 +511,83 @@ async function enrichItem(item){
 }
 
 async function tmdbDiscover(answers){
-  const genres=(MOOD_GENRES[answers.mood]||[18]).slice(0,2).join(",");
-  const page=Math.floor(Math.random()*8)+1;
-  const fmt=answers.format||"Lo que sea";
-  const isMarathon=answers.time==="Toda la noche";
+  const mood=answers.mood||"";
+  const fmt=answers.format||"Me da igual";
+  const time=answers.time||"";
+  const vibe=answers.vibe||"";
+  const platforms=Array.isArray(answers.platform)?answers.platform:[];
+  const isMarathon=time==="Toda la noche";
+  const isShort=time==="Menos de 1h";
+
+  // Genre mapping by mood
+  const moodGenres=(MOOD_GENRES[mood]||[18]).slice(0,2);
+
+  // Vibe adds extra genre signals
+  const VIBE_GENRES={
+    "Que me impacte":[18,53],
+    "Que me evada":[12,14,878],
+    "Que me haga reir":[35,16],
+    "Que me asuste":[27,9648],
+    "Arte puro":[18,36],
+    "Buena historia":[18,80]
+  };
+  const vibeGenres=VIBE_GENRES[vibe]||[];
+  const allGenres=[...new Set([...moodGenres,...vibeGenres])].slice(0,3);
+  const genres=allGenres.join(",");
+
+  // Platform to TMDB provider ID
+  const todoMeVale=platforms.length===0||platforms.includes("Todo me vale");
+  const PIDS_MAP={"Netflix":8,"HBO Max":384,"Max":384,"Disney+":337,"Prime Video":119,"Amazon Prime Video":119,"Filmin":63,"Apple TV+":350,"Movistar+":149};
+  const providerIds=todoMeVale?[]:platforms.map(function(p){return PIDS_MAP[p];}).filter(Boolean);
+  const providerParam=providerIds.length>0?"&with_watch_providers="+providerIds.join("|")+"&watch_region=ES":"";
+
+  // Duration filter
+  const durationParam=isShort?"&with_runtime.lte=90":"";
+
+  const page=Math.floor(Math.random()*5)+1;
   const wM=fmt==="Pelicula"||fmt==="Me da igual"||isMarathon;
-  const wT=fmt!=="Pelicula";
+  const wT=fmt==="Serie"||fmt==="Me da igual"||isMarathon;
   const fetches=[];
-  if(wM)fetches.push(fetch(B+"/discover/movie?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte=500&with_genres="+genres+"&page="+page).then(function(r){return r.json();}).then(function(d){return (d.results||[]).slice(0,isMarathon?6:5).map(function(m){return {id:m.id,title:m.title,titleEs:m.title,year:m.release_date?m.release_date.slice(0,4):"—",type:"Película",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};});}));
-  if(wT)fetches.push(fetch(B+"/discover/tv?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte=200&with_genres="+genres+"&page="+page).then(function(r){return r.json();}).then(function(d){return (d.results||[]).slice(0,isMarathon?4:3).map(function(m){return {id:m.id,title:m.name,titleEs:m.name,year:m.first_air_date?m.first_air_date.slice(0,4):"—",type:"Serie",mediaType:"tv",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};});}));
-  const results=(await Promise.all(fetches)).reduce(function(a,b){return a.concat(b);}).slice(0,isMarathon?12:8);
-  return Promise.all(results.map(enrichItem));
+
+  if(wM)fetches.push(
+    fetch(B+"/discover/movie?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte=200&with_genres="+genres+providerParam+durationParam+"&page="+page)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      return (d.results||[]).slice(0,isMarathon?6:5).map(function(m){
+        return {id:m.id,title:m.title,titleEs:m.title,year:m.release_date?m.release_date.slice(0,4):"",type:"Pelicula",mediaType:"movie",tmdbId:m.id,
+          poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,
+          description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};
+      });
+    })
+    .catch(function(){return [];})
+  );
+
+  if(wT)fetches.push(
+    fetch(B+"/discover/tv?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte=100&with_genres="+genres+providerParam+"&page="+page)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      return (d.results||[]).slice(0,isMarathon?4:3).map(function(m){
+        return {id:m.id,title:m.name,titleEs:m.name,year:m.first_air_date?m.first_air_date.slice(0,4):"",type:"Serie",mediaType:"tv",tmdbId:m.id,
+          poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,
+          description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};
+      });
+    })
+    .catch(function(){return [];})
+  );
+
+  const results=await Promise.all(fetches);
+  var all=results.reduce(function(a,b){return a.concat(b);},[]);
+
+  // If provider filter returned 0 results, retry without provider filter
+  if(all.length===0&&providerIds.length>0){
+    var fallback=await fetch(B+"/discover/movie?api_key="+TMDB_KEY+"&language=es-ES&sort_by=vote_average.desc&vote_count.gte=200&with_genres="+moodGenres.join(",")+"&page="+page)
+      .then(function(r){return r.json();})
+      .then(function(d){return (d.results||[]).slice(0,8).map(function(m){return {id:m.id,title:m.title,titleEs:m.title,year:m.release_date?m.release_date.slice(0,4):"",type:"Pelicula",mediaType:"movie",tmdbId:m.id,poster:m.poster_path?IMG+m.poster_path:null,backdrop:m.backdrop_path?ORIG+m.backdrop_path:null,description:m.overview||"",score:m.vote_average?m.vote_average.toFixed(1):"",streaming:[],genres:[]};});})
+      .catch(function(){return [];});
+    all=fallback;
+  }
+
+  return all.filter(function(f){return f.poster;});
 }
 
 async function tmdbWeekly(){
@@ -613,6 +696,7 @@ function App(){
   var _=useState("");var rH=_[0];var setRH=_[1];
   var _=useState("");var rP=_[0];var setRP=_[1];
   var _=useState("");var rE=_[0];var setRE=_[1];
+  var _=useState(false);var gdprOk=_[0];var setGdprOk=_[1];
   var _=useState("");var err=_[0];var setErr=_[1];
   var _=useState(null);var ptsFloat=_[0];var setPtsFloat=_[1];
   var _=useState(false);var editProf=_[0];var setEditProf=_[1];
@@ -658,6 +742,28 @@ function App(){
   },[screen,socTab]);
 
   useEffect(function(){
+    if(screen==="detail"&&sel&&sel.tmdbId&&(!sel.cast||sel.cast.length===0)){
+      var mtype=sel.mediaType||"movie";
+      fetch(B+"/"+mtype+"/"+sel.tmdbId+"?api_key="+TMDB_KEY+"&language=es-ES&append_to_response=credits,watch/providers,videos")
+        .then(function(r){return r.json();})
+        .then(function(d){
+          var prov=d["watch/providers"]&&d["watch/providers"].results&&d["watch/providers"].results.ES;
+          var streaming=prov&&prov.flatrate?prov.flatrate.map(function(p){return p.provider_name;}):(prov&&prov.ads?prov.ads.map(function(p){return p.provider_name;}):[]);
+          var cast=d.credits&&d.credits.cast?d.credits.cast.slice(0,8).map(function(c){return c.name;}):[];
+          var genreNames=d.genres?d.genres.map(function(g){return g.name;}):[];
+          var vids=d.videos&&d.videos.results?d.videos.results:[];
+          var trailer=vids.find(function(v){return v.type==="Trailer"&&v.site==="YouTube";});
+          var duration=d.runtime?Math.floor(d.runtime/60)+"h "+(d.runtime%60)+"m":d.episode_run_time&&d.episode_run_time[0]?d.episode_run_time[0]+"min ep.":"";
+          var tagline=d.tagline||"";
+          var director="";
+          if(d.credits&&d.credits.crew){var dir=d.credits.crew.find(function(c){return c.job==="Director";});if(dir)director=dir.name;}
+          setSel(function(prev){return Object.assign({},prev,{cast:cast,streaming:streaming,genres:genreNames,trailerKey:trailer?trailer.key:prev.trailerKey||null,duration:duration,tagline:tagline,director:director});});
+        })
+        .catch(function(){});
+    }
+  },[screen,sel&&sel.tmdbId]);
+
+  useEffect(function(){
     if(ptab==="all"){setPlatRes([]);return;}
     setLoadingPlat(true);
     tmdbPlatform(ptab).then(function(r){setPlatRes(r);setLoadingPlat(false);}).catch(function(){setLoadingPlat(false);});
@@ -691,7 +797,7 @@ function App(){
   async function reqNotif(){
     if(!("Notification" in window)){t_("Navegador no compatible");return;}
     var p=await Notification.requestPermission();
-    if(p==="granted"){setNotif(true);t_("Notificaciones activadas");try{new Notification("Rack",{body:"Te avisaremos de estrenos."});}catch{}}
+    if(p==="granted"){setNotif(true);t_("Notificaciones activadas");try{new Notification("Zine Club",{body:"Te avisaremos de estrenos."});}catch{}}
     else t_("Permisos denegados");
   }
 
@@ -715,7 +821,7 @@ function App(){
 
   async function doReg(){
     if(!rN.trim()||!rH.trim()||!rP.trim()||!rE.trim()){setErr("Rellena todos los campos");return;}
-    if(!/^[^@]+@[^@]+\.[^@]+$/.test(rE)){setErr("Email no valido");return;}
+    if(rE.indexOf("@")<1||rE.lastIndexOf(".")<rE.indexOf("@")+2){setErr("Email no valido");return;}
     if(!gdprOk){setErr("Acepta la politica de privacidad");return;}
     var handle=rH.toLowerCase().trim();
     try{var res=await sb.from("users").select("id").eq("handle",handle).single();if(res.data){setErr("Usuario ya existe");return;}}catch{}
@@ -753,7 +859,7 @@ function App(){
     try{
       var r=await tmdbDiscover(ans);
       setFilms(r);
-      setTkFilms(r);setTkIdx(0);setTkMode(true);
+      if(r&&r.length>0){setTkFilms(r);setTkIdx(0);setTkMode(true);}
     }catch{t_("Error al conectar");}
     setLoading(false);
   }
@@ -843,7 +949,7 @@ function App(){
       {tkMode && (
         <div className="tk-page fade-in">
           <div className="tk-top">
-            <button className="tk-close" onClick={function(){setTkMode(false);}}>\u2715</button>
+            <button className="tk-close" onClick={function(){setTkMode(false);}}>&#10005;</button>
             <div className="tk-dots">
               {tkFilms.slice(0,10).map(function(x,i){return <div key={i} className={"tk-dot"+(i===tkIdx?" on":"")}/> ;})}
             </div>
@@ -895,7 +1001,7 @@ function App(){
                         </div>
                         <span className="tk-lbl">{isL(f)?"Guardado":"Guardar"}</span>
                       </button>
-                      <button className="tk-action" onClick={function(){try{navigator.clipboard.writeText('"'+(f.titleEs||f.title)+'" en Rack');}catch{}t_("Copiado");}}>
+                      <button className="tk-action" onClick={function(){try{navigator.clipboard.writeText('"'+(f.titleEs||f.title)+'" en Zine Club');}catch{}t_("Copiado");}}>
                         <div className="tk-ic">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -907,7 +1013,7 @@ function App(){
                     </div>
                     {i===0 && tkFilms.length>1 && (
                       <div className="tk-hint">
-                        <div className="tk-hint-arr">\u2193</div>
+                        <div className="tk-hint-arr">&#8595;</div>
                         <div className="tk-hint-txt">Desliza</div>
                       </div>
                     )}
@@ -966,15 +1072,16 @@ function App(){
       {auth==="auth" && (
         <div className="auth-page">
           <div className="auth-top">
-            <button className="back-btn" onClick={function(){setAuth("landing");setErr("");}}>\u2190</button>
+            <button className="back-btn" onClick={function(){setAuth("landing");setErr("");}}>&#8592;</button>
+            <div className="auth-logo">Zine <span>Club</span></div>
           </div>
           {authMode==="login" && (
             <div>
-              <div className="auth-ttl">Bienvenido de vuelta</div>
+              <div style={{width:32,height:2,background:"var(--acc)",borderRadius:4,marginBottom:20,opacity:0.6}}/><div className="auth-ttl">Bienvenido de vuelta</div>
               <div className="auth-sub">Entra en tu cuenta de Zine Club</div>
               {err && <div className="auth-err">{err}</div>}
               <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={lH} onChange={function(e){setLH(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
-              <div className="field"><label>Contraseña</label><input type="password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" value={lP} onChange={function(e){setLP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
+              <div className="field"><label>Contraseña</label><input type="password" placeholder="Contrasena" value={lP} onChange={function(e){setLP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}}/></div>
               
               <button className="btn btn-p" style={{marginTop:16}} onClick={doLogin}>Entrar</button>
               <div className="auth-hint">¿Sin cuenta? <button onClick={function(){setAuthMode("register");setErr("");}}>Regístrate</button></div>
@@ -982,14 +1089,20 @@ function App(){
           )}
           {authMode==="register" && (
             <div>
-              <div className="auth-ttl">Únete a Zine Club</div>
+              <div style={{width:32,height:2,background:"var(--acc)",borderRadius:4,marginBottom:20,opacity:0.6}}/><div className="auth-ttl">Únete a Zine Club</div>
               <div className="auth-sub">Crea tu perfil de cinéfilo</div>
               {err && <div className="auth-err">{err}</div>}
               <div className="field"><label>Nombre completo</label><input placeholder="Tu nombre" value={rN} onChange={function(e){setRN(e.target.value);}}/></div>
               <div className="field"><label>Email</label><input type="email" placeholder="tu@email.com" value={rE} onChange={function(e){setRE(e.target.value);}}/></div>
               <div className="field"><label>Usuario</label><input placeholder="tu_usuario" value={rH} onChange={function(e){setRH(e.target.value);}}/></div>
-              <div className="field"><label>Contraseña</label><input type="password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" value={rP} onChange={function(e){setRP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doReg();}}/></div>
-              <button className="btn btn-p" style={{marginTop:14}} onClick={doReg}>Crear cuenta</button>
+              <div className="field"><label>Contraseña</label><input type="password" placeholder="Contrasena" value={rP} onChange={function(e){setRP(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doReg();}}/></div>
+              <div style={{display:"flex",alignItems:"flex-start",gap:10,margin:"16px 0 4px",padding:"12px",background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:12}}>
+                <input type="checkbox" id="gdpr" checked={gdprOk} onChange={function(e){setGdprOk(e.target.checked);}} style={{marginTop:2,accentColor:"var(--acc)",flexShrink:0,width:16,height:16,cursor:"pointer"}}/>
+                <label htmlFor="gdpr" style={{fontSize:12,color:"var(--t3)",lineHeight:1.5,cursor:"pointer"}}>
+                  Acepto que mis datos se utilicen para personalizar mis recomendaciones. <a href="legal.html" target="_blank" style={{color:"var(--acc)",textDecoration:"underline"}}>Leer política de privacidad</a>
+                </label>
+              </div>
+              <button className="btn btn-p" style={{marginTop:16,opacity:gdprOk?1:0.5}} onClick={doReg} disabled={!gdprOk}>Crear cuenta</button>
               <div className="auth-hint">¿Ya tienes cuenta? <button onClick={function(){setAuthMode("login");setErr("");}}>Inicia sesión</button></div>
             </div>
           )}
@@ -1103,9 +1216,9 @@ function App(){
               <div className="search-hd">
                 <div className="logo" style={{marginBottom:14}}>Zine <span>Club</span></div>
                 <div className="search-box">
-                  <span className="si-ic">\u21b3</span>
+                  <span className="si-ic">&#8627;</span>
                   <input className="search-input" placeholder="Busca películas o series..." value={searchQ} onChange={function(e){setSearchQ(e.target.value);}} autoFocus/>
-                  {searchQ && <button className="si-cl" onClick={function(){setSearchQ("");setSearchRes([]);}}>\u2715</button>}
+                  {searchQ && <button className="si-cl" onClick={function(){setSearchQ("");setSearchRes([]);}}>&#10005;</button>}
                 </div>
                 <div className="ptabs">
                   <button className={"ptab"+(ptab==="all"?" on":"")} onClick={function(){setPtab("all");}}>Todo</button>
@@ -1123,7 +1236,7 @@ function App(){
                           {!f.poster && <div className="fli-pe">—</div>}
                           <div className="fli-info">
                             <div className="fli-title">{f.titleEs||f.title}</div>
-                            <div className="fli-meta"><TypePill item={f}/>{f.year&&<span>{f.year}</span>}{f.score&&<span className="fli-sc">\u2b50{f.score}</span>}</div>
+                            <div className="fli-meta"><TypePill item={f}/>{f.year&&<span>{f.year}</span>}{f.score&&<span className="fli-sc">&#9733;{f.score}</span>}</div>
                             <div className="fli-desc">{f.description}</div>
                             <div className="fli-acts" onClick={function(e){e.stopPropagation();}}>
                               <button className={"pb "+(isL(f)?"pb-done":"pb-neu")} onClick={function(){addL(f);}}>{isL(f)?"En lista":"+ Lista"}</button>
@@ -1139,9 +1252,9 @@ function App(){
                         {searchHistory.map(function(h,i){
                           return (
                             <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"1px solid var(--b)",cursor:"pointer"}} onClick={function(){setSearchQ(h);}}>
-                              <span style={{fontSize:12,color:"var(--t3)"}}>\u21ba</span>
+                              <span style={{fontSize:12,color:"var(--t3)"}}>&#8635;</span>
                               <span style={{fontSize:13,color:"var(--t2)"}}>{h}</span>
-                              <button style={{marginLeft:"auto",background:"none",border:"none",color:"var(--t4)",fontSize:12,cursor:"pointer"}} onClick={function(e){e.stopPropagation();var nh=searchHistory.filter(function(x){return x!==h;});setSearchHistory(nh);LS.set("rack_sh",nh);}}>\u2715</button>
+                              <button style={{marginLeft:"auto",background:"none",border:"none",color:"var(--t4)",fontSize:12,cursor:"pointer"}} onClick={function(e){e.stopPropagation();var nh=searchHistory.filter(function(x){return x!==h;});setSearchHistory(nh);LS.set("rack_sh",nh);}}>&#10005;</button>
                             </div>
                           );
                         })}
@@ -1240,7 +1353,7 @@ function App(){
                             <div className="fthumb-info">
                               <div style={{marginBottom:3}}><TypePill item={f}/></div>
                               <div className="fti-t">{f.titleEs||f.title}</div>
-                              <div className="fti-m"><span className="fti-sc">\u2b50{f.score}</span><span>{f.year}</span></div>
+                              <div className="fti-m"><span className="fti-sc">&#9733;{f.score}</span><span>{f.year}</span></div>
                             </div>
                           </div>
                         );
@@ -1441,7 +1554,7 @@ function App(){
                             <div className="rc-stars">{"*".repeat(r.stars||0)}</div>
                           </div>
                           <p className="rc-txt" style={{marginTop:7}}>{r.text}</p>
-                          <button className={"rc-like"+((r.likedBy&&r.likedBy.includes(user.id))?" liked":"")} onClick={function(){toggleLike(r.id);}}>\u2665 {r.likes||0}</button>
+                          <button className={"rc-like"+((r.likedBy&&r.likedBy.includes(user.id))?" liked":"")} onClick={function(){toggleLike(r.id);}}>&#9829; {r.likes||0}</button>
                         </div>
                       );
                     })}
