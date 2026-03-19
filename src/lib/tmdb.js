@@ -1,8 +1,5 @@
-import { PLATFORMS, } from '../constants/platforms.js'
-import { MOOD_GENRES, MOOD_GENRES_TV, VIBE_GENRES } from '../constants/quiz.js'
-
-const KEY  = '10f1051018046e4262a70010b517415c'
-const BASE = 'https://api.themoviedb.org/3'
+import { PLATFORMS } from '../constants/platforms.js'
+import { SENTIR_GENRES_M, SENTIR_GENRES_T, EVITAR_EXCL } from '../constants/quiz.js'
 
 export const IMG_W   = 'https://image.tmdb.org/t/p/w500'
 export const IMG_SM  = 'https://image.tmdb.org/t/p/w185'
@@ -11,9 +8,12 @@ export const IMG_ORI = 'https://image.tmdb.org/t/p/original'
 
 const enc = (s) => encodeURIComponent(s || '')
 
-const api = (path) =>
-  fetch(`${BASE}${path}${path.includes('?') ? '&' : '?'}api_key=${KEY}&language=es-ES`)
+const api = (path) => {
+  const sep = path.includes('?') ? '&' : '?'
+  const pathWithLang = `${path}${sep}language=es-ES`
+  return fetch(`/api/tmdb?path=${encodeURIComponent(pathWithLang)}`)
     .then((r) => r.json())
+}
 
 // ── Mappers ──────────────────────────────────────────────
 export const mapMovie = (m) => ({
@@ -80,8 +80,10 @@ export async function enrichFilm(item) {
     const crew      = d.credits?.crew || []
     const dirObj    = crew.find((c) => c.job === 'Director')
     const castArr   = (d.credits?.cast || []).slice(0, 8).map((c) => ({
-      name:  c.name,
-      photo: c.profile_path ? IMG_SM + c.profile_path : null,
+      id:        c.id,
+      name:      c.name,
+      character: c.character || '',
+      photo:     c.profile_path ? IMG_SM + c.profile_path : null,
     }))
 
     const mins      = d.runtime || 0
@@ -114,6 +116,34 @@ export async function enrichFilm(item) {
     }
   } catch {
     return item
+  }
+}
+
+// ── Person detail ─────────────────────────────────────
+export async function fetchPerson(personId) {
+  try {
+    const d = await api(`/person/${personId}?append_to_response=combined_credits`)
+    const known = (d.combined_credits?.cast || [])
+      .filter((m) => m.poster_path && (m.vote_count || 0) > 200)
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 5)
+      .map((m) => ({
+        id:      m.id,
+        title:   m.title || m.name,
+        poster:  IMG_W + m.poster_path,
+        year:    (m.release_date || m.first_air_date || '').slice(0, 4),
+      }))
+    return {
+      id:         d.id,
+      name:       d.name,
+      photo:      d.profile_path ? IMG_W + d.profile_path : null,
+      bio:        d.biography || '',
+      birthday:   d.birthday || '',
+      birthplace: d.place_of_birth || '',
+      known:      known,
+    }
+  } catch {
+    return null
   }
 }
 
@@ -155,132 +185,164 @@ export async function searchFilms(query) {
 export async function fetchByPlatform(platformName) {
   const p = PLATFORMS[platformName]
   if (!p?.provId) return []
-  const d = await api(
-    `/discover/movie?sort_by=popularity.desc&watch_region=ES&with_watch_providers=${p.provId}`
-  )
-  return (d.results || [])
-    .filter((m) => m.poster_path)
-    .slice(0, 12)
-    .map(mapMovie)
+  const [movies, tv] = await Promise.all([
+    api(`/discover/movie?sort_by=popularity.desc&vote_average.gte=6.0&watch_region=ES&with_watch_providers=${p.provId}`)
+      .then(d => (d.results || []).filter(m => m.poster_path).slice(0, 10).map(mapMovie))
+      .catch(() => []),
+    api(`/discover/tv?sort_by=popularity.desc&vote_average.gte=6.0&watch_region=ES&with_watch_providers=${p.provId}`)
+      .then(d => (d.results || []).filter(m => m.poster_path).slice(0, 10).map(mapTV))
+      .catch(() => []),
+  ])
+  // interleave movies and tv, deduplicate by id
+  const seen = new Set()
+  return [...movies, ...tv]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .filter(f => { if (seen.has(f.id)) return false; seen.add(f.id); return true })
+    .slice(0, 18)
 }
 
 // ── Upcoming ─────────────────────────────────────────
 export async function fetchUpcoming() {
-  const d = await api('/movie/upcoming?region=ES')
-  return (d.results || [])
-    .slice(0, 10)
-    .map((m) => ({ ...mapMovie(m), releaseDate: m.release_date || '' }))
+  const today = new Date().toISOString().slice(0, 10)
+  const in60  = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10)
+  const [movies, tv] = await Promise.all([
+    api('/movie/upcoming?region=ES')
+      .then(d => (d.results || []).slice(0, 8).map(m => ({ ...mapMovie(m), releaseDate: m.release_date || '' })))
+      .catch(() => []),
+    api(`/discover/tv?sort_by=first_air_date.asc&first_air_date.gte=${today}&first_air_date.lte=${in60}&watch_region=ES&with_watch_providers=8|384|337|119|63|350|149`)
+      .then(d => (d.results || []).filter(m => m.poster_path).slice(0, 8).map(m => ({ ...mapTV(m), releaseDate: m.first_air_date || '' })))
+      .catch(() => []),
+  ])
+  return [...movies, ...tv]
+    .filter(f => f.poster)
+    .sort((a, b) => (a.releaseDate || '').localeCompare(b.releaseDate || ''))
+    .slice(0, 12)
 }
 
-// ── Mood discovery (6-level fallback) ─────────────────
+// ── Mood discovery ─────────────────────────────────────
 export async function discoverByMood(answers) {
-  const { mood = '', format = 'Me da igual', time = '', vibe = '',
-          era = 'Me da igual', platform: platforms = [] } = answers
+  const {
+    sentir = '',
+    formato = 'Lo que sea, sorpréndeme',
+    tiempo = '',
+    compania = '',
+    evitar = [],
+    plataformas = [],
+  } = answers
 
-  const isMarathon = time === 'Toda la noche'
-  const isShort    = time === 'Menos de 1h'
-  const wMovies    = format === 'Película'    || format === 'Me da igual' || isMarathon
-  const wTV        = format === 'Serie'       || format === 'Me da igual' || isMarathon
+  const isMarathon  = tiempo === 'Tengo toda la noche'
+  const evitarList  = Array.isArray(evitar) ? evitar : []
+  const noSurprises = evitarList.length === 0 || evitarList.includes('Nada, sorpréndeme')
 
-  // Era params
-  let eraM = '', eraT = ''
-  if (era === 'Actual (2015+)')       { eraM = '&primary_release_date.gte=2015-01-01'; eraT = '&first_air_date.gte=2015-01-01' }
-  if (era === 'Clásicos (90s–2000s)') { eraM = '&primary_release_date.gte=1990-01-01&primary_release_date.lte=2014-12-31'; eraT = '&first_air_date.gte=1990-01-01&first_air_date.lte=2014-12-31' }
-  if (era === 'Retro (antes del 90)') { eraM = '&primary_release_date.lte=1989-12-31'; eraT = '&first_air_date.lte=1989-12-31' }
+  // Format → movie/TV flags
+  let wMovies = true, wTV = true
+  switch (formato) {
+    case 'Película':                     wMovies = true;  wTV = false; break
+    case 'Miniserie (pocos episodios)':  wMovies = false; wTV = true;  break
+    case 'Serie corta (1-2 temporadas)': wMovies = false; wTV = true;  break
+    case 'Serie larga (3+ temporadas)':  wMovies = false; wTV = true;  break
+    default:                             wMovies = true;  wTV = true;  break
+  }
+  if (isMarathon) { wMovies = true; wTV = true }
 
-  const moodGM = (MOOD_GENRES[mood]    || [18, 35, 12]).slice(0, 2)
-  const moodGT = (MOOD_GENRES_TV[mood] || [18, 35]).slice(0, 2)
-  const vibeG  = VIBE_GENRES[vibe] || []
+  // Runtime params (movies only)
+  let durParam = ''
+  switch (tiempo) {
+    case 'Menos de 1h30':             durParam = '&with_runtime.lte=90'; break
+    case 'Película normal (1h30–2h)': durParam = '&with_runtime.gte=80&with_runtime.lte=130'; break
+    case 'Película larga (2h+)':      durParam = '&with_runtime.gte=110'; break
+  }
 
-  const allGM = [...new Set([...moodGM, ...vibeG])].slice(0, 3)
-  const allGT = [...new Set([...moodGT, ...vibeG])].slice(0, 2)
+  // Sentir → genre IDs
+  const genresM = SENTIR_GENRES_M[sentir] || [18, 35, 28]
+  const genresT = SENTIR_GENRES_T[sentir] || [18, 35]
+  const gM = genresM.join('|')
+  const gT = genresT.join('|')
 
-  const todoMeVale = !platforms.length || platforms.includes('Todo me vale')
-  const pids       = todoMeVale ? [] : platforms.map((p) => PLATFORMS[p]?.provId).filter(Boolean)
-  const pParamM    = pids.length ? `&with_watch_providers=${pids.join('|')}&watch_region=ES` : ''
-  const pParamT    = pids.length ? `&with_watch_providers=${pids.join('|')}&watch_region=ES` : ''
-  const durParam   = isShort ? '&with_runtime.lte=90' : ''
-  const limit      = isMarathon ? 8 : 6
-  const pg         = Math.floor(Math.random() * 4) + 1
+  // Platforms → provider IDs
+  const ALL_PIDS = [8, 384, 337, 119, 63, 350, 149, 76, 531, 100, 35]
+  const pids = plataformas.length
+    ? plataformas.map(p => PLATFORMS[p]?.provId).filter(Boolean)
+    : ALL_PIDS
+  const pParam = `&with_watch_providers=${pids.join('|')}&watch_region=ES&with_watch_monetization_types=flatrate`
 
-  const fetchM = async (genres, provP, durP, eraP, page, minVotes = 150) => {
+  // Family / kids filter
+  const isFamily = compania === 'Con familia / niños'
+  const noKidsM  = isFamily ? '' : '&without_genres=10751'
+  const noKidsT  = isFamily ? '' : '&without_genres=10751,10762'
+
+  // Evitar → genre exclusions
+  let exclM = '', exclT = ''
+  if (!noSurprises) {
+    const exclSet = new Set()
+    evitarList.forEach(e => (EVITAR_EXCL[e] || []).forEach(g => exclSet.add(g)))
+    if (isFamily) exclSet.delete(10751)
+    if (exclSet.size) { exclM = `&without_genres=${[...exclSet].join(',')}`; exclT = exclM }
+  }
+
+  const excParamM = noKidsM + exclM
+  const excParamT = noKidsT + exclT
+  const qual = '&vote_average.gte=6.0'
+  const limit = isMarathon ? 8 : 6
+  const pg = Math.floor(Math.random() * 4) + 1
+
+  const fetchM = async (genres, page) => {
     try {
-      const url = `/discover/movie?sort_by=vote_average.desc&vote_count.gte=${minVotes}&with_genres=${genres}${provP}${durP}${eraP}&page=${page}`
-      const d = await api(url)
-      return (d.results || []).filter((x) => x.poster_path && x.vote_count > 50).slice(0, limit).map(mapMovie)
+      const d = await api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}&with_genres=${genres}${pParam}${durParam}${excParamM}&page=${page}`)
+      return (d.results || []).filter(x => x.poster_path).slice(0, limit).map(mapMovie)
     } catch { return [] }
   }
 
-  const fetchT = async (genres, provP, eraP, page, minVotes = 50) => {
+  const fetchT = async (genres, page) => {
     try {
-      const url = `/discover/tv?sort_by=vote_average.desc&vote_count.gte=${minVotes}&with_genres=${genres}${provP}${eraP}&page=${page}`
-      const d = await api(url)
-      return (d.results || []).filter((x) => x.poster_path && x.vote_count > 20).slice(0, limit).map(mapTV)
+      const d = await api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}&with_genres=${genres}${pParam}${excParamT}&page=${page}`)
+      return (d.results || []).filter(x => x.poster_path).slice(0, limit).map(mapTV)
     } catch { return [] }
   }
 
   let all = []
 
-  // Level 1: full filters
+  // L1: primary genres + all filters
   const l1 = await Promise.all([
-    wMovies ? fetchM(allGM.join(','), pParamM, durParam, eraM, pg, 150) : [],
-    wTV     ? fetchT(allGT.join(','), pParamT, eraT, pg, 50) : [],
+    wMovies ? fetchM(gM, pg) : [],
+    wTV     ? fetchT(gT, pg) : [],
   ])
   all = l1.flat()
 
-  // Level 2: relax genres
+  // L2: single leading genre, different page
   if (all.length < 4) {
     const l2 = await Promise.all([
-      wMovies ? fetchM(moodGM.join(','), pParamM, durParam, eraM, pg, 80) : [],
-      wTV     ? fetchT(moodGT.join(','), pParamT, eraT, pg, 20) : [],
+      wMovies ? fetchM(String(genresM[0] || 18), pg + 1) : [],
+      wTV     ? fetchT(String(genresT[0] || 18), pg + 1) : [],
     ])
     all = [...all, ...l2.flat()]
   }
 
-  // Level 3: single genre, keep platform, drop era
+  // L3: relax evitar exclusions, keep platform + runtime
   if (all.length < 4) {
-    const l3 = await Promise.all([
-      wMovies ? fetchM(String(moodGM[0] || 18), pParamM, '', '', 1, 30) : [],
-      wTV     ? fetchT(String(moodGT[0] || 18), pParamT, '', 1, 10) : [],
-    ])
-    all = [...all, ...l3.flat()]
+    try {
+      const l3 = await Promise.all([
+        wMovies ? api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}&with_genres=${gM}${pParam}${durParam}${noKidsM}&page=${pg}`).then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapMovie)).catch(()=>[]) : [],
+        wTV     ? api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}&with_genres=${gT}${pParam}${noKidsT}&page=${pg}`).then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapTV)).catch(()=>[]) : [],
+      ])
+      all = [...all, ...l3.flat()]
+    } catch {}
   }
 
-  // Level 4: platform by popularity
-  if (all.length < 4 && pids.length) {
+  // L4: no genre constraint, keep platform
+  if (all.length < 4) {
     try {
       const l4 = await Promise.all([
-        wMovies ? api(`/discover/movie?sort_by=popularity.desc${pParamM}&watch_region=ES`).then((d) => (d.results || []).filter((x) => x.poster_path).slice(0, 6).map(mapMovie)) : [],
-        wTV     ? api(`/discover/tv?sort_by=popularity.desc${pParamT}&watch_region=ES`).then((d) => (d.results || []).filter((x) => x.poster_path).slice(0, 6).map(mapTV)) : [],
+        wMovies ? api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}${durParam}${pParam}${noKidsM}&page=1`).then(d=>(d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapMovie)).catch(()=>[]) : [],
+        wTV     ? api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}${pParam}${noKidsT}&page=1`).then(d=>(d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapTV)).catch(()=>[]) : [],
       ])
       all = [...all, ...l4.flat()]
     } catch {}
   }
 
-  // Level 5: no platform
-  if (all.length < 6) {
-    const l5 = await Promise.all([
-      wMovies ? fetchM(String(moodGM[0] || 18), '', '', '', 1, 30) : [],
-      wTV     ? fetchT(String(moodGT[0] || 18), '', '', 1, 10) : [],
-    ])
-    const l5f = l5.flat()
-    all = todoMeVale ? [...all, ...l5f] : (all.length < 4 ? [...all, ...l5f] : all)
-  }
-
-  // Level 6: trending (guaranteed)
-  if (all.length < 4) {
-    try {
-      const l6 = await Promise.all([
-        wTV     ? api('/trending/tv/week').then((d) => (d.results || []).filter((x) => x.poster_path).slice(0, 6).map(mapTV)) : [],
-        wMovies ? api('/trending/movie/week').then((d) => (d.results || []).filter((x) => x.poster_path).slice(0, 6).map(mapMovie)) : [],
-      ])
-      all = [...all, ...l6.flat()]
-    } catch {}
-  }
-
   // Deduplicate
   const seen = new Set()
-  return all.filter((f) => {
+  return all.filter(f => {
     if (seen.has(f.id)) return false
     seen.add(f.id)
     return f.poster

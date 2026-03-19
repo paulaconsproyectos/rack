@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth.js'
 import { useToast } from './hooks/useToast.js'
-import { computeStreak } from './lib/utils.js'
+import { computeStreak, watchPoints } from './lib/utils.js'
 
 // Screens
-import Landing  from './screens/Landing/Landing.jsx'
-import Auth     from './screens/Auth/Auth.jsx'
-import Home     from './screens/Home/Home.jsx'
-import Quiz     from './screens/Quiz/Quiz.jsx'
-import Results  from './screens/Results/Results.jsx'
-import Detail   from './screens/Detail/Detail.jsx'
-import Search   from './screens/Search/Search.jsx'
-import Social   from './screens/Social/Social.jsx'
-import Profile  from './screens/Profile/Profile.jsx'
-import TikTok   from './screens/TikTok/TikTok.jsx'
+import Landing        from './screens/Landing/Landing.jsx'
+import Auth           from './screens/Auth/Auth.jsx'
+import Home           from './screens/Home/Home.jsx'
+import Quiz           from './screens/Quiz/Quiz.jsx'
+import Results        from './screens/Results/Results.jsx'
+import Recommendation from './screens/Recommendation/Recommendation.jsx'
+import PostView       from './screens/PostView/PostView.jsx'
+import Detail         from './screens/Detail/Detail.jsx'
+import Search         from './screens/Search/Search.jsx'
+import Social         from './screens/Social/Social.jsx'
+import Profile        from './screens/Profile/Profile.jsx'
+import TikTok         from './screens/TikTok/TikTok.jsx'
+import Onboarding     from './screens/Onboarding/Onboarding.jsx'
 
 // Components
 import Nav from './components/Nav.jsx'
@@ -25,30 +28,37 @@ import './screens/Auth/Auth.css'
 import './screens/Home/Home.css'
 import './screens/Quiz/Quiz.css'
 import './screens/Results/Results.css'
+import './screens/Recommendation/Recommendation.css'
+import './screens/PostView/PostView.css'
 import './screens/Detail/Detail.css'
 import './screens/Search/Search.css'
 import './screens/Social/Social.css'
 import './screens/Profile/Profile.css'
 import './screens/TikTok/TikTok.css'
-
-const NAV_TABS = ['home', 'search', 'social', 'profile']
+import './screens/Onboarding/Onboarding.css'
 
 export default function App() {
   const auth  = useAuth()
   const toast = useToast()
 
-  // Screen state
-  const [tab, setTab]         = useState(0) // 0=home 1=search 2=social 3=profile
-  const [screen, setScreen]   = useState(null) // null=tab | 'quiz' | 'results' | 'detail' | 'tiktok'
-  const [quizOpts, setQuizOpts]     = useState({})
-  const [quizAnswers, setQuizAnswers] = useState(null)
-  const [detailFilm, setDetailFilm] = useState(null)
-  const [detailFrom, setDetailFrom] = useState(null)
-  const [tiktokFilms, setTiktokFilms] = useState([])
-  const [tiktokIdx, setTiktokIdx]   = useState(0)
-  const [isMarathon, setIsMarathon] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
 
-  // ── Auth state: loading ──
+  // Screen state
+  const [tab, setTab]           = useState(0) // 0=home 1=search 2=social 3=profile
+  const [screen, setScreen]     = useState(null)
+  const [quizOpts, setQuizOpts] = useState({})
+  const [quizAnswers, setQuizAnswers]   = useState(null)
+  const [quizResults, setQuizResults]   = useState(null)
+  const [recoFilm, setRecoFilm]         = useState(null)
+  const [detailFilm, setDetailFilm]     = useState(null)
+  const [detailFrom, setDetailFrom]     = useState(null)
+  const [tiktokFilms, setTiktokFilms]   = useState([])
+  const [tiktokIdx, setTiktokIdx]       = useState(0)
+  const [isMarathon, setIsMarathon]     = useState(false)
+  const [navStack, setNavStack]         = useState([])
+  const [onboarded, setOnboarded]       = useState(() => !!localStorage.getItem('zc_onboarded'))
+
+  // ── Auth: loading ──
   if (auth.authState === 'loading') {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}>
@@ -57,20 +67,27 @@ export default function App() {
     )
   }
 
-  // ── Auth state: landing ──
   if (auth.authState === 'landing') {
-    return <Landing onEnter={() => auth.setAuthState('auth')} />
+    return <Landing
+      onRegister={() => { auth.setAuthState('auth'); setAuthMode('register') }}
+      onLogin={() => { auth.setAuthState('auth'); setAuthMode('login') }}
+    />
   }
 
-  // ── Auth state: auth ──
   if (auth.authState === 'auth') {
     return (
       <Auth
+        mode={authMode}
         onLogin={auth.login}
         onRegister={auth.register}
         onBack={() => auth.setAuthState('landing')}
       />
     )
+  }
+
+  // ── Onboarding ──
+  if (!onboarded) {
+    return <Onboarding onDone={() => { localStorage.setItem('zc_onboarded', '1'); setOnboarded(true) }} />
   }
 
   // ── App ──
@@ -86,9 +103,24 @@ export default function App() {
   }
 
   function handleWatch(film) {
-    auth.addWatchedLocal(film)
-    toast.showPts(10)
-    toast.showToast(`Marcada como vista ✓`)
+    const watched = isWatched(film)
+    const pts = watchPoints(film)
+    auth.addWatchedLocal(film, pts)
+    if (!watched) {
+      toast.showPts(pts)
+      toast.showToast('Marcada como vista ✓')
+    } else {
+      toast.showToast('Eliminada de vistas')
+    }
+  }
+
+  function handleWatchAndPostView(film) {
+    const wasWatched = isWatched(film)
+    handleWatch(film)
+    if (!wasWatched) {
+      setRecoFilm(film)
+      setScreen('postview')
+    }
   }
 
   function handleSave(film) {
@@ -97,25 +129,52 @@ export default function App() {
     toast.showToast(saved ? 'Eliminada de tu lista' : 'Guardada en tu lista ✓')
   }
 
+  function goBack() {
+    if (navStack.length === 0) { setScreen(null); return }
+    const prev = navStack[navStack.length - 1]
+    setNavStack(s => s.slice(0, -1))
+    setScreen(prev.screen)
+    if (prev.detailFilm !== undefined) setDetailFilm(prev.detailFilm)
+    if (prev.detailFrom !== undefined) setDetailFrom(prev.detailFrom)
+  }
+
+  function goBackToRoot() {
+    const rootIdx = navStack.findIndex(n => n.screen !== 'detail')
+    if (rootIdx === -1) { setNavStack([]); setScreen(null); return }
+    const root = navStack[rootIdx]
+    setNavStack([])
+    setScreen(root.screen)
+    if (root.detailFilm !== undefined) setDetailFilm(root.detailFilm)
+    if (root.detailFrom !== undefined) setDetailFrom(root.detailFrom)
+  }
+
   function openDetail(film, from) {
+    if (screen) {
+      setNavStack(s => [...s, { screen, detailFilm, detailFrom }])
+    }
     setDetailFilm(film)
     setDetailFrom(from)
     setScreen('detail')
   }
 
   function openQuiz(opts = {}) {
+    setNavStack([])
     setQuizOpts(opts)
     setIsMarathon(false)
     setScreen('quiz')
   }
 
   function openMarathon() {
+    setNavStack([])
     setQuizOpts({})
     setIsMarathon(true)
     setScreen('quiz')
   }
 
   function openTikTok(films, startIdx = 0) {
+    if (screen) {
+      setNavStack(s => [...s, { screen, detailFilm, detailFrom }])
+    }
     setTiktokFilms(films)
     setTiktokIdx(startIdx)
     setScreen('tiktok')
@@ -123,11 +182,13 @@ export default function App() {
 
   function handleQuizComplete(answers) {
     setQuizAnswers(answers)
-    setScreen('results')
+    setQuizResults(null)
+    // Marathon → list results; regular → single recommendation
+    setScreen(isMarathon ? 'results' : 'recommendation')
   }
 
   function handleInvite() {
-    const url = 'https://paulaconsproyectos.github.io/zineclub/'
+    const url = 'https://zineclub.vercel.app'
     if (navigator.share) {
       navigator.share({ title: 'Zine Club', text: 'Descubre películas que realmente mereces ver', url })
     } else {
@@ -136,13 +197,13 @@ export default function App() {
     }
   }
 
-  // Overlay screens (full-screen, over tab content)
+  // ── Overlay screens ──────────────────────────────────────
   if (screen === 'tiktok') {
     return (
       <TikTok
         films={tiktokFilms}
         initialIdx={tiktokIdx}
-        onClose={() => setScreen(null)}
+        onClose={goBack}
         onDetail={openDetail}
         onWatch={handleWatch}
         onSave={handleSave}
@@ -159,13 +220,16 @@ export default function App() {
           film={detailFilm}
           from={detailFrom}
           user={user}
-          onClose={() => setScreen(null)}
+          onClose={goBackToRoot}
+          onBack={navStack.length > 0 && navStack[navStack.length - 1].screen === 'detail' ? goBack : null}
+          onDetail={openDetail}
           onWatch={handleWatch}
           onSave={handleSave}
           isWatched={isWatched}
           isSaved={isSaved}
           showToast={toast.showToast}
           showPts={toast.showPts}
+          onLogin={() => { auth.setAuthState('auth') }}
         />
         <Toast toast={toast.toast} />
         <PtsFloat pts={toast.ptsFloat} />
@@ -176,11 +240,45 @@ export default function App() {
   if (screen === 'quiz') {
     return (
       <Quiz
-        prefillMood={quizOpts.prefillMood}
         isMarathon={isMarathon}
         onComplete={handleQuizComplete}
-        onExit={() => setScreen(null)}
+        onExit={() => { setNavStack([]); setScreen(null) }}
       />
+    )
+  }
+
+  if (screen === 'recommendation') {
+    return (
+      <>
+        <Recommendation
+          answers={quizAnswers}
+          onBack={() => setScreen('quiz')}
+          onWatch={handleWatchAndPostView}
+          onSave={handleSave}
+          onDetail={openDetail}
+          isSaved={isSaved}
+          isWatched={isWatched}
+          showToast={toast.showToast}
+        />
+        <Toast toast={toast.toast} />
+        <PtsFloat pts={toast.ptsFloat} />
+      </>
+    )
+  }
+
+  if (screen === 'postview' && recoFilm) {
+    return (
+      <>
+        <PostView
+          film={recoFilm}
+          onDone={() => setScreen(null)}
+          onReview={(film) => openDetail(film, 'postview')}
+          showToast={toast.showToast}
+          showPts={toast.showPts}
+        />
+        <Toast toast={toast.toast} />
+        <PtsFloat pts={toast.ptsFloat} />
+      </>
     )
   }
 
@@ -190,6 +288,8 @@ export default function App() {
         <Results
           answers={quizAnswers}
           isMarathon={isMarathon}
+          cachedFilms={quizResults}
+          onCacheFilms={setQuizResults}
           onBack={() => setScreen('quiz')}
           onDetail={openDetail}
           onTikTok={openTikTok}
@@ -204,10 +304,9 @@ export default function App() {
     )
   }
 
-  // Main tab shell
+  // ── Main tab shell ───────────────────────────────────────
   return (
     <div className="app-shell">
-      {/* Tab panels */}
       {tab === 0 && (
         <Home
           user={user}
@@ -216,6 +315,7 @@ export default function App() {
           onMarathon={openMarathon}
           onDetail={openDetail}
           onInvite={handleInvite}
+          onProfile={() => setTab(3)}
           showToast={toast.showToast}
         />
       )}
@@ -241,6 +341,7 @@ export default function App() {
           onDetail={openDetail}
           showToast={toast.showToast}
           updateNameLocal={auth.updateNameLocal}
+          updateAvatarLocal={auth.updateAvatarLocal}
         />
       )}
 

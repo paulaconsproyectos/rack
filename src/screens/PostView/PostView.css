@@ -1,0 +1,120 @@
+/* ── Page ───────────────────────────────────────────────── */
+.postview-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: max(52px, env(safe-area-inset-top)) 24px 40px;
+}
+
+.postview-content {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Film label ─────────────────────────────────────────── */
+.postview-film-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+
+/* ── Title ──────────────────────────────────────────────── */
+.postview-title {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.postview-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-top: -8px;
+}
+
+/* ── Reaction buttons ───────────────────────────────────── */
+.postview-reactions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.postview-reaction {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-1);
+  border: 1.5px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.postview-reaction:active { transform: scale(0.98); }
+
+.postview-reaction.sel {
+  border-color: var(--acc);
+  background: var(--acc-dim);
+}
+
+.postview-reaction.green.sel  { border-color: var(--green); background: rgba(34,197,94,0.08); }
+.postview-reaction.neutral.sel { border-color: var(--text-3); background: rgba(255,255,255,0.04); }
+.postview-reaction.gold.sel   { border-color: var(--acc); background: var(--acc-dim); }
+
+.postview-reaction-emoji {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.postview-reaction-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-2);
+  line-height: 1.3;
+}
+
+.postview-reaction.sel .postview-reaction-text {
+  color: var(--text);
+}
+
+/* ── Review CTA ─────────────────────────────────────────── */
+.postview-review-btn {
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  width: 100%;
+  transition: all var(--t-fast);
+}
+
+.postview-review-btn:active {
+  background: var(--bg-3);
+}
+
+/* ── Points note ────────────────────────────────────────── */
+.postview-pts {
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+  letter-spacing: 0.02em;
+}

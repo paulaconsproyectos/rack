@@ -1,0 +1,333 @@
+/* ── Page ───────────────────────────────────────────────── */
+.reco-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* ── Loading ────────────────────────────────────────────── */
+.reco-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 40px;
+}
+
+.reco-loading-symbol {
+  font-size: 52px;
+  color: var(--acc);
+  animation: recoPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes recoPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.88); }
+}
+
+.reco-loading-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.4;
+  animation: recoFadePhrase 0.5s ease;
+}
+
+@keyframes recoFadePhrase {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reco-loading-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.reco-loading-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--acc);
+  animation: recoDot 1.2s ease-in-out infinite;
+}
+
+.reco-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.reco-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes recoDot {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40%           { opacity: 1;   transform: scale(1); }
+}
+
+/* ── Error ──────────────────────────────────────────────── */
+.reco-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  text-align: center;
+  gap: 16px;
+}
+
+.reco-error-icon {
+  font-size: 48px;
+  color: var(--acc);
+  opacity: 0.5;
+}
+
+.reco-error-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.reco-error-sub {
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+/* ── Poster section ─────────────────────────────────────── */
+.reco-poster-section {
+  position: relative;
+  width: 100%;
+  height: 54vh;
+  min-height: 320px;
+  flex-shrink: 0;
+  background: var(--bg-2);
+  overflow: hidden;
+}
+
+.reco-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.reco-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  background: var(--bg-2);
+}
+
+.reco-poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.25) 0%,
+    transparent 30%,
+    rgba(0,0,0,0.55) 60%,
+    rgba(0,0,0,0.92) 85%,
+    #000 100%
+  );
+}
+
+.reco-poster-top {
+  position: absolute;
+  top: max(52px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reco-back-btn {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  backdrop-filter: blur(8px);
+}
+
+.reco-back-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: #fff;
+}
+
+.reco-top-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+
+.reco-poster-bottom {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+}
+
+.reco-film-title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+}
+
+.reco-film-meta {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.02em;
+}
+
+/* ── Body ───────────────────────────────────────────────── */
+.reco-body {
+  flex: 1;
+  padding: 28px 20px calc(40px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reco-tagline {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.reco-tagline em {
+  font-style: italic;
+  color: var(--acc-2);
+}
+
+/* ── Platform ───────────────────────────────────────────── */
+.reco-platform-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reco-platform-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+.reco-platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  align-self: flex-start;
+}
+
+.reco-platform-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.reco-platform-skeleton {
+  height: 36px;
+  width: 140px;
+  background: var(--bg-2);
+  border-radius: var(--radius-sm);
+  animation: skeletonPulse 1.2s ease infinite;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+.reco-platform-unavailable {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* ── Primary CTA ────────────────────────────────────────── */
+.reco-primary-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* ── Secondary actions ──────────────────────────────────── */
+.reco-secondary-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reco-ghost-btn {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  text-align: center;
+  font-weight: 500;
+}
+
+.reco-ghost-btn:active { transform: scale(0.97); }
+.reco-ghost-btn.active {
+  background: var(--acc-dim);
+  border-color: rgba(201,169,110,0.4);
+  color: var(--acc-2);
+}
+
+/* ── Ya la vi ───────────────────────────────────────────── */
+.reco-watched-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.15);
+  text-underline-offset: 3px;
+}
+
+.reco-watched-btn.done {
+  color: var(--acc);
+  text-decoration: none;
+}

@@ -1,114 +1,118 @@
+// ── Questions ─────────────────────────────────────────────
 export const QUESTIONS = [
   {
-    id: 'format',
-    q: '¿Película o serie?',
-    grid: true,
-    cols: 3,
+    id: 'sentir',
+    q: '¿Qué tienes ganas de sentir?',
+    skippable: true,
     opts: [
-      { label: 'Película', emoji: '🎬' },
-      { label: 'Serie',    emoji: '📺' },
-      { label: 'Me da igual', emoji: '🎲' },
+      { label: 'Reírme mucho' },
+      { label: 'Emocionarme o llorar' },
+      { label: 'Adrenalina y tensión' },
+      { label: 'Pensar y reflexionar' },
+      { label: 'Desconectar sin pensar' },
+      { label: 'Sorprenderme' },
     ],
   },
   {
-    id: 'mood',
-    q: '¿Cómo estás ahora?',
-    grid: true,
-    cols: 3,
+    id: 'formato',
+    q: '¿Qué formato prefieres?',
+    skippable: true,
     opts: [
-      { label: 'Eufórico',    emoji: '⚡' },
-      { label: 'Melancólico', emoji: '🌧' },
-      { label: 'Curioso',     emoji: '🔍' },
-      { label: 'Relajado',    emoji: '🛋' },
-      { label: 'Intenso',     emoji: '🔥' },
-      { label: 'Romántico',   emoji: '🕯' },
+      { label: 'Película',                     emoji: '🎬' },
+      { label: 'Miniserie (pocos episodios)',   emoji: '📺' },
+      { label: 'Serie corta (1-2 temporadas)',  emoji: '🎞' },
+      { label: 'Serie larga (3+ temporadas)',   emoji: '📡' },
+      { label: 'Lo que sea, sorpréndeme',       emoji: '🎲' },
     ],
   },
   {
-    id: 'time',
+    id: 'tiempo',
     q: '¿Cuánto tiempo tienes?',
-    grid: true,
-    cols: 2,
+    skippable: true,
     opts: [
-      { label: 'Menos de 1h',   emoji: '⏱' },
-      { label: '1–2 horas',     emoji: '🎬' },
-      { label: 'Más de 2h',     emoji: '🌙' },
-      { label: 'Toda la noche', emoji: '✨' },
+      { label: 'Menos de 1h30' },
+      { label: 'Película normal (1h30–2h)' },
+      { label: 'Película larga (2h+)' },
+      { label: 'Un par de episodios' },
+      { label: 'Tengo toda la noche' },
     ],
   },
   {
-    id: 'platform',
-    q: '¿Qué plataformas tienes?',
-    grid: true,
-    cols: 2,
+    id: 'compania',
+    q: '¿Con quién estás?',
+    skippable: true,
+    opts: [
+      { label: 'Solo/a' },
+      { label: 'En pareja' },
+      { label: 'Con amigos' },
+      { label: 'Con familia / niños' },
+      { label: 'Con alguien que no conozco bien' },
+    ],
+  },
+  {
+    id: 'evitar',
+    q: '¿Qué te apetece evitar?',
+    hint: 'Puedes elegir varias opciones',
+    skippable: true,
+    multi: true,
+    opts: [
+      { label: 'Nada, sorpréndeme' },
+      { label: 'Violencia o gore' },
+      { label: 'Contenido muy triste' },
+      { label: 'Sustos o terror' },
+      { label: 'Mucho drama sentimental' },
+    ],
+  },
+  {
+    id: 'plataformas',
+    q: '¿En qué plataformas tienes acceso?',
+    hint: 'Elige todas las que tengas',
     multi: true,
     opts: [
       { label: 'Netflix' },
       { label: 'HBO Max' },
-      { label: 'Disney+' },
       { label: 'Prime Video' },
+      { label: 'Disney+' },
       { label: 'Filmin' },
       { label: 'Apple TV+' },
       { label: 'Movistar+' },
-      { label: 'Todo me vale', emoji: '🌍' },
-    ],
-  },
-  {
-    id: 'vibe',
-    q: '¿Qué experiencia buscas?',
-    grid: true,
-    cols: 2,
-    opts: [
-      { label: 'Que me impacte',   emoji: '💥' },
-      { label: 'Que me evada',     emoji: '🚀' },
-      { label: 'Que me haga reír', emoji: '😂' },
-      { label: 'Que me asuste',    emoji: '👁' },
-      { label: 'Arte puro',        emoji: '🎨' },
-      { label: 'Buena historia',   emoji: '📖' },
-    ],
-  },
-  {
-    id: 'era',
-    q: '¿De qué época?',
-    grid: true,
-    cols: 2,
-    opts: [
-      { label: 'Actual (2015+)',       emoji: '🆕' },
-      { label: 'Clásicos (90s–2000s)', emoji: '📼' },
-      { label: 'Retro (antes del 90)', emoji: '🎞' },
-      { label: 'Me da igual',          emoji: '♾' },
     ],
   },
 ]
 
-export const MOODS_POST = [
-  'Impactado', 'Emocionado', 'Reflexivo', 'Entretenido',
-  'Decepcionado', 'Sorprendido', 'Inspirado', 'Triste',
-]
-
-export const MOOD_GENRES = {
-  Eufórico:    [28, 12, 35],
-  Melancólico: [18, 10749, 9648],
-  Curioso:     [99, 878, 9648],
-  Relajado:    [35, 10751, 16],
-  Intenso:     [53, 80, 27],
-  Romántico:   [10749, 18, 35],
+// ── Sentir → TMDB genre IDs ───────────────────────────────
+export const SENTIR_GENRES_M = {
+  'Reírme mucho':           [35, 12],
+  'Emocionarme o llorar':   [18, 10749],
+  'Adrenalina y tensión':   [28, 53],
+  'Pensar y reflexionar':   [18, 99, 9648],
+  'Desconectar sin pensar': [35, 16, 12],
+  'Sorprenderme':           [878, 9648, 14],
 }
 
-export const MOOD_GENRES_TV = {
-  Eufórico:    [28, 12, 35],
-  Melancólico: [18, 10749],
-  Curioso:     [99, 10765],
-  Relajado:    [35, 10751],
-  Intenso:     [80, 9648],
-  Romántico:   [10749, 18],
+export const SENTIR_GENRES_T = {
+  'Reírme mucho':           [35],
+  'Emocionarme o llorar':   [18, 10749],
+  'Adrenalina y tensión':   [10759, 80],
+  'Pensar y reflexionar':   [18, 10765, 9648],
+  'Desconectar sin pensar': [35, 16],
+  'Sorprenderme':           [10765, 9648],
 }
 
-export const VIBE_GENRES = {
-  'Que me impacte':   [18, 53],
-  'Que me evada':     [12, 14, 10765],
-  'Que me haga reír': [35],
-  'Que me asuste':    [27, 9648],
-  'Arte puro':        [18, 36],
-  'Buena historia':   [18, 80],
+// ── Evitar → genre IDs to exclude ────────────────────────
+export const EVITAR_EXCL = {
+  'Violencia o gore':        [27],
+  'Sustos o terror':         [27],
+  'Mucho drama sentimental': [10749],
+  'Contenido muy triste':    [],
+}
+
+// ── Sentir → personalized tagline ────────────────────────
+export const SENTIR_TAGLINES = {
+  'Reírme mucho':           'Querías reírte.',
+  'Emocionarme o llorar':   'Querías emocionarte.',
+  'Adrenalina y tensión':   'Querías tensión.',
+  'Pensar y reflexionar':   'Querías pensar.',
+  'Desconectar sin pensar': 'Querías desconectar.',
+  'Sorprenderme':           'Querías sorprenderte.',
 }
