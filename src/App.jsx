@@ -4,6 +4,7 @@ import { useToast } from './hooks/useToast.js'
 import { computeStreak, watchPoints } from './lib/utils.js'
 import { getBadge } from './constants/badges.js'
 import { registerSW } from './lib/notifications.js'
+import { identify, reset, track } from './lib/analytics.js'
 
 // Screens
 import Landing        from './screens/Landing/Landing.jsx'
@@ -48,6 +49,11 @@ export default function App() {
   const toast = useToast()
 
   useEffect(() => { registerSW() }, [])
+
+  // Identify user in analytics when auth resolves
+  useEffect(() => {
+    if (auth.user?.id) identify(auth.user.id, { name: auth.user.name, email: auth.user.email })
+  }, [auth.user?.id])
 
   const [authMode, setAuthMode] = useState('login')
 
@@ -143,7 +149,11 @@ export default function App() {
       const oldBadge = getBadge(user?.score || 0)
       auth.addWatchedLocal(film, pts)
       const newBadge = getBadge((user?.score || 0) + pts)
-      if (newBadge.min > oldBadge.min) setLevelUpBadge(newBadge)
+      if (newBadge.min > oldBadge.min) {
+        setLevelUpBadge(newBadge)
+        track('level_up', { badge: newBadge.name, score: (user?.score || 0) + pts })
+      }
+      track('film_watched', { film_id: film.id, title: film.title, media_type: film.mediaType, genres: film.genres })
       toast.showPts(pts)
       toast.showToast('Marcada como vista ✓')
     } else {
@@ -165,6 +175,7 @@ export default function App() {
   function handleSave(film) {
     const saved = isSaved(film)
     auth.addWatchlistLocal(film)
+    if (!saved) track('film_saved', { film_id: film.id, title: film.title, media_type: film.mediaType })
     toast.showToast(saved ? 'Eliminada de tu lista' : 'Guardada en tu lista ✓')
   }
 
@@ -197,20 +208,22 @@ export default function App() {
   }
 
   function openQuiz(opts = {}) {
-    if (!hasTestAccess()) { setShowPaywall(true); return }
+    if (!hasTestAccess()) { track('paywall_shown', { reason: 'tests_limit' }); setShowPaywall(true); return }
     consumeTest()
     setNavStack([])
     setQuizOpts(opts)
     setIsMarathon(false)
+    track('quiz_started', { mode: 'single' })
     setScreen('quiz')
   }
 
   function openMarathon() {
-    if (!hasTestAccess()) { setShowPaywall(true); return }
+    if (!hasTestAccess()) { track('paywall_shown', { reason: 'tests_limit' }); setShowPaywall(true); return }
     consumeTest()
     setNavStack([])
     setQuizOpts({})
     setIsMarathon(true)
+    track('quiz_started', { mode: 'marathon' })
     setScreen('quiz')
   }
 
@@ -226,7 +239,7 @@ export default function App() {
   function handleQuizComplete(answers) {
     setQuizAnswers(answers)
     setQuizResults(null)
-    // Marathon → list results; regular → single recommendation
+    track('quiz_completed', { mode: isMarathon ? 'marathon' : 'single', ...answers })
     setScreen(isMarathon ? 'results' : 'recommendation')
   }
 

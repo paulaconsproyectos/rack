@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchWeeklyPick, fetchNowPlaying } from '../../lib/tmdb.js'
 import { IcoFlame } from '../../components/Icons.jsx'
 import { canPush, pushPermission, requestAndSave } from '../../lib/notifications.js'
+import { track } from '../../lib/analytics.js'
 import './Home.css'
 
 export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInvite, showToast, lastReco, isWatched }) {
@@ -35,7 +36,7 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
 
   async function handleEnableNotifs() {
     const ok = await requestAndSave(user?.id)
-    if (ok) showToast?.('Notificaciones activadas ✓')
+    if (ok) { track('notification_enabled'); showToast?.('Notificaciones activadas ✓') }
     else showToast?.('No se han podido activar')
     setPushDismissed(true)
     localStorage.setItem('zc_push_dismissed', '1')

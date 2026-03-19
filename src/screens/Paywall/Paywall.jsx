@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { track } from '../../lib/analytics.js'
 import './Paywall.css'
 
 const MVP_CODE = 'ZINEMVP'
@@ -11,6 +12,7 @@ export default function Paywall({ onUnlock, onClose }) {
   function handleCode() {
     if (code.trim().toUpperCase() === MVP_CODE) {
       localStorage.setItem('zc_mvp_code', '1')
+      track('paywall_unlocked', { method: 'mvp_code' })
       onUnlock()
     } else {
       setError('Código incorrecto.')

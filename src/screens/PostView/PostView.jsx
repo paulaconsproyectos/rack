@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { track } from '../../lib/analytics.js'
 import { sb } from '../../lib/supabase.js'
 import './PostView.css'
 
@@ -30,6 +31,7 @@ export default function PostView({ film, onDone, onReview, showToast, showPts })
         localStorage.setItem('zc_feedback', JSON.stringify(updated))
       } catch {}
       saveFeedbackRemote(film, r)
+      track('postview_reaction', { reaction: r, film_id: film.id, title: film.title, genres: film.genres })
     }
     if (r === '❤️') showPts?.(50)
     setTimeout(onDone, 500)

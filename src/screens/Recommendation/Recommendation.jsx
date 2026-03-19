@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { track } from '../../lib/analytics.js'
 import { discoverByMood, enrichFilm, IMG_W7 } from '../../lib/tmdb.js'
 import { PLATFORMS } from '../../constants/platforms.js'
 import { SENTIR_TAGLINES } from '../../constants/quiz.js'
@@ -67,6 +68,7 @@ export default function Recommendation({
     if (!f) { setError(true); return }
     setFilm(f)
     setShowTrailer(false)
+    track('recommendation_shown', { film_id: f.id, title: f.title, position: idx, genres: f.genres, media_type: f.mediaType })
     setEnriching(true)
     enrichFilm(f)
       .then(setFilm)
@@ -74,6 +76,7 @@ export default function Recommendation({
   }, [films, idx])
 
   function handleOtraOpcion() {
+    track('recommendation_other', { film_id: film?.id, title: film?.title, position: idx })
     if (idx < films.length - 1) {
       setIdx(i => i + 1)
     } else {
@@ -173,7 +176,7 @@ export default function Recommendation({
 
         {/* Trailer button */}
         {film.trailerKey && !showTrailer && (
-          <button className="reco-play-btn" onClick={() => setShowTrailer(true)} aria-label="Ver tráiler">
+          <button className="reco-play-btn" onClick={() => { track('recommendation_trailer', { film_id: film.id, title: film.title }); setShowTrailer(true) }} aria-label="Ver tráiler">
             <IcoPlay />
             <span>Ver tráiler</span>
           </button>
