@@ -86,37 +86,31 @@ export default function Recommendation({
     }
   }
 
-  function handleCompartir() {
-    const url = 'https://zineclub.vercel.app'
-    if (navigator.share && film) {
-      navigator.share({ title: film.title, text: `Mira esto: ${film.title}`, url })
-    } else {
-      navigator.clipboard?.writeText(url)
-      showToast?.('Enlace copiado ✓')
-    }
-  }
-
-  async function handleShareCard() {
+  async function handleCompartir() {
     if (!film || sharingCard) return
     setSharingCard(true)
     track('share_card', { film_id: film.id, title: film.title })
+    const title = film.titleEs || film.title || ''
+    const text  = `Esta noche toca: ${title} ✦\nDescubierto con Zine Club`
+    const url   = 'https://zineclub.app'
     try {
       const blob = await generateShareCard(film)
       const file = new File([blob], `zineclub-${film.id}.png`, { type: 'image/png' })
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: film.titleEs || film.title })
+        await navigator.share({ files: [file], text, url })
+      } else if (navigator.share) {
+        await navigator.share({ title, text, url })
       } else {
-        // Fallback: download
-        const url = URL.createObjectURL(blob)
+        const objUrl = URL.createObjectURL(blob)
         const a = document.createElement('a')
-        a.href = url
+        a.href = objUrl
         a.download = `zineclub-${film.id}.png`
         a.click()
-        URL.revokeObjectURL(url)
+        URL.revokeObjectURL(objUrl)
         showToast?.('Imagen descargada ✓')
       }
     } catch {
-      showToast?.('No se pudo generar la tarjeta')
+      // User cancelled share or generation failed — silent
     } finally {
       setSharingCard(false)
     }
@@ -292,11 +286,8 @@ export default function Recommendation({
           <button className="reco-ghost-btn" onClick={handleOtraOpcion}>
             🔄 Otra opción
           </button>
-          <button className="reco-ghost-btn" onClick={handleCompartir}>
-            ↗ Compartir
-          </button>
-          <button className="reco-ghost-btn" onClick={handleShareCard} disabled={sharingCard}>
-            {sharingCard ? '⏳' : '🖼️'} Tarjeta
+          <button className="reco-ghost-btn" onClick={handleCompartir} disabled={sharingCard}>
+            {sharingCard ? '⏳' : '↗'} Compartir
           </button>
         </div>
 
