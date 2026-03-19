@@ -58,7 +58,7 @@ export default function Recommendation({
     if (idx < films.length - 1) {
       setIdx(i => i + 1)
     } else {
-      showToast?.('No hay más opciones disponibles')
+      onBack()
     }
   }
 
@@ -148,7 +148,7 @@ export default function Recommendation({
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <span className="reco-top-label">✦ TU RECOMENDACIÓN DE ESTA NOCHE</span>
+          <span className="reco-top-label">✦ TU RECOMENDACIÓN</span>
         </div>
 
         {/* Bottom of poster: title + meta */}

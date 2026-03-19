@@ -274,33 +274,36 @@ export async function discoverByMood(answers) {
 
   const qual  = '&vote_average.gte=6.5&vote_count.gte=100'
   const qualT = '&vote_average.gte=6.5&vote_count.gte=50'
-  const limit = isMarathon ? 8 : 8
-  const pg    = Math.floor(Math.random() * 3) + 1
+  const limit = 8
+  // Alternate sort for variety: 70% popularity, 30% rating
+  const sortBy = Math.random() < 0.7 ? 'popularity.desc' : 'vote_average.desc'
+  const pg1    = Math.floor(Math.random() * 5) + 1
+  const pg2    = Math.floor(Math.random() * 3) + 1
 
-  const fetchM = async (params) =>
-    api(`/discover/movie?sort_by=vote_average.desc${qual}${params}`)
+  const fetchM = async (params, pg = 1) =>
+    api(`/discover/movie?sort_by=${sortBy}${qual}${params}&page=${pg}`)
       .then(d => (d.results||[]).filter(x=>x.poster_path).slice(0, limit).map(mapMovie))
       .catch(() => [])
 
-  const fetchT = async (params) =>
-    api(`/discover/tv?sort_by=vote_average.desc${qualT}${params}`)
+  const fetchT = async (params, pg = 1) =>
+    api(`/discover/tv?sort_by=${sortBy}${qualT}${params}&page=${pg}`)
       .then(d => (d.results||[]).filter(x=>x.poster_path).slice(0, limit).map(mapTV))
       .catch(() => [])
 
   let all = []
 
-  // L1: genre + platform + era + anti-anime
+  // L1: genre + platform + era + anti-anime (random page for variety)
   const l1 = await Promise.all([
-    wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${eraM}${noAnime}&page=${pg}`) : Promise.resolve([]),
-    wTV     ? fetchT(`&with_genres=${gT}${pParam}${eraT}${noAnime}&page=${pg}`)            : Promise.resolve([]),
+    wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${eraM}${noAnime}`, pg1) : Promise.resolve([]),
+    wTV     ? fetchT(`&with_genres=${gT}${pParam}${eraT}${noAnime}`, pg1)            : Promise.resolve([]),
   ])
   all = l1.flat()
 
-  // L2: genre + platform, relax era & page
+  // L2: genre + platform, relax era (random page)
   if (all.length < 3) {
     const l2 = await Promise.all([
-      wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${noAnime}&page=1`) : Promise.resolve([]),
-      wTV     ? fetchT(`&with_genres=${gT}${pParam}${noAnime}&page=1`)            : Promise.resolve([]),
+      wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${noAnime}`, pg2) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${pParam}${noAnime}`, pg2)            : Promise.resolve([]),
     ])
     all = [...all, ...l2.flat()]
   }
@@ -308,8 +311,8 @@ export async function discoverByMood(answers) {
   // L3: genre only — drop platform (biggest filter)
   if (all.length < 3) {
     const l3 = await Promise.all([
-      wMovies ? fetchM(`&with_genres=${gM}${durParam}${eraM}${noAnime}&page=1`) : Promise.resolve([]),
-      wTV     ? fetchT(`&with_genres=${gT}${eraT}${noAnime}&page=1`)            : Promise.resolve([]),
+      wMovies ? fetchM(`&with_genres=${gM}${durParam}${eraM}${noAnime}`, pg2) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${eraT}${noAnime}`, pg2)            : Promise.resolve([]),
     ])
     all = [...all, ...l3.flat()]
   }
@@ -317,8 +320,8 @@ export async function discoverByMood(answers) {
   // L4: genre only, relax era too
   if (all.length < 3) {
     const l4 = await Promise.all([
-      wMovies ? fetchM(`&with_genres=${gM}${durParam}${noAnime}&page=1`) : Promise.resolve([]),
-      wTV     ? fetchT(`&with_genres=${gT}${noAnime}&page=1`)            : Promise.resolve([]),
+      wMovies ? fetchM(`&with_genres=${gM}${durParam}${noAnime}`) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${noAnime}`)            : Promise.resolve([]),
     ])
     all = [...all, ...l4.flat()]
   }

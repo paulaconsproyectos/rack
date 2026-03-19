@@ -42,7 +42,7 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
       <div className="home-section px">
         <button className="home-cta-card" onClick={() => onQuiz({})}>
           <div className="home-cta-top">
-            <span className="home-cta-label">6 preguntas · 30 seg</span>
+            <span className="home-cta-label">5 preguntas · 30 seg</span>
             <span className="home-cta-badge">✦</span>
           </div>
           <div className="home-cta-title">Descubrir qué ver esta noche</div>

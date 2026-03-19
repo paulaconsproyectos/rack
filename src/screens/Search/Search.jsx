@@ -62,6 +62,7 @@ export default function Search({ onDetail, onWatch, onSave, isWatched, isSaved }
     <div className="srch-page">
       {/* Search bar */}
       <div className="srch-bar-wrap">
+        <div className="srch-page-title">Explorar</div>
         <div className="srch-bar">
           <IcoSearch />
           <input

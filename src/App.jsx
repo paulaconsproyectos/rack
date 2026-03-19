@@ -284,7 +284,7 @@ export default function App() {
       <>
         <Recommendation
           answers={quizAnswers}
-          onBack={() => setScreen('quiz')}
+          onBack={() => setScreen(null)}
           onWatch={handleWatchAndPostView}
           onSave={handleSave}
           onDetail={openDetail}
