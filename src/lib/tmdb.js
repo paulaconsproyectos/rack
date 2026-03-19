@@ -228,7 +228,7 @@ export async function discoverByMood(answers) {
     compania = '',
     evitar = [],
     plataformas = [],
-  } = answers
+  } = answers || {}
 
   const isMarathon  = tiempo === 'Tengo toda la noche'
   const evitarList  = Array.isArray(evitar) ? evitar : []
@@ -245,12 +245,14 @@ export async function discoverByMood(answers) {
   }
   if (isMarathon) { wMovies = true; wTV = true }
 
-  // Runtime params (movies only)
+  // Runtime filter only when explicitly asking for movies with a time constraint
   let durParam = ''
-  switch (tiempo) {
-    case 'Menos de 1h30':             durParam = '&with_runtime.lte=90'; break
-    case 'Película normal (1h30–2h)': durParam = '&with_runtime.gte=80&with_runtime.lte=130'; break
-    case 'Película larga (2h+)':      durParam = '&with_runtime.gte=110'; break
+  if (wMovies && !wTV) {
+    switch (tiempo) {
+      case 'Menos de 1h30':             durParam = '&with_runtime.lte=90'; break
+      case 'Película normal (1h30–2h)': durParam = '&with_runtime.gte=80&with_runtime.lte=130'; break
+      case 'Película larga (2h+)':      durParam = '&with_runtime.gte=110'; break
+    }
   }
 
   // Sentir → genre IDs
@@ -260,11 +262,12 @@ export async function discoverByMood(answers) {
   const gT = genresT.join('|')
 
   // Platforms → provider IDs
+  // NOTE: no flatrate filter — TMDB ES flatrate data is incomplete and would kill results
   const ALL_PIDS = [8, 384, 337, 119, 63, 350, 149, 76, 531, 100, 35]
   const pids = plataformas.length
     ? plataformas.map(p => PLATFORMS[p]?.provId).filter(Boolean)
     : ALL_PIDS
-  const pParam = `&with_watch_providers=${pids.join('|')}&watch_region=ES&with_watch_monetization_types=flatrate`
+  const pParam = `&with_watch_providers=${pids.join('|')}&watch_region=ES`
 
   // Family / kids filter
   const isFamily = compania === 'Con familia / niños'
@@ -280,64 +283,67 @@ export async function discoverByMood(answers) {
     if (exclSet.size) { exclM = `&without_genres=${[...exclSet].join(',')}`; exclT = exclM }
   }
 
-  const excParamM = noKidsM + exclM
-  const excParamT = noKidsT + exclT
-  const qual = '&vote_average.gte=6.0'
+  const qual  = '&vote_average.gte=6.0'
   const limit = isMarathon ? 8 : 6
-  const pg = Math.floor(Math.random() * 4) + 1
+  const pg    = Math.floor(Math.random() * 3) + 1
 
-  const fetchM = async (genres, page) => {
+  const fetchM = async (params) => {
     try {
-      const d = await api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}&with_genres=${genres}${pParam}${durParam}${excParamM}&page=${page}`)
+      const d = await api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}${params}`)
       return (d.results || []).filter(x => x.poster_path).slice(0, limit).map(mapMovie)
     } catch { return [] }
   }
 
-  const fetchT = async (genres, page) => {
+  const fetchT = async (params) => {
     try {
-      const d = await api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}&with_genres=${genres}${pParam}${excParamT}&page=${page}`)
+      const d = await api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}${params}`)
       return (d.results || []).filter(x => x.poster_path).slice(0, limit).map(mapTV)
     } catch { return [] }
   }
 
   let all = []
 
-  // L1: primary genres + all filters
+  // L1: genre + platform + exclusions + runtime
   const l1 = await Promise.all([
-    wMovies ? fetchM(gM, pg) : [],
-    wTV     ? fetchT(gT, pg) : [],
+    wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${noKidsM}${exclM}&page=${pg}`) : Promise.resolve([]),
+    wTV     ? fetchT(`&with_genres=${gT}${pParam}${noKidsT}${exclT}&page=${pg}`) : Promise.resolve([]),
   ])
   all = l1.flat()
 
-  // L2: single leading genre, different page
-  if (all.length < 4) {
+  // L2: single leading genre + platform (drop multi-genre and exclusions)
+  if (all.length < 3) {
     const l2 = await Promise.all([
-      wMovies ? fetchM(String(genresM[0] || 18), pg + 1) : [],
-      wTV     ? fetchT(String(genresT[0] || 18), pg + 1) : [],
+      wMovies ? fetchM(`&with_genres=${genresM[0]}${pParam}${noKidsM}${durParam}&page=${pg}`) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${genresT[0]}${pParam}${noKidsT}&page=${pg}`) : Promise.resolve([]),
     ])
     all = [...all, ...l2.flat()]
   }
 
-  // L3: relax evitar exclusions, keep platform + runtime
-  if (all.length < 4) {
-    try {
-      const l3 = await Promise.all([
-        wMovies ? api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}&with_genres=${gM}${pParam}${durParam}${noKidsM}&page=${pg}`).then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapMovie)).catch(()=>[]) : [],
-        wTV     ? api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}&with_genres=${gT}${pParam}${noKidsT}&page=${pg}`).then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapTV)).catch(()=>[]) : [],
-      ])
-      all = [...all, ...l3.flat()]
-    } catch {}
+  // L3: genre only — drop platform filter entirely
+  if (all.length < 3) {
+    const l3 = await Promise.all([
+      wMovies ? fetchM(`&with_genres=${gM}${noKidsM}${durParam}&page=1`) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${noKidsT}&page=1`) : Promise.resolve([]),
+    ])
+    all = [...all, ...l3.flat()]
   }
 
-  // L4: no genre constraint, keep platform
-  if (all.length < 4) {
-    try {
-      const l4 = await Promise.all([
-        wMovies ? api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}${durParam}${pParam}${noKidsM}&page=1`).then(d=>(d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapMovie)).catch(()=>[]) : [],
-        wTV     ? api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}${pParam}${noKidsT}&page=1`).then(d=>(d.results||[]).filter(x=>x.poster_path).slice(0,limit).map(mapTV)).catch(()=>[]) : [],
-      ])
-      all = [...all, ...l4.flat()]
-    } catch {}
+  // L4: no genre, no platform — just popular quality content
+  if (all.length < 3) {
+    const l4 = await Promise.all([
+      wMovies ? fetchM(`${noKidsM}${durParam}&page=1`) : Promise.resolve([]),
+      wTV     ? fetchT(`${noKidsT}&page=1`) : Promise.resolve([]),
+    ])
+    all = [...all, ...l4.flat()]
+  }
+
+  // L5: trending — absolute guaranteed fallback
+  if (all.length < 2) {
+    const l5 = await Promise.all([
+      wMovies ? api('/trending/movie/week').then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,6).map(mapMovie)).catch(()=>[]) : Promise.resolve([]),
+      wTV     ? api('/trending/tv/week').then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,6).map(mapTV)).catch(()=>[]) : Promise.resolve([]),
+    ])
+    all = [...all, ...l5.flat()]
   }
 
   // Deduplicate
@@ -345,6 +351,6 @@ export async function discoverByMood(answers) {
   return all.filter(f => {
     if (seen.has(f.id)) return false
     seen.add(f.id)
-    return f.poster
+    return !!f.poster
   })
 }

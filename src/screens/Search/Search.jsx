@@ -42,7 +42,7 @@ export default function Search({ onDetail, onWatch, onSave, isWatched, isSaved }
     setQuery('')
     if (next) {
       setLoading(true)
-      fetchByPlatform(next.provId)
+      fetchByPlatform(next.id)
         .then(setResults)
         .catch(() => setResults([]))
         .finally(() => setLoading(false))
@@ -119,7 +119,7 @@ export default function Search({ onDetail, onWatch, onSave, isWatched, isSaved }
         {!loading && results.length > 0 && (
           <div className="srch-grid">
             {results.map(f => {
-              const pill = typePillStyle(f.type)
+              const pill = typePillStyle(f)
               return (
                 <div
                   key={f.id}
