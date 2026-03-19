@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { enrichFilm } from '../../lib/tmdb.js'
-import { formatRuntime, watchPoints } from '../../lib/utils.js'
+import { enrichFilm, fetchPerson } from '../../lib/tmdb.js'
 import { addReview } from '../../lib/supabase.js'
 import StreamLinks from '../../components/StreamLinks.jsx'
 import TypePill from '../../components/TypePill.jsx'
@@ -9,7 +8,7 @@ import { shareFilm } from '../../lib/utils.js'
 
 const STARS = [1, 2, 3, 4, 5]
 
-export default function Detail({ film: initialFilm, from, user, onClose, onWatch, onSave, isWatched, isSaved, showToast, showPts }) {
+export default function Detail({ film: initialFilm, from, user, onClose, onBack, onDetail, onWatch, onSave, isWatched, isSaved, showToast, showPts, onLogin }) {
   const [film, setFilm]         = useState(initialFilm)
   const [loading, setLoading]   = useState(true)
   const [showTrailer, setShowTrailer] = useState(false)
@@ -17,30 +16,31 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
   const [reviewText, setReviewText]     = useState('')
   const [submitting, setSubmitting]     = useState(false)
   const [reviewDone, setReviewDone]     = useState(false)
+  const [person, setPerson]             = useState(null)
+  const [personLoading, setPersonLoading] = useState(false)
 
   const existingReview = user?.reviews?.find(r => r.film_id === film.id)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
+    document.querySelector('.det-page')?.scrollTo(0, 0)
     setLoading(true)
+    setFilm(initialFilm)
     enrichFilm(initialFilm)
       .then(setFilm)
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [initialFilm.id])
 
-  async function handleWatch() {
+  function handleWatch() {
     onWatch(film)
-    if (!isWatched(film)) {
-      const pts = watchPoints(film.type)
-      showPts(pts)
-    }
   }
 
   async function handleReview() {
     if (!user || reviewRating === 0) return
     setSubmitting(true)
     try {
-      await addReview(user.id, film.id, reviewRating, reviewText.trim())
+      await addReview(user.id, film.id, reviewRating, reviewText.trim(), film.titleEs || film.title)
       setReviewDone(true)
       showToast('Reseña guardada ✓')
     } catch {
@@ -48,6 +48,16 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
     } finally {
       setSubmitting(false)
     }
+  }
+
+  async function openPerson(castMember) {
+    setPerson({ ...castMember, loading: true })
+    setPersonLoading(true)
+    if (castMember.id) {
+      const data = await fetchPerson(castMember.id)
+      setPerson(data ? { ...castMember, ...data } : castMember)
+    }
+    setPersonLoading(false)
   }
 
   const bg = film.backdrop || film.poster
@@ -66,7 +76,16 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
         )}
         <div className="det-hero-overlay" />
 
-        {/* Close */}
+        {/* Back one film */}
+        {onBack && (
+          <button className="det-back-btn" onClick={onBack} aria-label="Atrás">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        )}
+
+        {/* Close all */}
         <button className="det-close-btn" onClick={onClose} aria-label="Cerrar">
           <IcoX />
         </button>
@@ -111,7 +130,7 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
           )}
           <div className="det-meta-row">
             {film.year && <span>{film.year}</span>}
-            {film.runtime && <span>{formatRuntime(film.runtime)}</span>}
+            {film.duration && <span>{film.duration}</span>}
             {film.score && <span>★ {film.score}</span>}
             {film.genres?.[0] && <span>{film.genres[0]}</span>}
           </div>
@@ -161,7 +180,7 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
         )}
 
         {/* Streaming */}
-        {film.streamingES?.length > 0 && (
+        {!loading && (
           <div className="det-section">
             <div className="det-sec-label">Dónde ver</div>
             <StreamLinks film={film} />
@@ -173,17 +192,17 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
           <div className="det-section">
             <div className="det-sec-label">Reparto</div>
             <div className="cast-scroll">
-              {film.cast.slice(0, 10).map((person) => (
-                <div key={person.id || person.name} className="cast-card">
-                  {person.photo
-                    ? <img className="cast-photo" src={person.photo} alt={person.name} loading="lazy" />
-                    : <div className="cast-photo-empty">{person.name?.[0] || '?'}</div>
+              {film.cast.slice(0, 10).map((c) => (
+                <button key={c.id || c.name} className="cast-card" onClick={() => openPerson(c)}>
+                  {c.photo
+                    ? <img className="cast-photo" src={c.photo} alt={c.name} loading="lazy" />
+                    : <div className="cast-photo-empty">{c.name?.[0] || '?'}</div>
                   }
-                  <div className="cast-name">{person.name}</div>
-                  {person.character && (
-                    <div className="cast-char">{person.character}</div>
+                  <div className="cast-name">{c.name}</div>
+                  {c.character && (
+                    <div className="cast-char">{c.character}</div>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -192,7 +211,7 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
         {/* Director */}
         {film.director && (
           <div className="det-section">
-            <div className="det-sec-label">Dirección</div>
+            <div className="det-sec-label">{film.mediaType === 'tv' ? 'Creado por' : 'Dirección'}</div>
             <div className="det-director">{film.director}</div>
           </div>
         )}
@@ -201,7 +220,10 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
         <div className="det-section">
           <div className="det-sec-label">Tu reseña</div>
           {!user ? (
-            <div className="det-review-login">Inicia sesión para dejar una reseña</div>
+            <div className="det-review-login">
+              <span>Inicia sesión para dejar una reseña</span>
+              {onLogin && <button className="det-review-login-btn" onClick={onLogin}>Entrar →</button>}
+            </div>
           ) : existingReview || reviewDone ? (
             <div className="det-review-done">
               <div className="det-review-stars">
@@ -250,21 +272,17 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
             <div className="det-sec-label">Te puede gustar</div>
             <div className="det-similar-scroll">
               {film.similar.slice(0, 8).map((s) => (
-                <div
+                <button
                   key={s.id}
                   className="det-sim-card"
-                  onClick={() => {
-                    onClose()
-                    // Small delay to let close animate
-                    setTimeout(() => {}, 0)
-                  }}
+                  onClick={() => onDetail(s, 'detail')}
                 >
                   {s.poster
                     ? <img className="det-sim-poster" src={s.poster} alt={s.title} loading="lazy" />
                     : <div className="det-sim-poster-empty">🎬</div>
                   }
                   <div className="det-sim-title">{s.titleEs || s.title}</div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -272,6 +290,59 @@ export default function Detail({ film: initialFilm, from, user, onClose, onWatch
 
         <div style={{ height: 'calc(var(--bottom-nav) + 24px)' }} />
       </div>
+
+      {/* Actor sheet */}
+      {person && (
+        <div className="person-backdrop" onClick={() => setPerson(null)}>
+          <div className="person-sheet" onClick={e => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="person-header">
+              <div className="person-header-info">
+                <div className="person-name">{person.name}</div>
+                {person.character && !personLoading && <div className="person-character">como {person.character}</div>}
+                {person.birthday && !personLoading && (
+                  <div className="person-meta">
+                    {new Date(person.birthday).getFullYear()}
+                    {person.birthplace && ` · ${person.birthplace.split(',').slice(-1)[0].trim()}`}
+                  </div>
+                )}
+              </div>
+              <button className="person-close" onClick={() => setPerson(null)} aria-label="Cerrar">
+                <IcoX />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="person-body">
+              {personLoading ? (
+                <div className="person-loading"><div className="spinner" /></div>
+              ) : (
+                <>
+                  {person.bio ? (
+                    <p className="person-bio">{person.bio.slice(0, 320)}{person.bio.length > 320 ? '…' : ''}</p>
+                  ) : null}
+
+                  {person.known?.length > 0 && (
+                    <>
+                      <div className="person-known-label">Conocido/a por</div>
+                      <div className="person-known-scroll">
+                        {person.known.map(m => (
+                          <button key={m.id} className="person-known-card" onClick={() => { setPerson(null); onDetail({ id: m.id, tmdbId: m.id, title: m.title, titleEs: m.title, poster: m.poster, year: m.year, mediaType: 'movie', type: 'Película', streaming: [], genres: [] }, 'detail') }}>
+                            <img className="person-known-poster" src={m.poster} alt={m.title} loading="lazy" />
+                            <div className="person-known-title">{m.title}</div>
+                            {m.year && <div className="person-known-year">{m.year}</div>}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

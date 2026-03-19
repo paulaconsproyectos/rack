@@ -81,10 +81,19 @@ export async function addWatchlist(userId, film) {
   })
 }
 
-export async function addReview(userId, filmId, rating, body = '') {
+export async function removeWatchlist(userId, filmId) {
+  await sb.from('watchlist').delete().eq('user_id', userId).eq('film_id', String(filmId))
+}
+
+export async function removeWatched(userId, filmId) {
+  await sb.from('watched').delete().eq('user_id', userId).eq('film_id', String(filmId))
+}
+
+export async function addReview(userId, filmId, rating, body = '', filmTitle = '') {
   const { data, error } = await sb.from('reviews').insert({
     user_id:    userId,
     film_id:    String(filmId),
+    film_title: filmTitle || null,
     rating,
     body:       body || null,
   }).select().single()

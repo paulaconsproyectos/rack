@@ -4,7 +4,9 @@ import { PLATFORMS } from '../../constants/platforms.js'
 import { typePillStyle } from '../../lib/utils.js'
 import { IcoSearch, IcoX } from '../../components/Icons.jsx'
 
-const PLATFORM_LIST = Object.values(PLATFORMS)
+const PLATFORM_LIST = Object.entries(PLATFORMS)
+  .filter(([, v], i, arr) => arr.findIndex(([, v2]) => v2.provId === v.provId) === i)
+  .map(([name, data]) => ({ ...data, id: name, label: name }))
 
 export default function Search({ onDetail, onWatch, onSave, isWatched, isSaved }) {
   const [query, setQuery]     = useState('')

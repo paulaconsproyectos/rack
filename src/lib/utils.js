@@ -30,9 +30,11 @@ export const vibrate = (pattern = [30, 20, 60]) => {
 export const shareFilm = (film) => {
   const title = film.titleEs || film.title
   const url   = 'https://paulaconsproyectos.github.io/zineclub/'
-  const text  = `Mira "${title}" en Zine Club`
+  const score = film.score ? ` (${film.score}⭐)` : ''
+  const year  = film.year ? ` · ${film.year}` : ''
+  const text  = `He descubierto "${title}"${year}${score} y tienes que verla.\nEncuéntrate con lo que realmente mereces ver 👉`
   if (navigator.share) {
-    navigator.share({ title: 'Zine Club', text, url }).catch(() => {})
+    navigator.share({ title, text, url }).catch(() => {})
   } else {
     try { navigator.clipboard.writeText(`${text} ${url}`) } catch {}
   }

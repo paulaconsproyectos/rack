@@ -4,11 +4,12 @@ import { typePillStyle } from '../../lib/utils.js'
 import { upsertProfile } from '../../lib/supabase.js'
 import { IcoLogout, IcoEdit } from '../../components/Icons.jsx'
 
-export default function Profile({ user, onLogout, onDetail, showToast, updateNameLocal }) {
+export default function Profile({ user, onLogout, onDetail, showToast, updateNameLocal, updateAvatarLocal }) {
   const [editMode, setEditMode]   = useState(false)
   const [nameInput, setNameInput] = useState(user?.name || '')
   const [saving, setSaving]       = useState(false)
-  const [activeTab, setActiveTab] = useState(0) // 0=watched 1=watchlist
+  const [activeTab, setActiveTab] = useState(0)
+  const fileRef = useRef(null)
 
   const badge     = getBadge(user?.score || 0)
   const nextBadge = getNextBadge(user?.score || 0)
@@ -27,12 +28,23 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
       await upsertProfile({ id: user.id, name })
       updateNameLocal(name)
       setEditMode(false)
-      showToast('Nombre actualizado')
+      showToast('Nombre actualizado ✓')
     } catch {
       showToast('Error al actualizar')
     } finally {
       setSaving(false)
     }
+  }
+
+  function handlePhotoChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      updateAvatarLocal?.(ev.target.result)
+      showToast('Foto actualizada ✓')
+    }
+    reader.readAsDataURL(file)
   }
 
   const listToShow = activeTab === 0 ? watched : watchlist
@@ -41,35 +53,33 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
     <div className="prof-page">
       {/* Header */}
       <div className="prof-hd">
-        <div className="prof-av">
+        {/* Avatar with photo upload */}
+        <div className="prof-av" onClick={() => fileRef.current?.click()} style={{ cursor: 'pointer' }}>
           {user?.avatar
             ? <img src={user.avatar} alt="" />
             : <span>{user?.name?.[0]?.toUpperCase() || '?'}</span>
           }
+          <div className="prof-av-overlay">📷</div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handlePhotoChange}
+          />
         </div>
 
         <div className="prof-info">
-          {editMode ? (
-            <div className="prof-edit-row">
-              <input
-                className="prof-name-input"
-                value={nameInput}
-                onChange={e => setNameInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && saveName()}
-                autoFocus
-              />
-              <button className="btn btn-primary prof-save-btn" onClick={saveName} disabled={saving}>
-                {saving ? '…' : 'OK'}
-              </button>
-            </div>
-          ) : (
-            <div className="prof-name-row">
-              <h1 className="prof-name">{user?.name || 'Usuario'}</h1>
-              <button className="prof-edit-btn" onClick={() => setEditMode(true)} aria-label="Editar nombre">
-                <IcoEdit />
-              </button>
-            </div>
-          )}
+          <div className="prof-name-row">
+            <h1 className="prof-name">{user?.name || 'Usuario'}</h1>
+            <button
+              className="prof-edit-btn"
+              onClick={() => { setNameInput(user?.name || ''); setEditMode(true) }}
+              aria-label="Editar nombre"
+            >
+              <IcoEdit />
+            </button>
+          </div>
           {user?.handle && <div className="prof-handle">@{user.handle}</div>}
         </div>
 
@@ -77,6 +87,26 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
           <IcoLogout />
         </button>
       </div>
+
+      {/* Edit name — shown below header when active */}
+      {editMode && (
+        <div className="prof-edit-panel">
+          <input
+            className="prof-name-input"
+            value={nameInput}
+            onChange={e => setNameInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditMode(false) }}
+            autoFocus
+            placeholder="Tu nombre"
+          />
+          <div className="prof-edit-btns">
+            <button className="prof-edit-cancel" onClick={() => setEditMode(false)}>Cancelar</button>
+            <button className="btn btn-primary prof-save-btn" onClick={saveName} disabled={saving}>
+              {saving ? '…' : 'Guardar'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Badge & score */}
       <div className="prof-badge-card">
@@ -136,7 +166,7 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
         ) : (
           <div className="prof-grid">
             {listToShow.map((f, i) => {
-              const pill = typePillStyle(f.type)
+              const pill = typePillStyle(f)
               return (
                 <div
                   key={f.id || i}

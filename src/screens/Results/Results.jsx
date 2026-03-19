@@ -2,24 +2,25 @@ import { useState, useEffect } from 'react'
 import { discoverByMood } from '../../lib/tmdb.js'
 import { typePillStyle } from '../../lib/utils.js'
 
-export default function Results({ answers, isMarathon, onBack, onDetail, onTikTok, onWatch, onSave, isWatched, isSaved }) {
-  const [films, setFilms]     = useState([])
-  const [loading, setLoading] = useState(true)
+export default function Results({ answers, isMarathon, cachedFilms, onCacheFilms, onBack, onDetail, onTikTok, onWatch, onSave, isWatched, isSaved }) {
+  const [films, setFilms]     = useState(cachedFilms || [])
+  const [loading, setLoading] = useState(!cachedFilms)
   const [error, setError]     = useState(false)
 
   useEffect(() => {
+    if (cachedFilms) return // use cache, don't re-fetch
     setLoading(true)
     setError(false)
     discoverByMood(answers)
-      .then(setFilms)
+      .then(f => { setFilms(f); onCacheFilms(f) })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [answers])
 
-  const title = isMarathon ? 'Tu maratón' : 'Tus películas'
+  const title = isMarathon ? 'Tu maratón' : 'Tu recomendación'
   const subtitle = isMarathon
-    ? 'Una sesión entera curada para ti'
-    : `${films.length} resultados para tu mood`
+    ? 'Una noche seleccionada para ti, sin scrolling'
+    : `${films.length} títulos seleccionados para ti`
 
   return (
     <div className="res-page">
@@ -73,7 +74,7 @@ export default function Results({ answers, isMarathon, onBack, onDetail, onTikTo
             {films.map((f) => {
               const pill = typePillStyle(f.type)
               return (
-                <div
+                <button
                   key={f.id}
                   className="res-card"
                   onClick={() => onDetail(f, 'results')}
@@ -110,7 +111,7 @@ export default function Results({ answers, isMarathon, onBack, onDetail, onTikTo
                       <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                     </button>
                   </div>
-                </div>
+                </button>
               )
             })}
           </div>

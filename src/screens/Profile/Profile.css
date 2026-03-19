@@ -15,6 +15,7 @@
 }
 
 .prof-av {
+  position: relative;
   width: 58px;
   height: 58px;
   border-radius: 50%;
@@ -28,6 +29,52 @@
   color: var(--text-2);
   overflow: hidden;
   flex-shrink: 0;
+}
+
+.prof-av-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.prof-av:hover .prof-av-overlay,
+.prof-av:active .prof-av-overlay {
+  opacity: 1;
+}
+
+/* Edit panel */
+.prof-edit-panel {
+  margin: 0 20px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prof-edit-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.prof-edit-cancel {
+  flex: 1;
+  height: 38px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .prof-av img {
@@ -79,30 +126,24 @@
   margin-top: 3px;
 }
 
-.prof-edit-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .prof-name-input {
-  flex: 1;
+  width: 100%;
   background: var(--bg-2);
   border: 1.5px solid var(--acc);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
-  padding: 6px 10px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 12px;
   outline: none;
   font-family: inherit;
-  min-width: 0;
 }
 
 .prof-save-btn {
-  padding: 6px 14px;
-  font-size: 13px;
-  flex-shrink: 0;
+  flex: 1;
+  padding: 0;
+  height: 38px;
+  font-size: 14px;
 }
 
 .prof-logout-btn {

@@ -55,8 +55,7 @@ export default function Auth({ mode = 'login', onBack, onLogin, onRegister }) {
     if (handle.length < 3) { setErr('Usuario: mínimo 3 caracteres, solo letras, números y _'); return }
     setErr(''); setLoading(true)
     try {
-      const res = await onRegister({ name: rName, handle, email: rEmail, password: rPass })
-      if (res?.needsConfirm) setConfirm(true)
+      await onRegister({ name: rName, handle, email: rEmail, password: rPass })
     } catch (e) {
       setErr(e.message)
     } finally {

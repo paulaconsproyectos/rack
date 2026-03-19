@@ -7,16 +7,16 @@ const NAV_ITEMS = [
   { id: 'profile', label: 'Yo',         Icon: IcoUser   },
 ]
 
-export default function Nav({ screen, onNav }) {
+export default function Nav({ activeTab, onTab }) {
   return (
     <nav className="bottom-nav" aria-label="Navegación principal">
-      {NAV_ITEMS.map(({ id, label, Icon }) => (
+      {NAV_ITEMS.map(({ id, label, Icon }, i) => (
         <button
           key={id}
-          className={`nav-btn ${screen === id ? 'active' : ''}`}
-          onClick={() => onNav(id)}
+          className={`nav-btn ${activeTab === i ? 'active' : ''}`}
+          onClick={() => onTab(i)}
           aria-label={label}
-          aria-current={screen === id ? 'page' : undefined}
+          aria-current={activeTab === i ? 'page' : undefined}
         >
           <span className="nav-btn-icon" aria-hidden="true"><Icon /></span>
           {label}

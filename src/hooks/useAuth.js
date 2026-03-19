@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { sb, getProfile, getWatched, getWatchlist, getReviews, updateScore, upsertProfile } from '../lib/supabase.js'
+import { sb, getProfile, getWatched, getWatchlist, getReviews, updateScore, upsertProfile,
+         addWatched as addWatchedDb, removeWatched as removeWatchedDb,
+         addWatchlist as addWatchlistDb, removeWatchlist as removeWatchlistDb } from '../lib/supabase.js'
 import { LS, KEYS } from '../lib/storage.js'
 import { genCode, computeStreak } from '../lib/utils.js'
 
@@ -75,7 +77,6 @@ export function useAuth() {
   }
 
   async function register({ name, handle, email, password }) {
-    // Check handle availability
     const { data: existing } = await sb.from('profiles').select('id').eq('handle', handle).maybeSingle()
     if (existing) throw new Error('Ese nombre de usuario ya existe, elige otro')
 
@@ -96,7 +97,7 @@ export function useAuth() {
     await upsertProfile({ id: authUser.id, handle, name: name.trim(), score: 0, invite_code: genCode() })
 
     if (!data.session) {
-      return { needsConfirm: true }
+      await sb.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
     }
   }
 
@@ -104,20 +105,54 @@ export function useAuth() {
     await sb.auth.signOut()
   }
 
-  function addWatchedLocal(film, pts) {
-    setUser((prev) => ({
-      ...prev,
-      watched: [...(prev.watched || []), film],
-      score: (prev.score || 0) + pts,
-    }))
-    setStreak((prev) => computeStreak(prev))
+  function addWatchedLocal(film, pts = 10) {
+    const uid        = user?.id
+    const alreadySeen = (user?.watched || []).some(w => w.id === film.id)
+
+    if (alreadySeen) {
+      // Toggle off — unmark as watched
+      const newScore = Math.max(0, (user?.score || 0) - pts)
+      setUser((prev) => ({
+        ...prev,
+        watched: (prev.watched || []).filter(w => w.id !== film.id),
+        score: newScore,
+      }))
+      if (uid) {
+        removeWatchedDb(uid, film.id).catch(() => {})
+        updateScore(uid, newScore).catch(() => {})
+      }
+    } else {
+      // Mark as watched
+      const score = user?.score || 0
+      setUser((prev) => ({
+        ...prev,
+        watched: [...(prev.watched || []), film],
+        score: (prev.score || 0) + pts,
+      }))
+      setStreak((prev) => computeStreak(prev))
+      if (uid) {
+        addWatchedDb(uid, film).catch(() => {})
+        updateScore(uid, score + pts).catch(() => {})
+      }
+    }
   }
 
   function addWatchlistLocal(film) {
-    setUser((prev) => ({
-      ...prev,
-      watchlist: [...(prev.watchlist || []), film],
-    }))
+    const uid     = user?.id
+    const isSaved = (user?.watchlist || []).some(w => w.id === film.id)
+    if (isSaved) {
+      setUser((prev) => ({
+        ...prev,
+        watchlist: (prev.watchlist || []).filter(w => w.id !== film.id),
+      }))
+      if (uid) removeWatchlistDb(uid, film.id).catch(() => {})
+    } else {
+      setUser((prev) => ({
+        ...prev,
+        watchlist: [...(prev.watchlist || []), film],
+      }))
+      if (uid) addWatchlistDb(uid, film).catch(() => {})
+    }
   }
 
   function addReviewLocal(review) {
