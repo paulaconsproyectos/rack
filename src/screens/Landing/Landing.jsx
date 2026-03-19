@@ -10,7 +10,7 @@ const BG_FILMS = [
 ]
 
 export default function Landing({ onLogin, onRegister }) {
-  const [bgIdx, setBgIdx] = useState(0)
+  const [bgIdx, setBgIdx]     = useState(0)
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
@@ -31,15 +31,12 @@ export default function Landing({ onLogin, onRegister }) {
       {/* Cinematic backdrop */}
       <div
         className="land-bg"
-        style={{
-          backgroundImage: `url(${film.url})`,
-          opacity: visible ? 1 : 0,
-        }}
+        style={{ backgroundImage: `url(${film.url})`, opacity: visible ? 1 : 0 }}
         aria-hidden="true"
       />
       <div className="land-overlay" aria-hidden="true" />
 
-      {/* Content */}
+      {/* Hero */}
       <div className="land-hero">
         <div className="land-film-credit" aria-hidden="true">
           En pantalla: <span>{film.title}</span>
@@ -48,23 +45,54 @@ export default function Landing({ onLogin, onRegister }) {
           Zine<span> Club</span>
         </h1>
         <p className="land-tag">
-          El cine que mereces ver.<br />
-          <span>Cuando lo mereces ver.</span>
+          ¿Qué ves esta noche?<br />
+          <span>5 preguntas. La respuesta exacta.</span>
         </p>
       </div>
 
+      {/* SEO content — visible to crawlers, subtle for users */}
+      <div className="land-seo-content" aria-hidden="true">
+        <div className="land-pills">
+          <span>Netflix</span>
+          <span>HBO Max</span>
+          <span>Prime Video</span>
+          <span>Disney+</span>
+          <span>Filmin</span>
+          <span>Movistar+</span>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="land-how">
+        <div className="land-how-step">
+          <span className="land-how-n">1</span>
+          <span>Cuéntanos tu mood</span>
+        </div>
+        <div className="land-how-sep">·</div>
+        <div className="land-how-step">
+          <span className="land-how-n">2</span>
+          <span>Elige tu plataforma</span>
+        </div>
+        <div className="land-how-sep">·</div>
+        <div className="land-how-step">
+          <span className="land-how-n">3</span>
+          <span>Tu recomendación</span>
+        </div>
+      </div>
+
+      {/* CTAs */}
       <div className="land-bottom">
         <button className="btn btn-primary" onClick={onRegister}>
-          Empezar gratis
+          Empezar gratis ✦
         </button>
         <button className="btn btn-secondary" onClick={onLogin}>
           Ya tengo cuenta
         </button>
         <p className="land-legal">
           Al continuar aceptas los{' '}
-          <a href="/zineclub/legal.html" target="_blank">Términos</a>
+          <a href="/legal.html" target="_blank" rel="noopener">Términos</a>
           {' '}y la{' '}
-          <a href="/zineclub/legal.html" target="_blank">Política de privacidad</a>.
+          <a href="/legal.html" target="_blank" rel="noopener">Política de privacidad</a>.
         </p>
       </div>
     </div>

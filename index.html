@@ -11,14 +11,54 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Zine Club" />
 
-    <title>Zine Club — El cine que mereces ver</title>
-    <meta name="description" content="Descubre películas y series perfectas para tu mood. Recomendaciones personalizadas, sin algoritmos aburridos." />
+    <!-- SEO primary -->
+    <title>Zine Club — ¿Qué ver esta noche? Tu recomendador de películas y series</title>
+    <meta name="description" content="Descubre qué película o serie ver esta noche en 5 preguntas. Recomendaciones personalizadas para Netflix, HBO, Prime y más. Sin scroll infinito, sin algoritmos. Solo lo que toca." />
+    <meta name="keywords" content="qué ver esta noche, recomendador de películas, qué película ver hoy, qué serie ver, recomendaciones netflix, películas recomendadas, series recomendadas, qué ver en netflix, descubrir películas" />
+    <link rel="canonical" href="https://zineclub.app" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Zine Club" />
-    <meta property="og:description" content="El cine que mereces ver" />
+    <meta property="og:site_name" content="Zine Club" />
+    <meta property="og:title" content="Zine Club — ¿Qué ver esta noche?" />
+    <meta property="og:description" content="5 preguntas. 30 segundos. La película o serie perfecta para esta noche, en tu plataforma." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://zineclub.vercel.app" />
+    <meta property="og:url" content="https://zineclub.app" />
+    <meta property="og:image" content="https://zineclub.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_ES" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Zine Club — ¿Qué ver esta noche?" />
+    <meta name="twitter:description" content="5 preguntas. 30 segundos. La recomendación perfecta para esta noche." />
+    <meta name="twitter:image" content="https://zineclub.app/og-image.png" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Zine Club",
+      "url": "https://zineclub.app",
+      "description": "Recomendador de películas y series personalizado. Descubre qué ver esta noche en Netflix, HBO Max, Prime Video y más en 5 preguntas.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "inLanguage": "es",
+      "audience": {
+        "@type": "Audience",
+        "geographicArea": {
+          "@type": "Place",
+          "name": "España"
+        }
+      }
+    }
+    </script>
 
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -29,7 +69,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>
