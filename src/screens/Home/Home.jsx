@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { fetchWeeklyPick, fetchNowPlaying } from '../../lib/tmdb.js'
 import { IcoFlame } from '../../components/Icons.jsx'
+import { canPush, pushPermission, requestAndSave } from '../../lib/notifications.js'
 import './Home.css'
 
-export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInvite, showToast, lastReco }) {
-  const [potw, setPotw]           = useState(null)
-  const [nowPlaying, setNowPlaying] = useState([])
-  const [potwLoading, setPotwLoading] = useState(true)
+export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInvite, showToast, lastReco, isWatched }) {
+  const [potw, setPotw]                 = useState(null)
+  const [nowPlaying, setNowPlaying]     = useState([])
+  const [potwLoading, setPotwLoading]   = useState(true)
+  const [pushDismissed, setPushDismissed] = useState(() => !!localStorage.getItem('zc_push_dismissed'))
 
   useEffect(() => {
     fetchWeeklyPick()
@@ -20,6 +22,29 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
   }, [])
 
   const firstName = user?.name?.split(' ')[0] || 'cinéfilo'
+
+  // Pick one unwatched watchlist item to suggest
+  const watchlist = user?.watchlist || []
+  const watchlistPick = watchlist.find(f => !isWatched?.(f))
+
+  // Show push banner if: can push, not granted yet, not dismissed, user has some activity
+  const showPushBanner = canPush()
+    && pushPermission() === 'default'
+    && !pushDismissed
+    && (watchlist.length > 0 || (user?.watched || []).length > 0)
+
+  async function handleEnableNotifs() {
+    const ok = await requestAndSave(user?.id)
+    if (ok) showToast?.('Notificaciones activadas ✓')
+    else showToast?.('No se han podido activar')
+    setPushDismissed(true)
+    localStorage.setItem('zc_push_dismissed', '1')
+  }
+
+  function dismissPush() {
+    setPushDismissed(true)
+    localStorage.setItem('zc_push_dismissed', '1')
+  }
 
   return (
     <div className="home-wrap">
@@ -38,6 +63,23 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
         )}
       </div>
 
+      {/* ── Push notification banner ── */}
+      {showPushBanner && (
+        <div className="home-section px">
+          <div className="home-push-banner">
+            <div className="home-push-icon">🔔</div>
+            <div className="home-push-body">
+              <div className="home-push-title">Activa las notificaciones</div>
+              <div className="home-push-sub">Te avisamos cuando haya algo perfecto para esta noche.</div>
+            </div>
+            <div className="home-push-actions">
+              <button className="home-push-btn" onClick={handleEnableNotifs}>Activar</button>
+              <button className="home-push-dismiss" onClick={dismissPush}>✕</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Primary CTA ── */}
       <div className="home-section px">
         <button className="home-cta-card" onClick={() => onQuiz({})}>
@@ -51,8 +93,26 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
         </button>
       </div>
 
+      {/* ── Retoma tu lista ── */}
+      {watchlistPick && (
+        <div className="home-section px">
+          <div className="home-sec-label">Pendiente en tu lista</div>
+          <button className="home-watchlist-pick" onClick={() => onDetail(watchlistPick, 'home')}>
+            {watchlistPick.poster
+              ? <img className="home-watchlist-poster" src={watchlistPick.poster} alt={watchlistPick.title} loading="lazy" />
+              : <div className="home-watchlist-poster-empty">🎬</div>
+            }
+            <div className="home-watchlist-body">
+              <div className="home-watchlist-title">{watchlistPick.titleEs || watchlistPick.title}</div>
+              <div className="home-watchlist-meta">{watchlistPick.year}{watchlistPick.genres?.[0] ? ` · ${watchlistPick.genres[0]}` : ''}</div>
+              <div className="home-watchlist-cta">Esta noche podría ser →</div>
+            </div>
+          </button>
+        </div>
+      )}
+
       {/* ── Última recomendación ── */}
-      {lastReco && (
+      {lastReco && !watchlistPick && (
         <div className="home-section px">
           <div className="home-sec-label">Tu última recomendación</div>
           <button className="home-last-reco" onClick={() => onDetail(lastReco, 'home')}>
@@ -148,13 +208,4 @@ function getGreeting() {
   if (h < 14) return 'Buenos días'
   if (h < 21) return 'Buenas tardes'
   return 'Buenas noches'
-}
-
-function getSubGreeting() {
-  const h = new Date().getHours()
-  if (h < 6)  return '¿Qué ponemos esta noche?'
-  if (h < 12) return '¿Qué ves hoy?'
-  if (h < 17) return '¿Planes para esta tarde?'
-  if (h < 21) return '¿Lista para esta noche?'
-  return '¿Qué ponemos esta noche?'
 }

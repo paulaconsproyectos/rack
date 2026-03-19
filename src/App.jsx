@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './hooks/useAuth.js'
 import { useToast } from './hooks/useToast.js'
 import { computeStreak, watchPoints } from './lib/utils.js'
 import { getBadge } from './constants/badges.js'
+import { registerSW } from './lib/notifications.js'
 
 // Screens
 import Landing        from './screens/Landing/Landing.jsx'
@@ -45,6 +46,8 @@ import './screens/LevelUp/LevelUp.css'
 export default function App() {
   const auth  = useAuth()
   const toast = useToast()
+
+  useEffect(() => { registerSW() }, [])
 
   const [authMode, setAuthMode] = useState('login')
 
@@ -373,6 +376,7 @@ export default function App() {
           onInvite={handleInvite}
           lastReco={lastReco}
           showToast={toast.showToast}
+          isWatched={isWatched}
         />
       )}
       {tab === 2 && (
