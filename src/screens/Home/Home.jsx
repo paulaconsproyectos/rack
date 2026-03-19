@@ -45,7 +45,7 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
             <span className="home-cta-label">5 preguntas · 30 seg</span>
             <span className="home-cta-badge">✦</span>
           </div>
-          <div className="home-cta-title">Tu próxima peli en 5 preguntas</div>
+          <div className="home-cta-title">Tu próxima recomendación en 5 preguntas</div>
           <div className="home-cta-sub">Sin scroll. Sin algoritmos. Solo lo que te toca ver.</div>
           <div className="home-cta-btn">Empezar ✦</div>
         </button>
