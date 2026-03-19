@@ -1,0 +1,217 @@
+.pw-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: max(48px, env(safe-area-inset-top)) 24px max(40px, env(safe-area-inset-bottom));
+}
+
+.pw-content {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+
+/* ── Symbol ── */
+.pw-symbol {
+  font-size: 40px;
+  color: var(--acc);
+  margin-bottom: 24px;
+  animation: pwPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pwPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.9); }
+}
+
+/* ── Copy ── */
+.pw-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+
+.pw-title em {
+  font-style: italic;
+  color: var(--acc-2);
+}
+
+.pw-sub {
+  font-size: 14px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* ── Plan card ── */
+.pw-plan {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(201,169,110,0.12) 0%, rgba(201,169,110,0.04) 100%);
+  border: 1.5px solid rgba(201,169,110,0.35);
+  border-radius: var(--radius-xl);
+  padding: 24px 22px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.pw-plan-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pw-plan-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--acc);
+}
+
+.pw-plan-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  background: var(--acc);
+  color: #000;
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+
+.pw-plan-price {
+  margin-bottom: 16px;
+}
+
+.pw-plan-amount {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: -0.03em;
+}
+
+.pw-plan-period {
+  font-size: 16px;
+  color: var(--text-3);
+  margin-left: 4px;
+}
+
+.pw-plan-features {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pw-plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.pw-plan-features li span {
+  color: var(--acc);
+  font-size: 12px;
+}
+
+.pw-pro-btn {
+  width: 100%;
+}
+
+/* ── Code section ── */
+.pw-code-section {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.pw-code-label {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+.pw-code-row {
+  display: flex;
+  gap: 8px;
+}
+
+.pw-code-row.shake {
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.pw-code-input {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  font-family: var(--font-mono, monospace);
+  transition: border-color var(--t-fast);
+}
+
+.pw-code-input:focus { outline: none; border-color: var(--acc); }
+.pw-code-input.err   { border-color: #f87171; }
+.pw-code-input::placeholder { font-weight: 400; letter-spacing: 0.06em; color: var(--text-4); }
+
+.pw-code-btn {
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+
+.pw-code-btn:active { background: var(--bg-3); }
+
+.pw-code-error {
+  font-size: 12px;
+  color: #f87171;
+  margin-top: 6px;
+  text-align: left;
+}
+
+/* ── Dismiss ── */
+.pw-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-4);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.15);
+  text-underline-offset: 3px;
+}

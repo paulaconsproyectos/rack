@@ -1,5 +1,5 @@
 import { PLATFORMS } from '../constants/platforms.js'
-import { SENTIR_GENRES_M, SENTIR_GENRES_T, EVITAR_EXCL } from '../constants/quiz.js'
+import { GENRE_IDS_M, GENRE_IDS_T, ERA_DATES_M, ERA_DATES_T } from '../constants/quiz.js'
 
 export const IMG_W   = 'https://image.tmdb.org/t/p/w500'
 export const IMG_SM  = 'https://image.tmdb.org/t/p/w185'
@@ -219,131 +219,126 @@ export async function fetchUpcoming() {
     .slice(0, 12)
 }
 
-// ── Mood discovery ─────────────────────────────────────
+// ── Mood/Genre discovery ────────────────────────────────
 export async function discoverByMood(answers) {
   const {
-    sentir = '',
-    formato = 'Lo que sea, sorpréndeme',
-    tiempo = '',
-    compania = '',
-    evitar = [],
+    formato     = 'Lo que sea',
+    genero      = '',
+    tiempo      = '',
+    epoca       = 'Me da igual',
     plataformas = [],
   } = answers || {}
 
-  const isMarathon  = tiempo === 'Tengo toda la noche'
-  const evitarList  = Array.isArray(evitar) ? evitar : []
-  const noSurprises = evitarList.length === 0 || evitarList.includes('Nada, sorpréndeme')
+  const isMarathon = tiempo === 'Toda la noche'
 
   // Format → movie/TV flags
   let wMovies = true, wTV = true
   switch (formato) {
-    case 'Película':                     wMovies = true;  wTV = false; break
-    case 'Miniserie (pocos episodios)':  wMovies = false; wTV = true;  break
-    case 'Serie corta (1-2 temporadas)': wMovies = false; wTV = true;  break
-    case 'Serie larga (3+ temporadas)':  wMovies = false; wTV = true;  break
-    default:                             wMovies = true;  wTV = true;  break
+    case 'Una película':           wMovies = true;  wTV = false; break
+    case 'Serie corta (1-2 temp.)': wMovies = false; wTV = true;  break
+    case 'Serie larga (3+ temp.)':  wMovies = false; wTV = true;  break
+    default:                        wMovies = true;  wTV = true;  break
   }
   if (isMarathon) { wMovies = true; wTV = true }
 
-  // Runtime filter only when explicitly asking for movies with a time constraint
+  // Runtime (movies only, when explicitly asking for a film)
   let durParam = ''
   if (wMovies && !wTV) {
     switch (tiempo) {
-      case 'Menos de 1h30':             durParam = '&with_runtime.lte=90'; break
-      case 'Película normal (1h30–2h)': durParam = '&with_runtime.gte=80&with_runtime.lte=130'; break
-      case 'Película larga (2h+)':      durParam = '&with_runtime.gte=110'; break
+      case 'Menos de 1h30':  durParam = '&with_runtime.lte=90'; break
+      case '1h30 — 2h':      durParam = '&with_runtime.gte=80&with_runtime.lte=130'; break
+      case 'Más de 2 horas': durParam = '&with_runtime.gte=115'; break
     }
   }
 
-  // Sentir → genre IDs
-  const genresM = SENTIR_GENRES_M[sentir] || [18, 35, 28]
-  const genresT = SENTIR_GENRES_T[sentir] || [18, 35]
+  // Genre → TMDB IDs
+  const genresM = GENRE_IDS_M[genero] || [18, 35, 28]
+  const genresT = GENRE_IDS_T[genero] || [18, 35]
   const gM = genresM.join('|')
   const gT = genresT.join('|')
 
+  // Era → date filter
+  const eraM = ERA_DATES_M[epoca] ? `&${ERA_DATES_M[epoca]}` : ''
+  const eraT = ERA_DATES_T[epoca] ? `&${ERA_DATES_T[epoca]}` : ''
+
   // Platforms → provider IDs
-  // NOTE: no flatrate filter — TMDB ES flatrate data is incomplete and would kill results
-  const ALL_PIDS = [8, 384, 337, 119, 63, 350, 149, 76, 531, 100, 35]
+  const ALL_PIDS = [8, 384, 337, 119, 63, 350, 149, 100, 76, 531, 35]
   const pids = plataformas.length
     ? plataformas.map(p => PLATFORMS[p]?.provId).filter(Boolean)
     : ALL_PIDS
   const pParam = `&with_watch_providers=${pids.join('|')}&watch_region=ES`
 
-  // Family / kids filter
-  const isFamily = compania === 'Con familia / niños'
-  const noKidsM  = isFamily ? '' : '&without_genres=10751'
-  const noKidsT  = isFamily ? '' : '&without_genres=10751,10762'
+  // Anti-anime: exclude animation unless genre IS animation (none in our list)
+  // Also exclude kids/family genre unless "Con familia" (no such question now, just exclude)
+  const noAnime = '&without_genres=16,10751,10762'
 
-  // Evitar → genre exclusions
-  let exclM = '', exclT = ''
-  if (!noSurprises) {
-    const exclSet = new Set()
-    evitarList.forEach(e => (EVITAR_EXCL[e] || []).forEach(g => exclSet.add(g)))
-    if (isFamily) exclSet.delete(10751)
-    if (exclSet.size) { exclM = `&without_genres=${[...exclSet].join(',')}`; exclT = exclM }
-  }
-
-  const qual  = '&vote_average.gte=6.0'
-  const limit = isMarathon ? 8 : 6
+  const qual  = '&vote_average.gte=6.5&vote_count.gte=100'
+  const qualT = '&vote_average.gte=6.5&vote_count.gte=50'
+  const limit = isMarathon ? 8 : 8
   const pg    = Math.floor(Math.random() * 3) + 1
 
-  const fetchM = async (params) => {
-    try {
-      const d = await api(`/discover/movie?sort_by=popularity.desc&vote_count.gte=100${qual}${params}`)
-      return (d.results || []).filter(x => x.poster_path).slice(0, limit).map(mapMovie)
-    } catch { return [] }
-  }
+  const fetchM = async (params) =>
+    api(`/discover/movie?sort_by=vote_average.desc${qual}${params}`)
+      .then(d => (d.results||[]).filter(x=>x.poster_path).slice(0, limit).map(mapMovie))
+      .catch(() => [])
 
-  const fetchT = async (params) => {
-    try {
-      const d = await api(`/discover/tv?sort_by=popularity.desc&vote_count.gte=50${qual}${params}`)
-      return (d.results || []).filter(x => x.poster_path).slice(0, limit).map(mapTV)
-    } catch { return [] }
-  }
+  const fetchT = async (params) =>
+    api(`/discover/tv?sort_by=vote_average.desc${qualT}${params}`)
+      .then(d => (d.results||[]).filter(x=>x.poster_path).slice(0, limit).map(mapTV))
+      .catch(() => [])
 
   let all = []
 
-  // L1: genre + platform + exclusions + runtime
+  // L1: genre + platform + era + anti-anime
   const l1 = await Promise.all([
-    wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${noKidsM}${exclM}&page=${pg}`) : Promise.resolve([]),
-    wTV     ? fetchT(`&with_genres=${gT}${pParam}${noKidsT}${exclT}&page=${pg}`) : Promise.resolve([]),
+    wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${eraM}${noAnime}&page=${pg}`) : Promise.resolve([]),
+    wTV     ? fetchT(`&with_genres=${gT}${pParam}${eraT}${noAnime}&page=${pg}`)            : Promise.resolve([]),
   ])
   all = l1.flat()
 
-  // L2: single leading genre + platform (drop multi-genre and exclusions)
+  // L2: genre + platform, relax era & page
   if (all.length < 3) {
     const l2 = await Promise.all([
-      wMovies ? fetchM(`&with_genres=${genresM[0]}${pParam}${noKidsM}${durParam}&page=${pg}`) : Promise.resolve([]),
-      wTV     ? fetchT(`&with_genres=${genresT[0]}${pParam}${noKidsT}&page=${pg}`) : Promise.resolve([]),
+      wMovies ? fetchM(`&with_genres=${gM}${pParam}${durParam}${noAnime}&page=1`) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${pParam}${noAnime}&page=1`)            : Promise.resolve([]),
     ])
     all = [...all, ...l2.flat()]
   }
 
-  // L3: genre only — drop platform filter entirely
+  // L3: genre only — drop platform (biggest filter)
   if (all.length < 3) {
     const l3 = await Promise.all([
-      wMovies ? fetchM(`&with_genres=${gM}${noKidsM}${durParam}&page=1`) : Promise.resolve([]),
-      wTV     ? fetchT(`&with_genres=${gT}${noKidsT}&page=1`) : Promise.resolve([]),
+      wMovies ? fetchM(`&with_genres=${gM}${durParam}${eraM}${noAnime}&page=1`) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${eraT}${noAnime}&page=1`)            : Promise.resolve([]),
     ])
     all = [...all, ...l3.flat()]
   }
 
-  // L4: no genre, no platform — just popular quality content
+  // L4: genre only, relax era too
   if (all.length < 3) {
     const l4 = await Promise.all([
-      wMovies ? fetchM(`${noKidsM}${durParam}&page=1`) : Promise.resolve([]),
-      wTV     ? fetchT(`${noKidsT}&page=1`) : Promise.resolve([]),
+      wMovies ? fetchM(`&with_genres=${gM}${durParam}${noAnime}&page=1`) : Promise.resolve([]),
+      wTV     ? fetchT(`&with_genres=${gT}${noAnime}&page=1`)            : Promise.resolve([]),
     ])
     all = [...all, ...l4.flat()]
   }
 
-  // L5: trending — absolute guaranteed fallback
-  if (all.length < 2) {
+  // L5: no genre, no platform — just popular quality, anti-anime
+  if (all.length < 3) {
     const l5 = await Promise.all([
-      wMovies ? api('/trending/movie/week').then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,6).map(mapMovie)).catch(()=>[]) : Promise.resolve([]),
-      wTV     ? api('/trending/tv/week').then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,6).map(mapTV)).catch(()=>[]) : Promise.resolve([]),
+      wMovies ? fetchM(`${durParam}${noAnime}&page=1`) : Promise.resolve([]),
+      wTV     ? fetchT(`${noAnime}&page=1`)            : Promise.resolve([]),
     ])
     all = [...all, ...l5.flat()]
+  }
+
+  // L6: trending — absolute guaranteed fallback
+  if (all.length < 2) {
+    const l6 = await Promise.all([
+      wMovies ? api('/trending/movie/week').then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,8).map(mapMovie)).catch(()=>[]) : Promise.resolve([]),
+      wTV     ? api('/trending/tv/week').then(d => (d.results||[]).filter(x=>x.poster_path).slice(0,8).map(mapTV)).catch(()=>[])       : Promise.resolve([]),
+    ])
+    all = [...all, ...l6.flat()]
   }
 
   // Deduplicate

@@ -1,28 +1,28 @@
 // ── Questions ─────────────────────────────────────────────
 export const QUESTIONS = [
   {
-    id: 'sentir',
-    q: '¿Qué tienes ganas de sentir?',
-    skippable: true,
+    id: 'formato',
+    q: '¿Qué quieres ver?',
     opts: [
-      { label: 'Reírme mucho' },
-      { label: 'Emocionarme o llorar' },
-      { label: 'Adrenalina y tensión' },
-      { label: 'Pensar y reflexionar' },
-      { label: 'Desconectar sin pensar' },
-      { label: 'Sorprenderme' },
+      { label: 'Una película',              emoji: '🎬' },
+      { label: 'Serie corta (1-2 temp.)',   emoji: '📺' },
+      { label: 'Serie larga (3+ temp.)',    emoji: '📡' },
+      { label: 'Lo que sea',                emoji: '🎲' },
     ],
   },
   {
-    id: 'formato',
-    q: '¿Qué formato prefieres?',
-    skippable: true,
+    id: 'genero',
+    q: '¿Qué género te apetece?',
     opts: [
-      { label: 'Película',                     emoji: '🎬' },
-      { label: 'Miniserie (pocos episodios)',   emoji: '📺' },
-      { label: 'Serie corta (1-2 temporadas)',  emoji: '🎞' },
-      { label: 'Serie larga (3+ temporadas)',   emoji: '📡' },
-      { label: 'Lo que sea, sorpréndeme',       emoji: '🎲' },
+      { label: 'Comedia',          emoji: '😂' },
+      { label: 'Drama',            emoji: '😢' },
+      { label: 'Acción',           emoji: '⚡' },
+      { label: 'Thriller',         emoji: '🔍' },
+      { label: 'Romance',          emoji: '💘' },
+      { label: 'Ciencia ficción',  emoji: '🚀' },
+      { label: 'Terror',           emoji: '🎭' },
+      { label: 'Documental',       emoji: '🌍' },
+      { label: 'Crimen',           emoji: '🗡' },
     ],
   },
   {
@@ -30,43 +30,28 @@ export const QUESTIONS = [
     q: '¿Cuánto tiempo tienes?',
     skippable: true,
     opts: [
-      { label: 'Menos de 1h30' },
-      { label: 'Película normal (1h30–2h)' },
-      { label: 'Película larga (2h+)' },
-      { label: 'Un par de episodios' },
-      { label: 'Tengo toda la noche' },
+      { label: 'Menos de 1h30',    emoji: '⚡' },
+      { label: '1h30 — 2h',        emoji: '🎬' },
+      { label: 'Más de 2 horas',   emoji: '🍿' },
+      { label: 'Toda la noche',    emoji: '🌙' },
     ],
   },
   {
-    id: 'compania',
-    q: '¿Con quién estás?',
+    id: 'epoca',
+    q: '¿De qué época?',
     skippable: true,
     opts: [
-      { label: 'Solo/a' },
-      { label: 'En pareja' },
-      { label: 'Con amigos' },
-      { label: 'Con familia / niños' },
-      { label: 'Con alguien que no conozco bien' },
-    ],
-  },
-  {
-    id: 'evitar',
-    q: '¿Qué te apetece evitar?',
-    hint: 'Puedes elegir varias opciones',
-    skippable: true,
-    multi: true,
-    opts: [
-      { label: 'Nada, sorpréndeme' },
-      { label: 'Violencia o gore' },
-      { label: 'Contenido muy triste' },
-      { label: 'Sustos o terror' },
-      { label: 'Mucho drama sentimental' },
+      { label: 'Reciente (2020+)',    emoji: '🆕' },
+      { label: '2010s',              emoji: '📅' },
+      { label: '90s — 2000s',        emoji: '📼' },
+      { label: 'Clásico (antes 90)', emoji: '🎞' },
+      { label: 'Me da igual',        emoji: '🤷' },
     ],
   },
   {
     id: 'plataformas',
-    q: '¿En qué plataformas tienes acceso?',
-    hint: 'Elige todas las que tengas',
+    q: '¿Dónde lo quieres ver?',
+    hint: 'Elige todas las plataformas que tienes',
     multi: true,
     opts: [
       { label: 'Netflix' },
@@ -76,43 +61,65 @@ export const QUESTIONS = [
       { label: 'Filmin' },
       { label: 'Apple TV+' },
       { label: 'Movistar+' },
+      { label: 'Mubi' },
     ],
   },
 ]
 
-// ── Sentir → TMDB genre IDs ───────────────────────────────
-export const SENTIR_GENRES_M = {
-  'Reírme mucho':           [35, 12],
-  'Emocionarme o llorar':   [18, 10749],
-  'Adrenalina y tensión':   [28, 53],
-  'Pensar y reflexionar':   [18, 99, 9648],
-  'Desconectar sin pensar': [35, 16, 12],
-  'Sorprenderme':           [878, 9648, 14],
+// ── Género → TMDB genre IDs ───────────────────────────────
+export const GENRE_IDS_M = {
+  'Comedia':         [35],
+  'Drama':           [18],
+  'Acción':          [28],
+  'Thriller':        [53, 9648],
+  'Romance':         [10749, 18],
+  'Ciencia ficción': [878],
+  'Terror':          [27],
+  'Documental':      [99],
+  'Crimen':          [80, 9648],
 }
 
-export const SENTIR_GENRES_T = {
-  'Reírme mucho':           [35],
-  'Emocionarme o llorar':   [18, 10749],
-  'Adrenalina y tensión':   [10759, 80],
-  'Pensar y reflexionar':   [18, 10765, 9648],
-  'Desconectar sin pensar': [35, 16],
-  'Sorprenderme':           [10765, 9648],
+export const GENRE_IDS_T = {
+  'Comedia':         [35],
+  'Drama':           [18],
+  'Acción':          [10759],
+  'Thriller':        [9648, 80],
+  'Romance':         [10749, 18],
+  'Ciencia ficción': [10765],
+  'Terror':          [27],
+  'Documental':      [99],
+  'Crimen':          [80, 9648],
 }
 
-// ── Evitar → genre IDs to exclude ────────────────────────
-export const EVITAR_EXCL = {
-  'Violencia o gore':        [27],
-  'Sustos o terror':         [27],
-  'Mucho drama sentimental': [10749],
-  'Contenido muy triste':    [],
+// ── Época → date params ───────────────────────────────────
+export const ERA_DATES_M = {
+  'Reciente (2020+)':    'primary_release_date.gte=2020-01-01',
+  '2010s':               'primary_release_date.gte=2010-01-01&primary_release_date.lte=2019-12-31',
+  '90s — 2000s':         'primary_release_date.gte=1990-01-01&primary_release_date.lte=2009-12-31',
+  'Clásico (antes 90)':  'primary_release_date.lte=1989-12-31',
+  'Me da igual':         '',
 }
 
-// ── Sentir → personalized tagline ────────────────────────
-export const SENTIR_TAGLINES = {
-  'Reírme mucho':           'Querías reírte.',
-  'Emocionarme o llorar':   'Querías emocionarte.',
-  'Adrenalina y tensión':   'Querías tensión.',
-  'Pensar y reflexionar':   'Querías pensar.',
-  'Desconectar sin pensar': 'Querías desconectar.',
-  'Sorprenderme':           'Querías sorprenderte.',
+export const ERA_DATES_T = {
+  'Reciente (2020+)':    'first_air_date.gte=2020-01-01',
+  '2010s':               'first_air_date.gte=2010-01-01&first_air_date.lte=2019-12-31',
+  '90s — 2000s':         'first_air_date.gte=1990-01-01&first_air_date.lte=2009-12-31',
+  'Clásico (antes 90)':  'first_air_date.lte=1989-12-31',
+  'Me da igual':         '',
 }
+
+// ── Género → tagline personalizada ───────────────────────
+export const GENRE_TAGLINES = {
+  'Comedia':         'Querías reírte.',
+  'Drama':           'Querías emocionarte.',
+  'Acción':          'Querías adrenalina.',
+  'Thriller':        'Querías tensión.',
+  'Romance':         'Querías sentir algo.',
+  'Ciencia ficción': 'Querías otro mundo.',
+  'Terror':          'Querías asustarte.',
+  'Documental':      'Querías aprender algo.',
+  'Crimen':          'Querías un misterio.',
+}
+
+// Keep for backwards compat with Recommendation screen
+export const SENTIR_TAGLINES = GENRE_TAGLINES

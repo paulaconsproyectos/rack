@@ -17,6 +17,7 @@ import MiLista        from './screens/MiLista/MiLista.jsx'
 import Profile        from './screens/Profile/Profile.jsx'
 import TikTok         from './screens/TikTok/TikTok.jsx'
 import Onboarding     from './screens/Onboarding/Onboarding.jsx'
+import Paywall        from './screens/Paywall/Paywall.jsx'
 
 // Components
 import Nav from './components/Nav.jsx'
@@ -34,6 +35,7 @@ import './screens/Detail/Detail.css'
 import './screens/Search/Search.css'
 import './screens/MiLista/MiLista.css'
 import './screens/Profile/Profile.css'
+import './screens/Paywall/Paywall.css'
 import './screens/TikTok/TikTok.css'
 import './screens/Onboarding/Onboarding.css'
 
@@ -58,6 +60,7 @@ export default function App() {
   const [tiktokIdx, setTiktokIdx]       = useState(0)
   const [isMarathon, setIsMarathon]     = useState(false)
   const [navStack, setNavStack]         = useState([])
+  const [showPaywall, setShowPaywall]   = useState(false)
   const [onboarded, setOnboarded]       = useState(() => !!localStorage.getItem('zc_onboarded'))
 
   // ── Auth: loading ──
@@ -160,7 +163,21 @@ export default function App() {
     setScreen('detail')
   }
 
+  const FREE_TESTS = 3
+  function hasTestAccess() {
+    if (localStorage.getItem('zc_mvp_code')) return true
+    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
+    return used < FREE_TESTS
+  }
+  function consumeTest() {
+    if (localStorage.getItem('zc_mvp_code')) return
+    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
+    localStorage.setItem('zc_tests_used', String(used + 1))
+  }
+
   function openQuiz(opts = {}) {
+    if (!hasTestAccess()) { setShowPaywall(true); return }
+    consumeTest()
     setNavStack([])
     setQuizOpts(opts)
     setIsMarathon(false)
@@ -168,6 +185,8 @@ export default function App() {
   }
 
   function openMarathon() {
+    if (!hasTestAccess()) { setShowPaywall(true); return }
+    consumeTest()
     setNavStack([])
     setQuizOpts({})
     setIsMarathon(true)
@@ -198,6 +217,16 @@ export default function App() {
       navigator.clipboard?.writeText(url)
       toast.showToast('Enlace copiado ✓')
     }
+  }
+
+  // ── Paywall ──────────────────────────────────────────────
+  if (showPaywall) {
+    return (
+      <Paywall
+        onUnlock={() => { setShowPaywall(false); openQuiz({}) }}
+        onClose={() => setShowPaywall(false)}
+      />
+    )
   }
 
   // ── Overlay screens ──────────────────────────────────────

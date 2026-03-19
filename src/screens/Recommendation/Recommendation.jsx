@@ -73,9 +73,9 @@ export default function Recommendation({
   }
 
   // Determine primary platform to show
-  const sentir       = answers?.sentir || ''
-  const tagline      = SENTIR_TAGLINES[sentir]
-  const userPlatforms = answers?.plataformas || []
+  const genero  = answers?.genero || ''
+  const tagline = SENTIR_TAGLINES[genero]
+  const userPlatforms = Array.isArray(answers?.plataformas) ? answers.plataformas : []
   const primaryPlatform = film?.streaming?.find(p =>
     userPlatforms.length === 0 || userPlatforms.includes(p)
   ) || film?.streaming?.[0]

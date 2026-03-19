@@ -4,9 +4,9 @@ import { PLATFORMS } from '../../constants/platforms.js'
 import './Quiz.css'
 
 export default function Quiz({ isMarathon, onComplete, onExit }) {
-  const [phase, setPhase]     = useState('entry') // 'entry' | 'quiz'
+  const [phase, setPhase]     = useState('entry')
   const [step, setStep]       = useState(0)
-  const [answers, setAnswers] = useState(isMarathon ? { tiempo: 'Tengo toda la noche' } : {})
+  const [answers, setAnswers] = useState(isMarathon ? { tiempo: 'Toda la noche' } : {})
   const [multi, setMulti]     = useState([])
   const [history, setHistory] = useState([])
 
@@ -19,15 +19,13 @@ export default function Quiz({ isMarathon, onComplete, onExit }) {
   const progress = ((step + 1) / total) * 100
   const isLast   = step === total - 1
 
-  // ── Navigation ──────────────────────────────────────────
   function advance(nextAnswers) {
-    const nextStep = step + 1
-    if (nextStep >= activeQs.length) {
+    if (step + 1 >= activeQs.length) {
       onComplete(nextAnswers)
     } else {
       setHistory(h => [...h, step])
       setMulti([])
-      setStep(nextStep)
+      setStep(s => s + 1)
     }
   }
 
@@ -42,39 +40,22 @@ export default function Quiz({ isMarathon, onComplete, onExit }) {
     setStep(prev)
   }
 
-  function skip() {
-    advance(answers)
-  }
+  function skip() { advance(answers) }
 
-  // ── Selection ────────────────────────────────────────────
   function pickSingle(val) {
     const next = { ...answers, [q.id]: val }
     setAnswers(next)
-    setTimeout(() => advance(next), 160)
+    setTimeout(() => advance(next), 180)
   }
 
   function pickMulti(val) {
-    if (q.id === 'evitar') {
-      if (val === 'Nada, sorpréndeme') {
-        setMulti(['Nada, sorpréndeme'])
-      } else {
-        setMulti(prev => {
-          const without = prev.filter(v => v !== 'Nada, sorpréndeme')
-          return without.includes(val)
-            ? without.filter(v => v !== val)
-            : [...without, val]
-        })
-      }
-    } else {
-      setMulti(prev =>
-        prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-      )
-    }
+    setMulti(prev =>
+      prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+    )
   }
 
   function confirmMulti() {
-    const selected = multi.length > 0 ? multi : []
-    const next = { ...answers, [q.id]: selected }
+    const next = { ...answers, [q.id]: multi }
     setAnswers(next)
     advance(next)
   }
@@ -87,19 +68,26 @@ export default function Quiz({ isMarathon, onComplete, onExit }) {
     return (
       <div className="quiz-page">
         <div className="quiz-entry">
-          <button className="quiz-exit-btn quiz-entry-exit" onClick={onExit}>✕</button>
-          <div className="quiz-entry-label">6 PREGUNTAS · 30 SEGUNDOS</div>
+          <button className="quiz-exit-btn" onClick={onExit}>✕</button>
+          <div className="quiz-entry-label">
+            {total} PREGUNTAS · 30 SEGUNDOS
+          </div>
           <h1 className="quiz-entry-title">
-            ¿Qué tipo de noche<br />es esta?
+            {isMarathon
+              ? <>Modo<br /><em>Maratón</em></>
+              : <>¿Qué tipo de<br />noche es esta?</>
+            }
           </h1>
           <p className="quiz-entry-sub">
-            Cuéntanos cómo estás y qué tienes ganas de ver.<br />
-            Nosotros ponemos lo que toca.
+            {isMarathon
+              ? 'Cuéntanos qué te apetece. Te preparamos una noche entera de cine.'
+              : 'Cuéntanos qué te apetece. Nosotros ponemos lo que toca.'
+            }
           </p>
           <div className="quiz-entry-bullets">
             <div className="quiz-entry-bullet">
               <span className="quiz-entry-bullet-icon">✦</span>
-              Una recomendación, no una lista
+              Una recomendación exacta, no una lista
             </div>
             <div className="quiz-entry-bullet">
               <span className="quiz-entry-bullet-icon">✦</span>
@@ -107,18 +95,18 @@ export default function Quiz({ isMarathon, onComplete, onExit }) {
             </div>
             <div className="quiz-entry-bullet">
               <span className="quiz-entry-bullet-icon">✦</span>
-              Siempre dentro de lo que tienes
+              Sin algoritmos, sin scroll infinito
             </div>
           </div>
           <button className="btn btn-primary quiz-entry-cta" onClick={() => setPhase('quiz')}>
-            Empezar el test ✦
+            Empezar ✦
           </button>
         </div>
       </div>
     )
   }
 
-  // ── Quiz screen ──────────────────────────────────────────
+  // ── Question screen ───────────────────────────────────────
   return (
     <div className="quiz-page">
       {/* Header */}
@@ -128,10 +116,12 @@ export default function Quiz({ isMarathon, onComplete, onExit }) {
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <div className="quiz-prog">
-          <div className="quiz-prog-fill" style={{ width: `${progress}%` }} />
+        <div className="quiz-prog-wrap">
+          <div className="quiz-prog">
+            <div className="quiz-prog-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <span className="quiz-step-lbl">{step + 1} / {total}</span>
         </div>
-        <span className="quiz-step-lbl">Pregunta {step + 1} de {total}</span>
         {q.skippable && (
           <button className="quiz-skip-btn" onClick={skip}>Saltar</button>
         )}
@@ -142,42 +132,38 @@ export default function Quiz({ isMarathon, onComplete, onExit }) {
         <h2 className="quiz-question">{q.q}</h2>
         {q.hint && <div className="quiz-hint">{q.hint}</div>}
 
-        {/* Options list */}
         <div className="quiz-list">
           {q.opts.map(opt => {
             const sel = isSelected(opt.label)
             const isPlatform = q.id === 'plataformas' && PLATFORMS[opt.label]
             const pColor = isPlatform ? PLATFORMS[opt.label]?.color : null
-            const dimmed = q.id === 'evitar'
-              && multi.includes('Nada, sorpréndeme')
-              && opt.label !== 'Nada, sorpréndeme'
 
             return (
               <button
                 key={opt.label}
-                className={`quiz-list-opt ${sel ? 'sel' : ''} ${dimmed ? 'dim' : ''}`}
+                className={`quiz-list-opt ${sel ? 'sel' : ''}`}
                 onClick={() => q.multi ? pickMulti(opt.label) : pickSingle(opt.label)}
               >
-                <div className="quiz-list-indicator">
-                  {sel ? '✦' : ''}
-                </div>
                 {isPlatform ? (
                   <div className="quiz-platform-dot" style={{ background: pColor }} />
                 ) : opt.emoji ? (
                   <span className="quiz-list-emoji">{opt.emoji}</span>
-                ) : null}
+                ) : (
+                  <div className="quiz-list-indicator">{sel ? '✦' : ''}</div>
+                )}
                 <span className="quiz-list-label">{opt.label}</span>
+                {sel && !opt.emoji && !isPlatform && (
+                  <span className="quiz-list-check">✓</span>
+                )}
               </button>
             )
           })}
         </div>
 
-        {/* Multi CTA */}
         {q.multi && (
           <button
             className="btn btn-primary quiz-next-btn"
             onClick={confirmMulti}
-            disabled={q.id === 'plataformas' && multi.length === 0}
           >
             {isLast ? 'Ver mi recomendación ✦' : 'Siguiente →'}
           </button>
