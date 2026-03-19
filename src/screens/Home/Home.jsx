@@ -29,7 +29,7 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
           <div className="home-greeting">
             {getGreeting()}, <span className="home-greeting-name">{firstName}.</span>
           </div>
-          <div className="home-sub">{getSubGreeting()}</div>
+          <div className="home-sub">¿Qué ponemos?</div>
         </div>
         {streak?.count > 1 && (
           <div className="home-streak">
@@ -45,9 +45,9 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
             <span className="home-cta-label">5 preguntas · 30 seg</span>
             <span className="home-cta-badge">✦</span>
           </div>
-          <div className="home-cta-title">Descubrir qué ver esta noche</div>
-          <div className="home-cta-sub">Dinos cómo te sientes. Nosotros ponemos lo que toca.</div>
-          <div className="home-cta-btn">Empezar test ✦</div>
+          <div className="home-cta-title">Tu próxima peli en 5 preguntas</div>
+          <div className="home-cta-sub">Sin scroll. Sin algoritmos. Solo lo que te toca ver.</div>
+          <div className="home-cta-btn">Empezar ✦</div>
         </button>
       </div>
 
