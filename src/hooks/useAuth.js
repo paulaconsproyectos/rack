@@ -100,6 +100,13 @@ export function useAuth() {
       await sb.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
     }
 
+    // Send welcome email (fire and forget)
+    fetch('/api/send-welcome', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase(), name: name.trim() }),
+    }).catch(() => {})
+
     // Apply referral bonus if user came via invite link
     const refCode = localStorage.getItem('zc_ref')
     if (refCode) {

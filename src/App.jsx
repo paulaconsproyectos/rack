@@ -19,6 +19,7 @@ import Search         from './screens/Search/Search.jsx'
 import MiLista        from './screens/MiLista/MiLista.jsx'
 import Profile        from './screens/Profile/Profile.jsx'
 import TikTok         from './screens/TikTok/TikTok.jsx'
+import Social         from './screens/Social/Social.jsx'
 import Onboarding     from './screens/Onboarding/Onboarding.jsx'
 import Paywall        from './screens/Paywall/Paywall.jsx'
 import LevelUp        from './screens/LevelUp/LevelUp.jsx'
@@ -41,6 +42,7 @@ import './screens/MiLista/MiLista.css'
 import './screens/Profile/Profile.css'
 import './screens/Paywall/Paywall.css'
 import './screens/TikTok/TikTok.css'
+import './screens/Social/Social.css'
 import './screens/Onboarding/Onboarding.css'
 import './screens/LevelUp/LevelUp.css'
 
@@ -373,9 +375,7 @@ export default function App() {
     )
   }
 
-  // Tab 1 = Descubrir → triggers quiz directly (no separate screen)
   function handleTabChange(newTab) {
-    if (newTab === 1) { openQuiz({}); return }
     setTab(newTab)
   }
 
@@ -393,6 +393,12 @@ export default function App() {
           lastReco={lastReco}
           showToast={toast.showToast}
           isWatched={isWatched}
+        />
+      )}
+      {tab === 1 && (
+        <Social
+          user={user}
+          onDetail={openDetail}
         />
       )}
       {tab === 2 && (
