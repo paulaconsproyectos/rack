@@ -4,6 +4,17 @@ import { PLATFORMS } from '../../constants/platforms.js'
 import { SENTIR_TAGLINES } from '../../constants/quiz.js'
 import './Recommendation.css'
 
+const IcoPlay = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+    <polygon points="5 3 19 12 5 21 5 3"/>
+  </svg>
+)
+const IcoX = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="18" height="18">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+)
+
 const LOADING_PHRASES = [
   'Buscando lo perfecto\npara esta noche...',
   'Analizando tu mood...',
@@ -27,6 +38,7 @@ export default function Recommendation({
   const [enriching, setEnriching] = useState(false)
   const [error, setError]       = useState(false)
   const [phraseIdx, setPhraseIdx] = useState(0)
+  const [showTrailer, setShowTrailer] = useState(false)
 
   // Rotate loading phrases
   useEffect(() => {
@@ -48,6 +60,7 @@ export default function Recommendation({
     const f = films[idx]
     if (!f) { setError(true); return }
     setFilm(f)
+    setShowTrailer(false)
     setEnriching(true)
     enrichFilm(f)
       .then(setFilm)
@@ -85,6 +98,7 @@ export default function Recommendation({
   if (loading) {
     return (
       <div className="reco-page">
+        <button className="reco-loading-back" onClick={onBack} aria-label="Volver">←</button>
         <div className="reco-loading">
           <div className="reco-loading-symbol">✦</div>
           <div className="reco-loading-text">
@@ -150,6 +164,30 @@ export default function Recommendation({
           </button>
           <span className="reco-top-label">✦ TU RECOMENDACIÓN</span>
         </div>
+
+        {/* Trailer button */}
+        {film.trailerKey && !showTrailer && (
+          <button className="reco-play-btn" onClick={() => setShowTrailer(true)} aria-label="Ver tráiler">
+            <IcoPlay />
+            <span>Ver tráiler</span>
+          </button>
+        )}
+
+        {/* Trailer iframe */}
+        {showTrailer && film.trailerKey && (
+          <div className="reco-trailer-wrap">
+            <iframe
+              className="reco-trailer-iframe"
+              src={`https://www.youtube.com/embed/${film.trailerKey}?autoplay=1&controls=1&modestbranding=1`}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              title="Tráiler"
+            />
+            <button className="reco-trailer-close" onClick={() => setShowTrailer(false)} aria-label="Cerrar tráiler">
+              <IcoX />
+            </button>
+          </div>
+        )}
 
         {/* Bottom of poster: title + meta */}
         <div className="reco-poster-bottom">
