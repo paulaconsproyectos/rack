@@ -94,9 +94,31 @@ export default function App() {
     )
   }
 
+  // ── Test access (needed before onboarding) ──
+  const FREE_TESTS = 3
+  function hasTestAccess() {
+    if (localStorage.getItem('zc_mvp_code')) return true
+    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
+    return used < FREE_TESTS
+  }
+  function consumeTest() {
+    if (localStorage.getItem('zc_mvp_code')) return
+    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
+    localStorage.setItem('zc_tests_used', String(used + 1))
+  }
+
   // ── Onboarding ──
   if (!onboarded) {
-    return <Onboarding onDone={() => { localStorage.setItem('zc_onboarded', '1'); setOnboarded(true) }} />
+    return <Onboarding onDone={(startQuiz = false) => {
+      localStorage.setItem('zc_onboarded', '1')
+      setOnboarded(true)
+      if (startQuiz) {
+        setIsMarathon(false)
+        setQuizOpts({})
+        consumeTest()
+        setScreen('quiz')
+      }
+    }} />
   }
 
   // ── App ──
@@ -169,18 +191,6 @@ export default function App() {
     setDetailFilm(film)
     setDetailFrom(from)
     setScreen('detail')
-  }
-
-  const FREE_TESTS = 3
-  function hasTestAccess() {
-    if (localStorage.getItem('zc_mvp_code')) return true
-    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
-    return used < FREE_TESTS
-  }
-  function consumeTest() {
-    if (localStorage.getItem('zc_mvp_code')) return
-    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
-    localStorage.setItem('zc_tests_used', String(used + 1))
   }
 
   function openQuiz(opts = {}) {

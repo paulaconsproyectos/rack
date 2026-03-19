@@ -49,7 +49,13 @@ export default function Recommendation({
 
   // Fetch films on mount
   useEffect(() => {
-    discoverByMood(answers)
+    let dislikedIds = []
+    try {
+      const fb = JSON.parse(localStorage.getItem('zc_feedback') || '[]')
+      dislikedIds = fb.filter(e => e.reaction === '🤍').map(e => e.filmId)
+    } catch {}
+
+    discoverByMood(answers, { dislikedIds })
       .then(f => { setFilms(f); setLoading(false) })
       .catch(() => { setError(true); setLoading(false) })
   }, [])

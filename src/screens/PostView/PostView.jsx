@@ -1,11 +1,36 @@
 import { useState } from 'react'
+import { sb } from '../../lib/supabase.js'
 import './PostView.css'
+
+async function saveFeedbackRemote(film, reaction) {
+  try {
+    const { data: { session } } = await sb.auth.getSession()
+    if (!session?.user) return
+    await sb.from('feedback').insert({
+      user_id:    session.user.id,
+      film_id:    String(film.id),
+      film_title: film.titleEs || film.title || '',
+      reaction,
+      genres:     film.genres || [],
+      media_type: film.mediaType || 'movie',
+    })
+  } catch {}
+}
 
 export default function PostView({ film, onDone, onReview, showToast, showPts }) {
   const [reaction, setReaction] = useState(null)
 
   function handleReact(r) {
     setReaction(r)
+    if (film) {
+      try {
+        const existing = JSON.parse(localStorage.getItem('zc_feedback') || '[]')
+        const entry = { filmId: String(film.id), reaction: r, genres: film.genres || [], mediaType: film.mediaType || 'movie', ts: Date.now() }
+        const updated = [entry, ...existing.filter(e => e.filmId !== String(film.id))].slice(0, 50)
+        localStorage.setItem('zc_feedback', JSON.stringify(updated))
+      } catch {}
+      saveFeedbackRemote(film, r)
+    }
     if (r === '❤️') showPts?.(50)
     setTimeout(onDone, 500)
   }

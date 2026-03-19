@@ -220,7 +220,7 @@ export async function fetchUpcoming() {
 }
 
 // ── Mood/Genre discovery ────────────────────────────────
-export async function discoverByMood(answers) {
+export async function discoverByMood(answers, options = {}) {
   const {
     formato     = 'Lo que sea',
     genero      = '',
@@ -344,11 +344,14 @@ export async function discoverByMood(answers) {
     all = [...all, ...l6.flat()]
   }
 
-  // Deduplicate
+  // Deduplicate + filter disliked
+  const { dislikedIds = [] } = options
+  const dislikedSet = new Set(dislikedIds.map(String))
   const seen = new Set()
   return all.filter(f => {
     if (seen.has(f.id)) return false
     seen.add(f.id)
+    if (dislikedSet.has(String(f.id))) return false
     return !!f.poster
   })
 }
