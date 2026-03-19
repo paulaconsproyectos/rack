@@ -1,0 +1,127 @@
+.lvlup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+.lvlup-card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-1);
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  border-radius: var(--radius-2xl);
+  padding: 48px 28px 36px;
+  text-align: center;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Particles ── */
+.lvlup-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lvlup-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--acc);
+  top: 50%;
+  left: 50%;
+  animation: lvlupParticle 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) calc(var(--i) * 0.06s) both;
+}
+
+.lvlup-particle:nth-child(odd)  { background: var(--acc-2); width: 5px; height: 5px; }
+.lvlup-particle:nth-child(3n)   { background: #fff; width: 4px; height: 4px; border-radius: 2px; }
+
+@keyframes lvlupParticle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * 30deg)) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * 30deg)) translateY(-120px);
+  }
+}
+
+/* ── Badge ── */
+.lvlup-badge-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.lvlup-badge-ring {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid rgba(201, 169, 110, 0.4);
+  box-shadow: 0 0 32px rgba(201, 169, 110, 0.25), inset 0 0 32px rgba(201, 169, 110, 0.08);
+  animation: lvlupPulse 2s ease-in-out infinite;
+}
+
+@keyframes lvlupPulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50%       { transform: scale(1.08); opacity: 1; }
+}
+
+.lvlup-badge-emoji {
+  font-size: 64px;
+  line-height: 1;
+  animation: lvlupBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes lvlupBounce {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Text ── */
+.lvlup-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin-bottom: 10px;
+  animation: fadeUp 0.5s ease 0.2s both;
+}
+
+.lvlup-title {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 14px;
+  animation: fadeUp 0.5s ease 0.25s both;
+}
+
+.lvlup-sub {
+  font-size: 14px;
+  color: var(--text-3);
+  line-height: 1.65;
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s ease 0.3s both;
+}
+
+.lvlup-btn {
+  animation: fadeUp 0.5s ease 0.38s both;
+}

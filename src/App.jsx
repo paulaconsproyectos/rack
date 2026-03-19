@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from './hooks/useAuth.js'
 import { useToast } from './hooks/useToast.js'
 import { computeStreak, watchPoints } from './lib/utils.js'
+import { getBadge } from './constants/badges.js'
 
 // Screens
 import Landing        from './screens/Landing/Landing.jsx'
@@ -18,6 +19,7 @@ import Profile        from './screens/Profile/Profile.jsx'
 import TikTok         from './screens/TikTok/TikTok.jsx'
 import Onboarding     from './screens/Onboarding/Onboarding.jsx'
 import Paywall        from './screens/Paywall/Paywall.jsx'
+import LevelUp        from './screens/LevelUp/LevelUp.jsx'
 
 // Components
 import Nav from './components/Nav.jsx'
@@ -38,6 +40,7 @@ import './screens/Profile/Profile.css'
 import './screens/Paywall/Paywall.css'
 import './screens/TikTok/TikTok.css'
 import './screens/Onboarding/Onboarding.css'
+import './screens/LevelUp/LevelUp.css'
 
 export default function App() {
   const auth  = useAuth()
@@ -61,6 +64,7 @@ export default function App() {
   const [isMarathon, setIsMarathon]     = useState(false)
   const [navStack, setNavStack]         = useState([])
   const [showPaywall, setShowPaywall]   = useState(false)
+  const [levelUpBadge, setLevelUpBadge] = useState(null)
   const [onboarded, setOnboarded]       = useState(() => !!localStorage.getItem('zc_onboarded'))
 
   // ── Auth: loading ──
@@ -110,11 +114,15 @@ export default function App() {
   function handleWatch(film) {
     const watched = isWatched(film)
     const pts = watchPoints(film)
-    auth.addWatchedLocal(film, pts)
     if (!watched) {
+      const oldBadge = getBadge(user?.score || 0)
+      auth.addWatchedLocal(film, pts)
+      const newBadge = getBadge((user?.score || 0) + pts)
+      if (newBadge.min > oldBadge.min) setLevelUpBadge(newBadge)
       toast.showPts(pts)
       toast.showToast('Marcada como vista ✓')
     } else {
+      auth.addWatchedLocal(film, pts)
       toast.showToast('Eliminada de vistas')
     }
   }
@@ -389,6 +397,9 @@ export default function App() {
       <Nav activeTab={tab} onTab={handleTabChange} />
       <Toast toast={toast.toast} />
       <PtsFloat pts={toast.ptsFloat} />
+      {levelUpBadge && (
+        <LevelUp badge={levelUpBadge} onClose={() => setLevelUpBadge(null)} />
+      )}
     </div>
   )
 }
