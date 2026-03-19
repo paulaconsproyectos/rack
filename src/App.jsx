@@ -13,7 +13,7 @@ import Recommendation from './screens/Recommendation/Recommendation.jsx'
 import PostView       from './screens/PostView/PostView.jsx'
 import Detail         from './screens/Detail/Detail.jsx'
 import Search         from './screens/Search/Search.jsx'
-import Social         from './screens/Social/Social.jsx'
+import MiLista        from './screens/MiLista/MiLista.jsx'
 import Profile        from './screens/Profile/Profile.jsx'
 import TikTok         from './screens/TikTok/TikTok.jsx'
 import Onboarding     from './screens/Onboarding/Onboarding.jsx'
@@ -32,7 +32,7 @@ import './screens/Recommendation/Recommendation.css'
 import './screens/PostView/PostView.css'
 import './screens/Detail/Detail.css'
 import './screens/Search/Search.css'
-import './screens/Social/Social.css'
+import './screens/MiLista/MiLista.css'
 import './screens/Profile/Profile.css'
 import './screens/TikTok/TikTok.css'
 import './screens/Onboarding/Onboarding.css'
@@ -44,12 +44,14 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login')
 
   // Screen state
-  const [tab, setTab]           = useState(0) // 0=home 1=search 2=social 3=profile
+  // tabs: 0=home 1=discover(quiz) 2=search 3=list 4=profile
+  const [tab, setTab]           = useState(0)
   const [screen, setScreen]     = useState(null)
   const [quizOpts, setQuizOpts] = useState({})
   const [quizAnswers, setQuizAnswers]   = useState(null)
   const [quizResults, setQuizResults]   = useState(null)
   const [recoFilm, setRecoFilm]         = useState(null)
+  const [lastReco, setLastReco]         = useState(null)
   const [detailFilm, setDetailFilm]     = useState(null)
   const [detailFrom, setDetailFrom]     = useState(null)
   const [tiktokFilms, setTiktokFilms]   = useState([])
@@ -119,6 +121,7 @@ export default function App() {
     handleWatch(film)
     if (!wasWatched) {
       setRecoFilm(film)
+      setLastReco(film)
       setScreen('postview')
     }
   }
@@ -304,6 +307,12 @@ export default function App() {
     )
   }
 
+  // Tab 1 = Descubrir → triggers quiz directly (no separate screen)
+  function handleTabChange(newTab) {
+    if (newTab === 1) { openQuiz({}); return }
+    setTab(newTab)
+  }
+
   // ── Main tab shell ───────────────────────────────────────
   return (
     <div className="app-shell">
@@ -315,11 +324,11 @@ export default function App() {
           onMarathon={openMarathon}
           onDetail={openDetail}
           onInvite={handleInvite}
-          onProfile={() => setTab(3)}
+          lastReco={lastReco}
           showToast={toast.showToast}
         />
       )}
-      {tab === 1 && (
+      {tab === 2 && (
         <Search
           onDetail={openDetail}
           onWatch={handleWatch}
@@ -328,13 +337,16 @@ export default function App() {
           isSaved={isSaved}
         />
       )}
-      {tab === 2 && (
-        <Social
+      {tab === 3 && (
+        <MiLista
           user={user}
           onDetail={openDetail}
+          onWatch={handleWatch}
+          onQuiz={() => openQuiz({})}
+          isWatched={isWatched}
         />
       )}
-      {tab === 3 && (
+      {tab === 4 && (
         <Profile
           user={user}
           onLogout={auth.logout}
@@ -345,7 +357,7 @@ export default function App() {
         />
       )}
 
-      <Nav activeTab={tab} onTab={setTab} />
+      <Nav activeTab={tab} onTab={handleTabChange} />
       <Toast toast={toast.toast} />
       <PtsFloat pts={toast.ptsFloat} />
     </div>
