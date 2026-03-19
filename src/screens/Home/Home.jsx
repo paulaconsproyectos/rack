@@ -29,7 +29,7 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
           <div className="home-greeting">
             {getGreeting()}, <span className="home-greeting-name">{firstName}.</span>
           </div>
-          <div className="home-sub">¿Lista la noche?</div>
+          <div className="home-sub">{getSubGreeting()}</div>
         </div>
         {streak?.count > 1 && (
           <div className="home-streak">
@@ -148,4 +148,13 @@ function getGreeting() {
   if (h < 14) return 'Buenos días'
   if (h < 21) return 'Buenas tardes'
   return 'Buenas noches'
+}
+
+function getSubGreeting() {
+  const h = new Date().getHours()
+  if (h < 6)  return '¿Qué ponemos esta noche?'
+  if (h < 12) return '¿Qué ves hoy?'
+  if (h < 17) return '¿Planes para esta tarde?'
+  if (h < 21) return '¿Lista para esta noche?'
+  return '¿Qué ponemos esta noche?'
 }
