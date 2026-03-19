@@ -244,13 +244,16 @@ export default function App() {
   }
 
   function handleInvite() {
-    const url = 'https://zineclub.vercel.app'
+    const code = user?.invite_code
+    const url  = `https://zineclub.app${code ? `?ref=${code}` : ''}`
+    const text = 'Descubre lo que realmente mereces ver esta noche. Sin scroll, sin algoritmos.'
     if (navigator.share) {
-      navigator.share({ title: 'Zine Club', text: 'Descubre películas que realmente mereces ver', url })
+      navigator.share({ title: 'Zine Club', text, url })
     } else {
       navigator.clipboard?.writeText(url)
       toast.showToast('Enlace copiado ✓')
     }
+    track('invite_shared', { has_code: !!code })
   }
 
   // ── Paywall ──────────────────────────────────────────────
@@ -418,6 +421,7 @@ export default function App() {
           showToast={toast.showToast}
           updateNameLocal={auth.updateNameLocal}
           updateAvatarLocal={auth.updateAvatarLocal}
+          onInvite={handleInvite}
         />
       )}
 

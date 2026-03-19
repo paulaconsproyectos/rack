@@ -4,7 +4,7 @@ import { typePillStyle } from '../../lib/utils.js'
 import { upsertProfile } from '../../lib/supabase.js'
 import { IcoLogout, IcoEdit } from '../../components/Icons.jsx'
 
-export default function Profile({ user, onLogout, onDetail, showToast, updateNameLocal, updateAvatarLocal }) {
+export default function Profile({ user, onLogout, onDetail, showToast, updateNameLocal, updateAvatarLocal, onInvite }) {
   const [editMode, setEditMode]   = useState(false)
   const [nameInput, setNameInput] = useState(user?.name || '')
   const [saving, setSaving]       = useState(false)
@@ -189,6 +189,31 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
           </div>
         )}
       </div>
+
+      {/* Invite section */}
+      {user?.invite_code && (
+        <div className="prof-invite">
+          <div className="prof-invite-title">Invita a un amigo</div>
+          <div className="prof-invite-sub">Ambos ganáis 50 puntos cuando se registre</div>
+          <div className="prof-invite-code-row">
+            <div className="prof-invite-code">{user.invite_code}</div>
+            <button
+              className="prof-invite-copy"
+              onClick={() => {
+                navigator.clipboard?.writeText(`https://zineclub.app?ref=${user.invite_code}`)
+                showToast('Enlace copiado ✓')
+              }}
+            >
+              Copiar enlace
+            </button>
+          </div>
+          {onInvite && (
+            <button className="prof-invite-share" onClick={onInvite}>
+              ↗ Compartir invitación
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

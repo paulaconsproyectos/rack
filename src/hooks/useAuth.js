@@ -99,6 +99,19 @@ export function useAuth() {
     if (!data.session) {
       await sb.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
     }
+
+    // Apply referral bonus if user came via invite link
+    const refCode = localStorage.getItem('zc_ref')
+    if (refCode) {
+      try {
+        await fetch('/api/referral', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newUserId: authUser.id, inviteCode: refCode }),
+        })
+        localStorage.removeItem('zc_ref')
+      } catch {}
+    }
   }
 
   async function logout() {
