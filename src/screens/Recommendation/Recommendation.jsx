@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { track } from '../../lib/analytics.js'
 import { discoverByMood, enrichFilm, IMG_W7 } from '../../lib/tmdb.js'
+import { generateShareCard } from '../../lib/shareCard.js'
 import { PLATFORMS } from '../../constants/platforms.js'
 import { SENTIR_TAGLINES } from '../../constants/quiz.js'
 import './Recommendation.css'
@@ -39,7 +40,8 @@ export default function Recommendation({
   const [enriching, setEnriching] = useState(false)
   const [error, setError]       = useState(false)
   const [phraseIdx, setPhraseIdx] = useState(0)
-  const [showTrailer, setShowTrailer] = useState(false)
+  const [showTrailer, setShowTrailer]   = useState(false)
+  const [sharingCard, setSharingCard]   = useState(false)
 
   // Rotate loading phrases
   useEffect(() => {
@@ -91,6 +93,32 @@ export default function Recommendation({
     } else {
       navigator.clipboard?.writeText(url)
       showToast?.('Enlace copiado ✓')
+    }
+  }
+
+  async function handleShareCard() {
+    if (!film || sharingCard) return
+    setSharingCard(true)
+    track('share_card', { film_id: film.id, title: film.title })
+    try {
+      const blob = await generateShareCard(film)
+      const file = new File([blob], `zineclub-${film.id}.png`, { type: 'image/png' })
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: film.titleEs || film.title })
+      } else {
+        // Fallback: download
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `zineclub-${film.id}.png`
+        a.click()
+        URL.revokeObjectURL(url)
+        showToast?.('Imagen descargada ✓')
+      }
+    } catch {
+      showToast?.('No se pudo generar la tarjeta')
+    } finally {
+      setSharingCard(false)
     }
   }
 
@@ -266,6 +294,9 @@ export default function Recommendation({
           </button>
           <button className="reco-ghost-btn" onClick={handleCompartir}>
             ↗ Compartir
+          </button>
+          <button className="reco-ghost-btn" onClick={handleShareCard} disabled={sharingCard}>
+            {sharingCard ? '⏳' : '🖼️'} Tarjeta
           </button>
         </div>
 
