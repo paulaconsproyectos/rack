@@ -4,10 +4,10 @@ const KEY = import.meta.env.VITE_POSTHOG_KEY
 
 if (KEY) {
   posthog.init(KEY, {
-    api_host:             'https://eu.i.posthog.com',
+    api_host:             'https://us.i.posthog.com',
     person_profiles:      'identified_only',
-    capture_pageview:     false,
-    capture_pageleave:    false,
+    capture_pageview:     true,
+    capture_pageleave:    true,
     autocapture:          false,
   })
 }
