@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
 
 const BG_FILMS = [
-  { url: 'https://image.tmdb.org/t/p/w1280/tM7ObJa8Mh3UEhGEiNbTMiHAHi2.jpg', title: 'El Padrino' },
-  { url: 'https://image.tmdb.org/t/p/w1280/gNBCvtYyGPbjPCT1k3MvJuNuXR6.jpg', title: 'Pulp Fiction' },
-  { url: 'https://image.tmdb.org/t/p/w1280/xMMrBziwJqrggerqyXfjbKSpCEG.jpg', title: 'Uno de los Nuestros' },
-  { url: 'https://image.tmdb.org/t/p/w1280/5M0j0B18abtBI5gi2RhfjjurTqb.jpg', title: 'Blade Runner 2049' },
-  { url: 'https://image.tmdb.org/t/p/w1280/AkJQpZp9WoNdj7pLYSj1L0RcMMN.jpg', title: 'Mulholland Drive' },
-  { url: 'https://image.tmdb.org/t/p/w1280/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
+  { url: 'https://image.tmdb.org/t/p/w780/tM7ObJa8Mh3UEhGEiNbTMiHAHi2.jpg', title: 'El Padrino' },
+  { url: 'https://image.tmdb.org/t/p/w780/gNBCvtYyGPbjPCT1k3MvJuNuXR6.jpg', title: 'Pulp Fiction' },
+  { url: 'https://image.tmdb.org/t/p/w780/xMMrBziwJqrggerqyXfjbKSpCEG.jpg', title: 'Uno de los Nuestros' },
+  { url: 'https://image.tmdb.org/t/p/w780/5M0j0B18abtBI5gi2RhfjjurTqb.jpg', title: 'Blade Runner 2049' },
+  { url: 'https://image.tmdb.org/t/p/w780/AkJQpZp9WoNdj7pLYSj1L0RcMMN.jpg', title: 'Mulholland Drive' },
+  { url: 'https://image.tmdb.org/t/p/w780/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
 ]
 
 const TAGLINES = [
-  'Dinos tu mood. Nosotros ponemos la peli.',
-  '5 preguntas. La película exacta.',
-  'Sin scroll infinito. Sin algoritmos.',
+  'Dinos tu mood. Nosotros ponemos el título.',
+  '5 preguntas. El título exacto.',
+  'Sin scroll infinito. Sin algoritmos genéricos.',
 ]
 
 export default function Landing({ onLogin, onRegister, onDemo }) {
@@ -59,14 +59,14 @@ export default function Landing({ onLogin, onRegister, onDemo }) {
           Zine<span> Club</span>
         </h1>
 
-        <p className="land-tagline-static">Todo lo que mereces ver.</p>
+        <p className="land-tagline-static">Todo lo que<span> mereces ver.</span></p>
 
         <div className={`land-tagline-rotate ${tagIn ? 'land-tagline--in' : 'land-tagline--out'}`}>
           {TAGLINES[tagIdx]}
         </div>
 
         <p className="land-sub">
-          Cuéntanos cómo te sientes y te recomendamos la película perfecta para esta noche, en tu plataforma.
+          Cuéntanos tu mood y te recomendamos exactamente qué ver, en tu plataforma de streaming.
         </p>
       </div>
 
