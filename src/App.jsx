@@ -1,33 +1,34 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from './hooks/useAuth.js'
-import { useToast } from './hooks/useToast.js'
+import { lazy, Suspense, useEffect } from 'react'
+import { useAuth }       from './hooks/useAuth.js'
+import { useToast }      from './hooks/useToast.js'
+import { useNavigation } from './hooks/useNavigation.js'
 import { computeStreak, watchPoints } from './lib/utils.js'
-import { getBadge } from './constants/badges.js'
-import { registerSW } from './lib/notifications.js'
-import { identify, reset, track } from './lib/analytics.js'
-import { LS, KEYS } from './lib/storage.js'
+import { getBadge }      from './constants/badges.js'
+import { registerSW }    from './lib/notifications.js'
+import { identify, track } from './lib/analytics.js'
+import { LS, KEYS }      from './lib/storage.js'
 
-// Screens
-import Landing        from './screens/Landing/Landing.jsx'
-import Auth           from './screens/Auth/Auth.jsx'
-import Home           from './screens/Home/Home.jsx'
-import Quiz           from './screens/Quiz/Quiz.jsx'
-import Results        from './screens/Results/Results.jsx'
-import Recommendation from './screens/Recommendation/Recommendation.jsx'
-import PostView       from './screens/PostView/PostView.jsx'
-import Detail         from './screens/Detail/Detail.jsx'
-import Search         from './screens/Search/Search.jsx'
-import MiLista        from './screens/MiLista/MiLista.jsx'
-import Profile        from './screens/Profile/Profile.jsx'
-import TikTok         from './screens/TikTok/TikTok.jsx'
-import Social         from './screens/Social/Social.jsx'
-import Onboarding     from './screens/Onboarding/Onboarding.jsx'
-import Paywall        from './screens/Paywall/Paywall.jsx'
-import LevelUp        from './screens/LevelUp/LevelUp.jsx'
-
-// Components
-import Nav from './components/Nav.jsx'
+// Critical path — loaded eagerly
+import Landing      from './screens/Landing/Landing.jsx'
+import Auth         from './screens/Auth/Auth.jsx'
+import Home         from './screens/Home/Home.jsx'
+import Quiz         from './screens/Quiz/Quiz.jsx'
+import Onboarding   from './screens/Onboarding/Onboarding.jsx'
+import Paywall      from './screens/Paywall/Paywall.jsx'
+import Nav          from './components/Nav.jsx'
 import { Toast, PtsFloat } from './components/Toast.jsx'
+
+// Lazy-loaded — only when navigated to
+const Recommendation = lazy(() => import('./screens/Recommendation/Recommendation.jsx'))
+const PostView       = lazy(() => import('./screens/PostView/PostView.jsx'))
+const Detail         = lazy(() => import('./screens/Detail/Detail.jsx'))
+const Results        = lazy(() => import('./screens/Results/Results.jsx'))
+const TikTok         = lazy(() => import('./screens/TikTok/TikTok.jsx'))
+const Search         = lazy(() => import('./screens/Search/Search.jsx'))
+const MiLista        = lazy(() => import('./screens/MiLista/MiLista.jsx'))
+const Profile        = lazy(() => import('./screens/Profile/Profile.jsx'))
+const Social         = lazy(() => import('./screens/Social/Social.jsx'))
+const LevelUp        = lazy(() => import('./screens/LevelUp/LevelUp.jsx'))
 
 // Styles
 import './screens/Landing/Landing.css'
@@ -47,58 +48,49 @@ import './screens/Social/Social.css'
 import './screens/Onboarding/Onboarding.css'
 import './screens/LevelUp/LevelUp.css'
 
+const FREE_TESTS = 5
+
+function Spinner() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}>
+      <div className="spinner" aria-label="Cargando" />
+    </div>
+  )
+}
+
 export default function App() {
-  const auth  = useAuth()
+  const auth = useAuth()
   const toast = useToast()
+  const nav  = useNavigation()
 
   useEffect(() => { registerSW() }, [])
 
-  // Identify user in analytics when auth resolves
   useEffect(() => {
     if (auth.user?.id) identify(auth.user.id, { name: auth.user.name, email: auth.user.email })
   }, [auth.user?.id])
 
-  const [authMode, setAuthMode] = useState('login')
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('pro') === '1') {
+      window.history.replaceState({}, '', '/')
+      toast.showToast('¡Ya eres Pro! Disfruta de tests ilimitados ✦')
+    }
+  }, [])
 
-  // Screen state
-  // tabs: 0=home 1=discover(quiz) 2=search 3=list 4=profile
-  const [tab, setTab]           = useState(0)
-  const [screen, setScreen]     = useState(null)
-  const [quizOpts, setQuizOpts] = useState({})
-  const [quizAnswers, setQuizAnswers]   = useState(null)
-  const [quizResults, setQuizResults]   = useState(null)
-  const [recoFilm, setRecoFilm]         = useState(null)
-  const [lastReco, setLastReco]         = useState(null)
-  const [detailFilm, setDetailFilm]     = useState(null)
-  const [detailFrom, setDetailFrom]     = useState(null)
-  const [tiktokFilms, setTiktokFilms]   = useState([])
-  const [tiktokIdx, setTiktokIdx]       = useState(0)
-  const [isMarathon, setIsMarathon]     = useState(false)
-  const [navStack, setNavStack]         = useState([])
-  const [showPaywall, setShowPaywall]   = useState(false)
-  const [levelUpBadge, setLevelUpBadge] = useState(null)
-  const [onboarded, setOnboarded]       = useState(() => LS.flag(KEYS.onboarded))
-
-  // ── Auth: loading ──
-  if (auth.authState === 'loading') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}>
-        <div className="spinner" aria-label="Cargando" />
-      </div>
-    )
-  }
+  // ── Auth guards ──────────────────────────────────────────
+  if (auth.authState === 'loading') return <Spinner />
 
   if (auth.authState === 'landing') {
     return <Landing
-      onRegister={() => { auth.setAuthState('auth'); setAuthMode('register') }}
-      onLogin={() => { auth.setAuthState('auth'); setAuthMode('login') }}
+      onRegister={() => { auth.setAuthState('auth') }}
+      onLogin={() => { auth.setAuthState('auth') }}
     />
   }
 
   if (auth.authState === 'auth' || auth.authState === 'reset') {
     return (
       <Auth
-        mode={auth.authState === 'reset' ? 'reset' : authMode}
+        mode={auth.authState === 'reset' ? 'reset' : 'login'}
         onLogin={auth.login}
         onRegister={auth.register}
         onBack={() => auth.setAuthState('landing')}
@@ -108,34 +100,31 @@ export default function App() {
     )
   }
 
-  // ── Test access (needed before onboarding) ──
-  const FREE_TESTS = 5
-  function hasTestAccess() {
-    if (LS.flag(KEYS.mvpCode)) return true
-    return LS.get(KEYS.testsUsed, 0) < FREE_TESTS
-  }
-  function consumeTest() {
-    if (LS.flag(KEYS.mvpCode)) return
-    LS.set(KEYS.testsUsed, LS.get(KEYS.testsUsed, 0) + 1)
-  }
-
-  // ── Onboarding ──
-  if (!onboarded) {
+  // ── Onboarding ──────────────────────────────────────────
+  if (!nav.onboarded) {
     return <Onboarding onDone={(startQuiz = false) => {
       LS.setFlag(KEYS.onboarded)
-      setOnboarded(true)
+      nav.setOnboarded(true)
       if (startQuiz) {
-        setIsMarathon(false)
-        setQuizOpts({})
         consumeTest()
-        setScreen('quiz')
+        nav.startQuiz({})
       }
     }} />
   }
 
-  // ── App ──
+  // ── Helpers ─────────────────────────────────────────────
   const user   = auth.user
   const streak = computeStreak(user?.watched || [])
+
+  function hasTestAccess() {
+    if (user?.is_pro || LS.flag(KEYS.mvpCode)) return true
+    return LS.get(KEYS.testsUsed, 0) < FREE_TESTS
+  }
+
+  function consumeTest() {
+    if (user?.is_pro || LS.flag(KEYS.mvpCode)) return
+    LS.set(KEYS.testsUsed, LS.get(KEYS.testsUsed, 0) + 1)
+  }
 
   function isWatched(film) {
     return (user?.watched || []).some(w => w.id === film.id)
@@ -146,14 +135,14 @@ export default function App() {
   }
 
   function handleWatch(film) {
-    const watched = isWatched(film)
+    const alreadyWatched = isWatched(film)
     const pts = watchPoints(film)
-    if (!watched) {
+    if (!alreadyWatched) {
       const oldBadge = getBadge(user?.score || 0)
       auth.addWatchedLocal(film, pts)
       const newBadge = getBadge((user?.score || 0) + pts)
       if (newBadge.min > oldBadge.min) {
-        setLevelUpBadge(newBadge)
+        nav.setLevelUpBadge(newBadge)
         track('level_up', { badge: newBadge.name, score: (user?.score || 0) + pts })
       }
       track('film_watched', { film_id: film.id, title: film.title, media_type: film.mediaType, genres: film.genres })
@@ -169,13 +158,12 @@ export default function App() {
     const wasWatched = isWatched(film)
     handleWatch(film)
     if (!wasWatched) {
-      setRecoFilm(film)
-      setLastReco(film)
-      setScreen('postview')
-      // Schedule push reminder in 2h if they don't review now
+      nav.setRecoFilm(film)
+      nav.setLastReco(film)
+      nav.setScreen('postview')
       if (user?.id) {
         fetch('/api/schedule-review', {
-          method:  'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: user.id, filmId: film.id, filmTitle: film.titleEs || film.title }),
         }).catch(() => {})
@@ -190,68 +178,18 @@ export default function App() {
     toast.showToast(saved ? 'Eliminada de tu lista' : 'Guardada en tu lista ✓')
   }
 
-  function goBack() {
-    if (navStack.length === 0) { setScreen(null); return }
-    const prev = navStack[navStack.length - 1]
-    setNavStack(s => s.slice(0, -1))
-    setScreen(prev.screen)
-    if (prev.detailFilm !== undefined) setDetailFilm(prev.detailFilm)
-    if (prev.detailFrom !== undefined) setDetailFrom(prev.detailFrom)
-  }
-
-  function goBackToRoot() {
-    const rootIdx = navStack.findIndex(n => n.screen !== 'detail')
-    if (rootIdx === -1) { setNavStack([]); setScreen(null); return }
-    const root = navStack[rootIdx]
-    setNavStack([])
-    setScreen(root.screen)
-    if (root.detailFilm !== undefined) setDetailFilm(root.detailFilm)
-    if (root.detailFrom !== undefined) setDetailFrom(root.detailFrom)
-  }
-
-  function openDetail(film, from) {
-    if (screen) {
-      setNavStack(s => [...s, { screen, detailFilm, detailFrom }])
-    }
-    setDetailFilm(film)
-    setDetailFrom(from)
-    setScreen('detail')
-  }
-
   function openQuiz(opts = {}) {
-    if (!hasTestAccess()) { track('paywall_shown', { reason: 'tests_limit' }); setShowPaywall(true); return }
+    if (!hasTestAccess()) { track('paywall_shown', { reason: 'tests_limit' }); nav.setShowPaywall(true); return }
     consumeTest()
-    setNavStack([])
-    setQuizOpts(opts)
-    setIsMarathon(false)
     track('quiz_started', { mode: 'single' })
-    setScreen('quiz')
+    nav.startQuiz(opts, false)
   }
 
   function openMarathon() {
-    if (!hasTestAccess()) { track('paywall_shown', { reason: 'tests_limit' }); setShowPaywall(true); return }
+    if (!hasTestAccess()) { track('paywall_shown', { reason: 'tests_limit' }); nav.setShowPaywall(true); return }
     consumeTest()
-    setNavStack([])
-    setQuizOpts({})
-    setIsMarathon(true)
     track('quiz_started', { mode: 'marathon' })
-    setScreen('quiz')
-  }
-
-  function openTikTok(films, startIdx = 0) {
-    if (screen) {
-      setNavStack(s => [...s, { screen, detailFilm, detailFrom }])
-    }
-    setTiktokFilms(films)
-    setTiktokIdx(startIdx)
-    setScreen('tiktok')
-  }
-
-  function handleQuizComplete(answers) {
-    setQuizAnswers(answers)
-    setQuizResults(null)
-    track('quiz_completed', { mode: isMarathon ? 'marathon' : 'single', ...answers })
-    setScreen(isMarathon ? 'results' : 'recommendation')
+    nav.startQuiz({}, true)
   }
 
   function handleInvite() {
@@ -268,183 +206,205 @@ export default function App() {
   }
 
   // ── Paywall ──────────────────────────────────────────────
-  if (showPaywall) {
+  if (nav.showPaywall) {
     return (
       <Paywall
-        onUnlock={() => { setShowPaywall(false); openQuiz({}) }}
-        onClose={() => setShowPaywall(false)}
+        user={user}
+        onUnlock={() => { nav.setShowPaywall(false); openQuiz({}) }}
+        onClose={() => nav.setShowPaywall(false)}
       />
     )
   }
 
   // ── Overlay screens ──────────────────────────────────────
-  if (screen === 'tiktok') {
+  if (nav.screen === 'tiktok') {
     return (
-      <TikTok
-        films={tiktokFilms}
-        initialIdx={tiktokIdx}
-        onClose={goBack}
-        onDetail={openDetail}
-        onWatch={handleWatchAndPostView}
-        onSave={handleSave}
-        isWatched={isWatched}
-        isSaved={isSaved}
-      />
-    )
-  }
-
-  if (screen === 'detail' && detailFilm) {
-    return (
-      <>
-        <Detail
-          film={detailFilm}
-          from={detailFrom}
-          user={user}
-          onClose={goBackToRoot}
-          onBack={navStack.length > 0 && navStack[navStack.length - 1].screen === 'detail' ? goBack : null}
-          onDetail={openDetail}
+      <Suspense fallback={<Spinner />}>
+        <TikTok
+          films={nav.tiktokFilms}
+          initialIdx={nav.tiktokIdx}
+          onClose={nav.goBack}
+          onDetail={nav.openDetail}
           onWatch={handleWatchAndPostView}
           onSave={handleSave}
           isWatched={isWatched}
           isSaved={isSaved}
-          showToast={toast.showToast}
-          showPts={toast.showPts}
-          onLogin={() => { auth.setAuthState('auth') }}
         />
+      </Suspense>
+    )
+  }
+
+  if (nav.screen === 'detail' && nav.detailFilm) {
+    return (
+      <>
+        <Suspense fallback={<Spinner />}>
+          <Detail
+            film={nav.detailFilm}
+            from={nav.detailFrom}
+            user={user}
+            onClose={nav.goBackToRoot}
+            onBack={nav.navStack.length > 0 && nav.navStack[nav.navStack.length - 1].screen === 'detail' ? nav.goBack : null}
+            onDetail={nav.openDetail}
+            onWatch={handleWatchAndPostView}
+            onSave={handleSave}
+            isWatched={isWatched}
+            isSaved={isSaved}
+            showToast={toast.showToast}
+            showPts={toast.showPts}
+            onLogin={() => auth.setAuthState('auth')}
+          />
+        </Suspense>
         <Toast toast={toast.toast} />
         <PtsFloat pts={toast.ptsFloat} />
       </>
     )
   }
 
-  if (screen === 'quiz') {
+  if (nav.screen === 'quiz') {
     return (
       <Quiz
-        isMarathon={isMarathon}
-        onComplete={handleQuizComplete}
-        onExit={() => { setNavStack([]); setScreen(null) }}
+        isMarathon={nav.isMarathon}
+        onComplete={(answers) => {
+          nav.setQuizAnswers(answers)
+          nav.setQuizResults(null)
+          track('quiz_completed', { mode: nav.isMarathon ? 'marathon' : 'single', ...answers })
+          nav.setScreen(nav.isMarathon ? 'results' : 'recommendation')
+        }}
+        onExit={() => { nav.setNavStack([]); nav.setScreen(null) }}
       />
     )
   }
 
-  if (screen === 'recommendation') {
+  if (nav.screen === 'recommendation') {
     return (
       <>
-        <Recommendation
-          answers={quizAnswers}
-          onBack={() => setScreen(null)}
-          onWatch={handleWatchAndPostView}
-          onSave={handleSave}
-          onDetail={openDetail}
-          isSaved={isSaved}
-          isWatched={isWatched}
-          showToast={toast.showToast}
-        />
+        <Suspense fallback={<Spinner />}>
+          <Recommendation
+            answers={nav.quizAnswers}
+            onBack={() => nav.setScreen(null)}
+            onWatch={handleWatchAndPostView}
+            onSave={handleSave}
+            onDetail={nav.openDetail}
+            isSaved={isSaved}
+            isWatched={isWatched}
+            showToast={toast.showToast}
+          />
+        </Suspense>
         <Toast toast={toast.toast} />
         <PtsFloat pts={toast.ptsFloat} />
       </>
     )
   }
 
-  if (screen === 'postview' && recoFilm) {
+  if (nav.screen === 'postview' && nav.recoFilm) {
     return (
       <>
-        <PostView
-          film={recoFilm}
-          onDone={() => setScreen(null)}
-          onReview={(film) => openDetail(film, 'postview')}
-          showToast={toast.showToast}
-          showPts={toast.showPts}
-        />
+        <Suspense fallback={<Spinner />}>
+          <PostView
+            film={nav.recoFilm}
+            onDone={() => nav.setScreen(null)}
+            onReview={(film) => nav.openDetail(film, 'postview')}
+            showToast={toast.showToast}
+            showPts={toast.showPts}
+          />
+        </Suspense>
         <Toast toast={toast.toast} />
         <PtsFloat pts={toast.ptsFloat} />
       </>
     )
   }
 
-  if (screen === 'results') {
+  if (nav.screen === 'results') {
     return (
       <>
-        <Results
-          answers={quizAnswers}
-          isMarathon={isMarathon}
-          cachedFilms={quizResults}
-          onCacheFilms={setQuizResults}
-          onBack={() => setScreen('quiz')}
-          onDetail={openDetail}
-          onTikTok={openTikTok}
-          onWatch={handleWatchAndPostView}
-          onSave={handleSave}
-          isWatched={isWatched}
-          isSaved={isSaved}
-        />
+        <Suspense fallback={<Spinner />}>
+          <Results
+            answers={nav.quizAnswers}
+            isMarathon={nav.isMarathon}
+            cachedFilms={nav.quizResults}
+            onCacheFilms={nav.setQuizResults}
+            onBack={() => nav.setScreen('quiz')}
+            onDetail={nav.openDetail}
+            onTikTok={nav.openTikTok}
+            onWatch={handleWatchAndPostView}
+            onSave={handleSave}
+            isWatched={isWatched}
+            isSaved={isSaved}
+          />
+        </Suspense>
         <Toast toast={toast.toast} />
         <PtsFloat pts={toast.ptsFloat} />
       </>
     )
-  }
-
-  function handleTabChange(newTab) {
-    setTab(newTab)
   }
 
   // ── Main tab shell ───────────────────────────────────────
   return (
     <div className="app-shell">
-      {tab === 0 && (
-        <Home
-          user={user}
-          streak={streak}
-          onQuiz={openQuiz}
-          onMarathon={openMarathon}
-          onDetail={openDetail}
-          onInvite={handleInvite}
-          lastReco={lastReco}
-          showToast={toast.showToast}
-          isWatched={isWatched}
-        />
-      )}
-      {tab === 1 && (
-        <Social
-          user={user}
-          onDetail={openDetail}
-        />
-      )}
-      {tab === 2 && (
-        <Search
-          onDetail={openDetail}
-          onWatch={handleWatchAndPostView}
-          onSave={handleSave}
-          isWatched={isWatched}
-          isSaved={isSaved}
-        />
-      )}
-      {tab === 3 && (
-        <MiLista
-          user={user}
-          onDetail={openDetail}
-          onWatch={handleWatchAndPostView}
-          onQuiz={() => openQuiz({})}
-          isWatched={isWatched}
-        />
-      )}
-      {tab === 4 && (
-        <Profile
-          user={user}
-          onLogout={auth.logout}
-          onDetail={openDetail}
-          showToast={toast.showToast}
-          updateNameLocal={auth.updateNameLocal}
-          updateAvatarLocal={auth.updateAvatarLocal}
-          onInvite={handleInvite}
-        />
-      )}
+      <main role="main" aria-label="Contenido principal">
+        {nav.tab === 0 && (
+          <Home
+            user={user}
+            streak={streak}
+            onQuiz={openQuiz}
+            onMarathon={openMarathon}
+            onDetail={nav.openDetail}
+            onInvite={handleInvite}
+            lastReco={nav.lastReco}
+            showToast={toast.showToast}
+            isWatched={isWatched}
+          />
+        )}
+        {nav.tab === 1 && (
+          <Suspense fallback={<Spinner />}>
+            <Social user={user} onDetail={nav.openDetail} />
+          </Suspense>
+        )}
+        {nav.tab === 2 && (
+          <Suspense fallback={<Spinner />}>
+            <Search
+              onDetail={nav.openDetail}
+              onWatch={handleWatchAndPostView}
+              onSave={handleSave}
+              isWatched={isWatched}
+              isSaved={isSaved}
+            />
+          </Suspense>
+        )}
+        {nav.tab === 3 && (
+          <Suspense fallback={<Spinner />}>
+            <MiLista
+              user={user}
+              onDetail={nav.openDetail}
+              onWatch={handleWatchAndPostView}
+              onQuiz={() => openQuiz({})}
+              isWatched={isWatched}
+            />
+          </Suspense>
+        )}
+        {nav.tab === 4 && (
+          <Suspense fallback={<Spinner />}>
+            <Profile
+              user={user}
+              onLogout={auth.logout}
+              onDetail={nav.openDetail}
+              showToast={toast.showToast}
+              updateNameLocal={auth.updateNameLocal}
+              updateAvatarLocal={auth.updateAvatarLocal}
+              onInvite={handleInvite}
+              onUpgrade={() => { track('paywall_shown', { reason: 'profile' }); nav.setShowPaywall(true) }}
+            />
+          </Suspense>
+        )}
+      </main>
 
-      <Nav activeTab={tab} onTab={handleTabChange} />
+      <Nav activeTab={nav.tab} onTab={nav.setTab} />
       <Toast toast={toast.toast} />
       <PtsFloat pts={toast.ptsFloat} />
-      {levelUpBadge && (
-        <LevelUp badge={levelUpBadge} onClose={() => setLevelUpBadge(null)} />
+      {nav.levelUpBadge && (
+        <Suspense fallback={null}>
+          <LevelUp badge={nav.levelUpBadge} onClose={() => nav.setLevelUpBadge(null)} />
+        </Suspense>
       )}
     </div>
   )

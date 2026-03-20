@@ -354,6 +354,45 @@
 .prof-empty-icon  { font-size: 44px; }
 .prof-empty-title { font-size: 16px; font-weight: 700; color: var(--text-3); }
 
+/* ── Subscription section ── */
+.prof-sub-section {
+  margin: 8px 20px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+}
+.prof-sub-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.prof-sub-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-4);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.prof-sub-plan {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.prof-sub-btn {
+  background: var(--acc);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 /* ── Invite section ── */
 .prof-invite {
   margin: 8px 20px 32px;

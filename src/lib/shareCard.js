@@ -3,13 +3,15 @@
 const W = 1080
 const H = 1080
 
-function loadImage(src) {
+async function loadImage(src) {
+  const res  = await fetch(src)
+  const blob = await res.blob()
+  const url  = URL.createObjectURL(blob)
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload  = () => resolve(img)
-    img.onerror = () => reject(new Error('img load failed'))
-    img.src = src
+    img.onload  = () => { URL.revokeObjectURL(url); resolve(img) }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('img load failed')) }
+    img.src = url
   })
 }
 

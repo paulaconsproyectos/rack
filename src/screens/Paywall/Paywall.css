@@ -90,6 +90,15 @@
   border-radius: 100px;
 }
 
+.pw-plan-trial {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--acc);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
 .pw-plan-price {
   margin-bottom: 16px;
 }

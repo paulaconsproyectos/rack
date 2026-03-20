@@ -5,10 +5,30 @@ import './Paywall.css'
 
 const MVP_CODE = 'ZINEMVP'
 
-export default function Paywall({ onUnlock, onClose }) {
-  const [code, setCode]     = useState('')
-  const [error, setError]   = useState('')
-  const [shake, setShake]   = useState(false)
+export default function Paywall({ onUnlock, onClose, user }) {
+  const [code, setCode]       = useState('')
+  const [error, setError]     = useState('')
+  const [shake, setShake]     = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  async function handleCheckout() {
+    if (!user?.id || !user?.email) return
+    setLoading(true)
+    track('paywall_checkout_start')
+    try {
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, email: user.email }),
+      })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch {
+      setError('Error al iniciar el pago. Inténtalo de nuevo.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   function handleCode() {
     if (code.trim().toUpperCase() === MVP_CODE) {
@@ -44,6 +64,7 @@ export default function Paywall({ onUnlock, onClose }) {
             <span className="pw-plan-label">PRO</span>
             <span className="pw-plan-badge">MÁS POPULAR</span>
           </div>
+          <div className="pw-plan-trial">7 días gratis, sin compromiso</div>
           <div className="pw-plan-price">
             <span className="pw-plan-amount">2,99€</span>
             <span className="pw-plan-period">/mes</span>
@@ -53,8 +74,8 @@ export default function Paywall({ onUnlock, onClose }) {
             <li><span>✦</span> Modo Maratón</li>
             <li><span>✦</span> 7+ plataformas</li>
           </ul>
-          <button className="btn btn-primary pw-pro-btn">
-            Empezar ahora →
+          <button className="btn btn-primary pw-pro-btn" onClick={handleCheckout} disabled={loading}>
+            {loading ? 'Cargando…' : 'Empezar prueba gratis →'}
           </button>
         </div>
 

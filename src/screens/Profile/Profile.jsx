@@ -4,7 +4,7 @@ import { typePillStyle } from '../../lib/utils.js'
 import { upsertProfile } from '../../lib/supabase.js'
 import { IcoLogout, IcoEdit } from '../../components/Icons.jsx'
 
-export default function Profile({ user, onLogout, onDetail, showToast, updateNameLocal, updateAvatarLocal, onInvite }) {
+export default function Profile({ user, onLogout, onDetail, showToast, updateNameLocal, updateAvatarLocal, onInvite, onUpgrade }) {
   const [editMode, setEditMode]   = useState(false)
   const [nameInput, setNameInput] = useState(user?.name || '')
   const [saving, setSaving]       = useState(false)
@@ -188,6 +188,21 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
             })}
           </div>
         )}
+      </div>
+
+      {/* Subscription section */}
+      <div className="prof-sub-section">
+        <div className="prof-sub-top">
+          <div>
+            <div className="prof-sub-label">Suscripción</div>
+            <div className="prof-sub-plan">{user?.is_pro ? '✦ Pro — tests ilimitados' : 'Gratuita — 5 tests'}</div>
+          </div>
+          {!user?.is_pro && (
+            <button className="prof-sub-btn" onClick={onUpgrade}>
+              Mejorar →
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Invite section */}

@@ -1,6 +1,6 @@
-export function Toast({ message }) {
-  if (!message) return null
-  return <div className="toast" role="status" aria-live="polite">{message}</div>
+export function Toast({ toast }) {
+  if (!toast) return null
+  return <div className="toast" role="status" aria-live="polite">{toast}</div>
 }
 
 export function PtsFloat({ pts }) {

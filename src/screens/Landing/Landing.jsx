@@ -12,6 +12,13 @@ const BG_FILMS = [
 export default function Landing({ onLogin, onRegister }) {
   const [bgIdx, setBgIdx]     = useState(0)
   const [visible, setVisible] = useState(true)
+  const [ready, setReady]     = useState(false)
+
+  useEffect(() => {
+    const img = new Image()
+    img.src = BG_FILMS[0].url
+    img.onload = () => setReady(true)
+  }, [])
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -31,7 +38,7 @@ export default function Landing({ onLogin, onRegister }) {
       {/* Cinematic backdrop */}
       <div
         className="land-bg"
-        style={{ backgroundImage: `url(${film.url})`, opacity: visible ? 1 : 0 }}
+        style={{ backgroundImage: `url(${film.url})`, opacity: visible && ready ? 1 : 0 }}
         aria-hidden="true"
       />
       <div className="land-overlay" aria-hidden="true" />
@@ -48,36 +55,6 @@ export default function Landing({ onLogin, onRegister }) {
           ¿Qué ves esta noche?<br />
           <span>5 preguntas. La respuesta exacta.</span>
         </p>
-      </div>
-
-      {/* SEO content — visible to crawlers, subtle for users */}
-      <div className="land-seo-content" aria-hidden="true">
-        <div className="land-pills">
-          <span>Netflix</span>
-          <span>HBO Max</span>
-          <span>Prime Video</span>
-          <span>Disney+</span>
-          <span>Filmin</span>
-          <span>Movistar+</span>
-        </div>
-      </div>
-
-      {/* How it works */}
-      <div className="land-how">
-        <div className="land-how-step">
-          <span className="land-how-n">1</span>
-          <span>Cuéntanos tu mood</span>
-        </div>
-        <div className="land-how-sep">·</div>
-        <div className="land-how-step">
-          <span className="land-how-n">2</span>
-          <span>Elige tu plataforma</span>
-        </div>
-        <div className="land-how-sep">·</div>
-        <div className="land-how-step">
-          <span className="land-how-n">3</span>
-          <span>Tu recomendación</span>
-        </div>
       </div>
 
       {/* CTAs */}
