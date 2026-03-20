@@ -18,16 +18,8 @@ const TAGLINES = [
 export default function Landing({ onLogin, onRegister, onDemo }) {
   const [bgIdx, setBgIdx]         = useState(0)
   const [bgVisible, setBgVisible] = useState(true)
-  const [bgLoaded, setBgLoaded]   = useState(false)
   const [tagIdx, setTagIdx]       = useState(0)
   const [tagIn, setTagIn]         = useState(true)
-
-  // Preload first image immediately
-  useEffect(() => {
-    const img = new Image()
-    img.onload = () => setBgLoaded(true)
-    img.src = BG_FILMS[0].url
-  }, [])
 
   // Rotate backgrounds
   useEffect(() => {
@@ -53,7 +45,7 @@ export default function Landing({ onLogin, onRegister, onDemo }) {
     <div className="land">
       <div
         className="land-bg"
-        style={{ backgroundImage: `url(${film.url})`, opacity: bgVisible && bgLoaded ? 1 : 0 }}
+        style={{ backgroundImage: `url(${film.url})`, opacity: bgVisible ? 1 : 0 }}
         aria-hidden="true"
       />
       <div className="land-overlay" aria-hidden="true" />
