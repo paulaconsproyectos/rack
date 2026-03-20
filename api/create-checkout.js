@@ -24,8 +24,8 @@ export default async function handler(req, res) {
         metadata: { userId },
       },
       metadata: { userId },
-      success_url: `${process.env.APP_URL}/?pro=1`,
-      cancel_url:  `${process.env.APP_URL}/`,
+      success_url: `${process.env.APP_URL || 'https://zineclub.vercel.app'}/?pro=1`,
+      cancel_url:  `${process.env.APP_URL || 'https://zineclub.vercel.app'}/`,
     })
 
     res.json({ url: session.url })
