@@ -93,6 +93,14 @@
   line-height: 1.2;
 }
 
+.land-sub {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.6;
+  margin: 0 0 4px;
+  max-width: 280px;
+}
+
 /* Proof pills */
 .land-proof {
   display: flex;

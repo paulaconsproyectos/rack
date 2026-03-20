@@ -10,9 +10,9 @@ const BG_FILMS = [
 ]
 
 const HEADLINES = [
-  { top: 'El fin del', bottom: '"no sé qué ver".' },
-  { top: '30 segundos.', bottom: 'La película exacta.' },
-  { top: 'Sin scroll.', bottom: 'Sin algoritmos.' },
+  { top: 'Dinos tu mood.', bottom: 'Nosotros ponemos la peli.' },
+  { top: '5 preguntas.', bottom: 'La película exacta.' },
+  { top: 'Sin scroll infinito.', bottom: 'Sin algoritmos genéricos.' },
 ]
 
 export default function Landing({ onLogin, onRegister, onDemo }) {
@@ -59,16 +59,12 @@ export default function Landing({ onLogin, onRegister, onDemo }) {
           <p className="land-headline-top">{headline.top}</p>
           <p className="land-headline-bottom">{headline.bottom}</p>
         </div>
-        <div className="land-proof">
-          <span>✦ 5 preguntas</span>
-          <span>✦ Tu plataforma</span>
-          <span>✦ Gratis</span>
-        </div>
+        <p className="land-sub">Responde 5 preguntas y te decimos exactamente qué ver, en tu plataforma, esta noche.</p>
       </div>
 
       <div className="land-bottom">
         <button className="btn btn-primary land-btn-demo" onClick={onDemo}>
-          Probar ahora — es gratis
+          Descubrir qué ver esta noche
         </button>
         <div className="land-alt-actions">
           <button className="btn btn-secondary" onClick={onRegister}>Crear cuenta</button>
