@@ -12,7 +12,10 @@ export default function Paywall({ onUnlock, onClose, user }) {
   const [loading, setLoading] = useState(false)
 
   async function handleCheckout() {
-    if (!user?.id || !user?.email) return
+    if (!user?.id || !user?.email) {
+      setError('Inicia sesión para continuar.')
+      return
+    }
     setLoading(true)
     track('paywall_checkout_start')
     try {
