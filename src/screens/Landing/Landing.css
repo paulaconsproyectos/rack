@@ -13,6 +13,7 @@
   inset: 0;
   background-size: cover;
   background-position: center 20%;
+  background-color: #1a1209;
   transition: opacity 0.8s ease;
 }
 

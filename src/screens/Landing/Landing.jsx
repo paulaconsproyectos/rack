@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 
 const BG_FILMS = [
-  { url: 'https://image.tmdb.org/t/p/w780/tM7ObJa8Mh3UEhGEiNbTMiHAHi2.jpg', title: 'El Padrino' },
-  { url: 'https://image.tmdb.org/t/p/w780/gNBCvtYyGPbjPCT1k3MvJuNuXR6.jpg', title: 'Pulp Fiction' },
-  { url: 'https://image.tmdb.org/t/p/w780/xMMrBziwJqrggerqyXfjbKSpCEG.jpg', title: 'Uno de los Nuestros' },
-  { url: 'https://image.tmdb.org/t/p/w780/5M0j0B18abtBI5gi2RhfjjurTqb.jpg', title: 'Blade Runner 2049' },
-  { url: 'https://image.tmdb.org/t/p/w780/AkJQpZp9WoNdj7pLYSj1L0RcMMN.jpg', title: 'Mulholland Drive' },
-  { url: 'https://image.tmdb.org/t/p/w780/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
+  { url: 'https://image.tmdb.org/t/p/w500/tM7ObJa8Mh3UEhGEiNbTMiHAHi2.jpg', title: 'El Padrino' },
+  { url: 'https://image.tmdb.org/t/p/w500/gNBCvtYyGPbjPCT1k3MvJuNuXR6.jpg', title: 'Pulp Fiction' },
+  { url: 'https://image.tmdb.org/t/p/w500/xMMrBziwJqrggerqyXfjbKSpCEG.jpg', title: 'Uno de los Nuestros' },
+  { url: 'https://image.tmdb.org/t/p/w500/5M0j0B18abtBI5gi2RhfjjurTqb.jpg', title: 'Blade Runner 2049' },
+  { url: 'https://image.tmdb.org/t/p/w500/AkJQpZp9WoNdj7pLYSj1L0RcMMN.jpg', title: 'Mulholland Drive' },
+  { url: 'https://image.tmdb.org/t/p/w500/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
 ]
 
 const TAGLINES = [
@@ -18,8 +18,16 @@ const TAGLINES = [
 export default function Landing({ onLogin, onRegister, onDemo }) {
   const [bgIdx, setBgIdx]         = useState(0)
   const [bgVisible, setBgVisible] = useState(true)
+  const [bgLoaded, setBgLoaded]   = useState(false)
   const [tagIdx, setTagIdx]       = useState(0)
   const [tagIn, setTagIn]         = useState(true)
+
+  // Preload first image immediately
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setBgLoaded(true)
+    img.src = BG_FILMS[0].url
+  }, [])
 
   // Rotate backgrounds
   useEffect(() => {
@@ -45,7 +53,7 @@ export default function Landing({ onLogin, onRegister, onDemo }) {
     <div className="land">
       <div
         className="land-bg"
-        style={{ backgroundImage: `url(${film.url})`, opacity: bgVisible ? 1 : 0 }}
+        style={{ backgroundImage: `url(${film.url})`, opacity: bgVisible && bgLoaded ? 1 : 0 }}
         aria-hidden="true"
       />
       <div className="land-overlay" aria-hidden="true" />
