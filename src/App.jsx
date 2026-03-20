@@ -16,7 +16,8 @@ import Quiz         from './screens/Quiz/Quiz.jsx'
 import Onboarding   from './screens/Onboarding/Onboarding.jsx'
 import Paywall      from './screens/Paywall/Paywall.jsx'
 import Nav          from './components/Nav.jsx'
-import { Toast, PtsFloat } from './components/Toast.jsx'\nimport DemoGate     from './components/DemoGate.jsx'
+import { Toast, PtsFloat } from './components/Toast.jsx'
+import DemoGate     from './components/DemoGate.jsx'
 
 // Lazy-loaded — only when navigated to
 const Recommendation = lazy(() => import('./screens/Recommendation/Recommendation.jsx'))
@@ -62,7 +63,9 @@ export default function App() {
   const auth = useAuth()
   const toast = useToast()
   const nav  = useNavigation()
-  const [authMode, setAuthMode] = useState('login')\n  const [demoMode, setDemoMode]   = useState(false)\n  const [demoFilm, setDemoFilm]   = useState(null)
+  const [authMode, setAuthMode] = useState('login')
+  const [demoMode, setDemoMode]   = useState(false)
+  const [demoFilm, setDemoFilm]   = useState(null)
 
   useEffect(() => { registerSW() }, [])
 
