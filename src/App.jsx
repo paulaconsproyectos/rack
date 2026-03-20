@@ -106,7 +106,7 @@ export default function App() {
   }
 
   // ── Test access (needed before onboarding) ──
-  const FREE_TESTS = 3
+  const FREE_TESTS = 5
   function hasTestAccess() {
     if (localStorage.getItem('zc_mvp_code')) return true
     const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
