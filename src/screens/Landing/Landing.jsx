@@ -9,70 +9,79 @@ const BG_FILMS = [
   { url: 'https://image.tmdb.org/t/p/w1280/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
 ]
 
-const HEADLINES = [
-  { top: 'Dinos tu mood.', bottom: 'Nosotros ponemos la peli.' },
-  { top: '5 preguntas.', bottom: 'La película exacta.' },
-  { top: 'Sin scroll infinito.', bottom: 'Sin algoritmos genéricos.' },
+const TAGLINES = [
+  'Dinos tu mood. Nosotros ponemos la peli.',
+  '5 preguntas. La película exacta.',
+  'Sin scroll infinito. Sin algoritmos.',
 ]
 
 export default function Landing({ onLogin, onRegister, onDemo }) {
-  const [bgIdx, setBgIdx]             = useState(0)
-  const [visible, setVisible]         = useState(true)
-  const [ready, setReady]             = useState(false)
-  const [headlineIdx, setHeadlineIdx] = useState(0)
-  const [headlineIn, setHeadlineIn]   = useState(true)
+  const [bgIdx, setBgIdx]         = useState(0)
+  const [bgVisible, setBgVisible] = useState(true)
+  const [tagIdx, setTagIdx]       = useState(0)
+  const [tagIn, setTagIn]         = useState(true)
 
-  useEffect(() => {
-    const img = new Image()
-    img.src = BG_FILMS[0].url
-    img.onload = () => setReady(true)
-  }, [])
-
+  // Rotate backgrounds
   useEffect(() => {
     const id = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => { setBgIdx(i => (i + 1) % BG_FILMS.length); setVisible(true) }, 600)
+      setBgVisible(false)
+      setTimeout(() => { setBgIdx(i => (i + 1) % BG_FILMS.length); setBgVisible(true) }, 600)
     }, 6000)
     return () => clearInterval(id)
   }, [])
 
+  // Rotate taglines
   useEffect(() => {
     const id = setInterval(() => {
-      setHeadlineIn(false)
-      setTimeout(() => { setHeadlineIdx(i => (i + 1) % HEADLINES.length); setHeadlineIn(true) }, 400)
+      setTagIn(false)
+      setTimeout(() => { setTagIdx(i => (i + 1) % TAGLINES.length); setTagIn(true) }, 350)
     }, 3500)
     return () => clearInterval(id)
   }, [])
 
-  const film     = BG_FILMS[bgIdx]
-  const headline = HEADLINES[headlineIdx]
+  const film = BG_FILMS[bgIdx]
 
   return (
     <div className="land">
-      <div className="land-bg" style={{ backgroundImage: `url(${film.url})`, opacity: visible && ready ? 1 : 0 }} aria-hidden="true" />
+      <div
+        className="land-bg"
+        style={{ backgroundImage: `url(${film.url})`, opacity: bgVisible ? 1 : 0 }}
+        aria-hidden="true"
+      />
       <div className="land-overlay" aria-hidden="true" />
 
       <div className="land-hero">
-        <div className="land-film-credit" aria-hidden="true">En pantalla: <span>{film.title}</span></div>
-        <h1 className="land-logo">Zine<span> Club</span></h1>
-        <div className={`land-headline ${headlineIn ? 'land-headline--in' : 'land-headline--out'}`}>
-          <p className="land-headline-top">{headline.top}</p>
-          <p className="land-headline-bottom">{headline.bottom}</p>
+        <div className="land-film-credit" aria-hidden="true">
+          En pantalla: <span>{film.title}</span>
         </div>
-        <p className="land-sub">Responde 5 preguntas y te decimos exactamente qué ver, en tu plataforma, esta noche.</p>
+
+        <h1 className="land-logo">
+          Zine<span> Club</span>
+        </h1>
+
+        <p className="land-tagline-static">Todo lo que mereces ver.</p>
+
+        <div className={`land-tagline-rotate ${tagIn ? 'land-tagline--in' : 'land-tagline--out'}`}>
+          {TAGLINES[tagIdx]}
+        </div>
+
+        <p className="land-sub">
+          Cuéntanos cómo te sientes y te recomendamos la película perfecta para esta noche, en tu plataforma.
+        </p>
       </div>
 
       <div className="land-bottom">
         <button className="btn btn-primary land-btn-demo" onClick={onDemo}>
-          Descubrir qué ver esta noche
+          Probar gratis ahora
         </button>
         <div className="land-alt-actions">
           <button className="btn btn-secondary" onClick={onRegister}>Crear cuenta</button>
-          <button className="btn btn-ghost" onClick={onLogin}>Entrar</button>
+          <button className="btn btn-ghost" onClick={onLogin}>Ya tengo cuenta</button>
         </div>
         <p className="land-legal">
           Al continuar aceptas los{' '}
-          <a href="/terminos.html" target="_blank" rel="noopener">Términos</a>{' '}y la{' '}
+          <a href="/terminos.html" target="_blank" rel="noopener">Términos</a>
+          {' '}y la{' '}
           <a href="/privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.
         </p>
       </div>
