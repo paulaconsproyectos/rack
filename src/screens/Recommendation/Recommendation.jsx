@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { track } from '../../lib/analytics.js'
+import { LS, KEYS } from '../../lib/storage.js'
 import { discoverByMood, enrichFilm, IMG_W7 } from '../../lib/tmdb.js'
 import { generateShareCard } from '../../lib/shareCard.js'
 import { PLATFORMS } from '../../constants/platforms.js'
@@ -54,7 +55,7 @@ export default function Recommendation({
   useEffect(() => {
     let dislikedIds = []
     try {
-      const fb = JSON.parse(localStorage.getItem('zc_feedback') || '[]')
+      const fb = LS.get(KEYS.feedback, [])
       dislikedIds = fb.filter(e => e.reaction === '🤍').map(e => e.filmId)
     } catch {}
 

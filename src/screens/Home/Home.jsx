@@ -3,13 +3,14 @@ import { fetchWeeklyPick, fetchNowPlaying } from '../../lib/tmdb.js'
 import { IcoFlame } from '../../components/Icons.jsx'
 import { canPush, pushPermission, requestAndSave } from '../../lib/notifications.js'
 import { track } from '../../lib/analytics.js'
+import { LS, KEYS } from '../../lib/storage.js'
 import './Home.css'
 
 export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInvite, showToast, lastReco, isWatched }) {
   const [potw, setPotw]                 = useState(null)
   const [nowPlaying, setNowPlaying]     = useState([])
   const [potwLoading, setPotwLoading]   = useState(true)
-  const [pushDismissed, setPushDismissed] = useState(() => !!localStorage.getItem('zc_push_dismissed'))
+  const [pushDismissed, setPushDismissed] = useState(() => LS.flag(KEYS.pushDismissed))
 
   useEffect(() => {
     fetchWeeklyPick()
@@ -39,12 +40,12 @@ export default function Home({ user, streak, onQuiz, onMarathon, onDetail, onInv
     if (ok) { track('notification_enabled'); showToast?.('Notificaciones activadas ✓') }
     else showToast?.('No se han podido activar')
     setPushDismissed(true)
-    localStorage.setItem('zc_push_dismissed', '1')
+    LS.setFlag(KEYS.pushDismissed)
   }
 
   function dismissPush() {
     setPushDismissed(true)
-    localStorage.setItem('zc_push_dismissed', '1')
+    LS.setFlag(KEYS.pushDismissed)
   }
 
   return (

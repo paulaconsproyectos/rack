@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { track } from '../../lib/analytics.js'
+import { LS, KEYS } from '../../lib/storage.js'
 import { sb } from '../../lib/supabase.js'
 import './PostView.css'
 
@@ -25,10 +26,10 @@ export default function PostView({ film, onDone, onReview, showToast, showPts })
     setReaction(r)
     if (film) {
       try {
-        const existing = JSON.parse(localStorage.getItem('zc_feedback') || '[]')
+        const existing = LS.get(KEYS.feedback, [])
         const entry = { filmId: String(film.id), reaction: r, genres: film.genres || [], mediaType: film.mediaType || 'movie', ts: Date.now() }
         const updated = [entry, ...existing.filter(e => e.filmId !== String(film.id))].slice(0, 50)
-        localStorage.setItem('zc_feedback', JSON.stringify(updated))
+        LS.set(KEYS.feedback, updated)
       } catch {}
       saveFeedbackRemote(film, r)
       track('postview_reaction', { reaction: r, film_id: film.id, title: film.title, genres: film.genres })

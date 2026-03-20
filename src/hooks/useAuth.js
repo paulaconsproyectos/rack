@@ -118,7 +118,7 @@ export function useAuth() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ newUserId: authUser.id, inviteCode: refCode }),
         })
-        localStorage.removeItem('zc_ref')
+        LS.remove('zc_ref')
       } catch {}
     }
   }

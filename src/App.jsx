@@ -5,6 +5,7 @@ import { computeStreak, watchPoints } from './lib/utils.js'
 import { getBadge } from './constants/badges.js'
 import { registerSW } from './lib/notifications.js'
 import { identify, reset, track } from './lib/analytics.js'
+import { LS, KEYS } from './lib/storage.js'
 
 // Screens
 import Landing        from './screens/Landing/Landing.jsx'
@@ -76,7 +77,7 @@ export default function App() {
   const [navStack, setNavStack]         = useState([])
   const [showPaywall, setShowPaywall]   = useState(false)
   const [levelUpBadge, setLevelUpBadge] = useState(null)
-  const [onboarded, setOnboarded]       = useState(() => !!localStorage.getItem('zc_onboarded'))
+  const [onboarded, setOnboarded]       = useState(() => LS.flag(KEYS.onboarded))
 
   // ── Auth: loading ──
   if (auth.authState === 'loading') {
@@ -110,20 +111,18 @@ export default function App() {
   // ── Test access (needed before onboarding) ──
   const FREE_TESTS = 5
   function hasTestAccess() {
-    if (localStorage.getItem('zc_mvp_code')) return true
-    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
-    return used < FREE_TESTS
+    if (LS.flag(KEYS.mvpCode)) return true
+    return LS.get(KEYS.testsUsed, 0) < FREE_TESTS
   }
   function consumeTest() {
-    if (localStorage.getItem('zc_mvp_code')) return
-    const used = parseInt(localStorage.getItem('zc_tests_used') || '0')
-    localStorage.setItem('zc_tests_used', String(used + 1))
+    if (LS.flag(KEYS.mvpCode)) return
+    LS.set(KEYS.testsUsed, LS.get(KEYS.testsUsed, 0) + 1)
   }
 
   // ── Onboarding ──
   if (!onboarded) {
     return <Onboarding onDone={(startQuiz = false) => {
-      localStorage.setItem('zc_onboarded', '1')
+      LS.setFlag(KEYS.onboarded)
       setOnboarded(true)
       if (startQuiz) {
         setIsMarathon(false)
