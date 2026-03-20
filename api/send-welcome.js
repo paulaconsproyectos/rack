@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM   = process.env.RESEND_FROM || 'Zine Club <hola@zineclub.app>'
+const FROM   = process.env.RESEND_FROM || 'Zine Club <hola@zineclub.io>'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         Ya estás dentro. Esta noche, sin scroll infinito ni algoritmos aburridos, te encontramos lo que realmente mereces ver.
       </p>
 
-      <a href="https://zineclub.app"
+      <a href="https://zineclub.io"
          style="display:inline-block;background:#C9A96E;color:#000;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;text-decoration:none;">
         Hacer mi primera recomendación ✦
       </a>
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
       <div style="margin-top:32px;">
         <p style="font-size:11px;color:rgba(255,255,255,0.2);margin:0;">
-          © Zine Club · <a href="https://zineclub.app" style="color:rgba(255,255,255,0.3);">zineclub.app</a>
+          © Zine Club · <a href="https://zineclub.io" style="color:rgba(255,255,255,0.3);">zineclub.io</a>
         </p>
       </div>
     </td></tr>

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://zineclub.app/sitemap.xml
+Sitemap: https://zineclub.io/sitemap.xml

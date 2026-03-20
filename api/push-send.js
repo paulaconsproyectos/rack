@@ -7,7 +7,7 @@ const sb = createClient(
 )
 
 webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL || 'hola@zineclub.app'}`,
+  `mailto:${process.env.VAPID_EMAIL || 'hola@zineclub.io'}`,
   process.env.VAPID_PUBLIC_KEY  || 'BKykByTYF0CyNDOu26KcqRS8sxIxZOe42JC8eCnDxlJxbr2Kr2dbMkTNBji2TqezWKPRM4ovSBoY9qoXB1CybXc',
   process.env.VAPID_PRIVATE_KEY || '1c4I6J8lgNnQ_1gJZarcGh_QXQ6jKA7bM4yU3apRZzI'
 )

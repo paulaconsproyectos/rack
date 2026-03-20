@@ -109,7 +109,7 @@ export async function generateShareCard(film) {
 
   ctx.fillStyle = 'rgba(255,255,255,0.3)'
   ctx.font = '400 24px "DM Sans", system-ui, sans-serif'
-  ctx.fillText('zineclub.app', W / 2, 1000)
+  ctx.fillText('zineclub.io', W / 2, 1000)
 
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
 }

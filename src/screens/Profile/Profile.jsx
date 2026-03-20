@@ -200,7 +200,7 @@ export default function Profile({ user, onLogout, onDetail, showToast, updateNam
             <button
               className="prof-invite-copy"
               onClick={() => {
-                navigator.clipboard?.writeText(`https://zineclub.app?ref=${user.invite_code}`)
+                navigator.clipboard?.writeText(`https://zineclub.io?ref=${user.invite_code}`)
                 showToast('Enlace copiado ✓')
               }}
             >

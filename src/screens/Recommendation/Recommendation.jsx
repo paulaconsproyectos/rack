@@ -92,7 +92,7 @@ export default function Recommendation({
     track('share_card', { film_id: film.id, title: film.title })
     const title = film.titleEs || film.title || ''
     const text  = `Esta noche toca: ${title} ✦\nDescubierto con Zine Club`
-    const url   = 'https://zineclub.app'
+    const url   = 'https://zineclub.io'
     try {
       const blob = await generateShareCard(film)
       const file = new File([blob], `zineclub-${film.id}.png`, { type: 'image/png' })

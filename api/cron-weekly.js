@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(`${process.env.APP_URL || 'https://zineclub.app'}/api/push-send`, {
+    const response = await fetch(`${process.env.APP_URL || 'https://zineclub.io'}/api/push-send`, {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',

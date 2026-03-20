@@ -255,7 +255,7 @@ export default function App() {
 
   function handleInvite() {
     const code = user?.invite_code
-    const url  = `https://zineclub.app${code ? `?ref=${code}` : ''}`
+    const url  = `https://zineclub.io${code ? `?ref=${code}` : ''}`
     const text = 'Descubre lo que realmente mereces ver esta noche. Sin scroll, sin algoritmos.'
     if (navigator.share) {
       navigator.share({ title: 'Zine Club', text, url })

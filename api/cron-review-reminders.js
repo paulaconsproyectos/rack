@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   if (!reminders?.length) return res.json({ sent: 0 })
 
   let sent = 0
-  const appUrl = process.env.APP_URL || 'https://zineclub.app'
+  const appUrl = process.env.APP_URL || 'https://zineclub.io'
 
   // Get film IDs that already have feedback so we skip them
   const filmIds = reminders.map(r => r.film_id)
