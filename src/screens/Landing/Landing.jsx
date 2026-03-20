@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 
 const BG_FILMS = [
-  { url: 'https://image.tmdb.org/t/p/w500/tM7ObJa8Mh3UEhGEiNbTMiHAHi2.jpg', title: 'El Padrino' },
-  { url: 'https://image.tmdb.org/t/p/w500/gNBCvtYyGPbjPCT1k3MvJuNuXR6.jpg', title: 'Pulp Fiction' },
-  { url: 'https://image.tmdb.org/t/p/w500/xMMrBziwJqrggerqyXfjbKSpCEG.jpg', title: 'Uno de los Nuestros' },
-  { url: 'https://image.tmdb.org/t/p/w500/5M0j0B18abtBI5gi2RhfjjurTqb.jpg', title: 'Blade Runner 2049' },
-  { url: 'https://image.tmdb.org/t/p/w500/AkJQpZp9WoNdj7pLYSj1L0RcMMN.jpg', title: 'Mulholland Drive' },
-  { url: 'https://image.tmdb.org/t/p/w500/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
+  { url: '/land1.jpg', title: 'El Padrino' },
+  { url: '/land2.jpg', title: 'Pulp Fiction' },
+  { url: '/land3.jpg', title: 'Uno de los Nuestros' },
+  { url: '/land4.jpg', title: 'Blade Runner 2049' },
+  { url: '/land5.jpg', title: 'Mulholland Drive' },
+  { url: '/land6.jpg', title: 'Dune' },
 ]
 
 const TAGLINES = [
