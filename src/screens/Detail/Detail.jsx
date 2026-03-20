@@ -144,7 +144,7 @@ export default function Detail({ film: initialFilm, from, user, onClose, onBack,
           onClick={handleWatch}
         >
           <IcoEye />
-          <span>{isWatched(film) ? 'Vista' : 'Marcar vista'}</span>
+          <span>{isWatched(film) ? 'Vista ✓' : 'Ya la vi'}</span>
         </button>
         <button
           className={`det-action-btn ${isSaved(film) ? 'active' : ''}`}
@@ -165,25 +165,26 @@ export default function Detail({ film: initialFilm, from, user, onClose, onBack,
       {/* Body */}
       <div className="det-body">
 
-        {/* Genres */}
-        {film.genres?.length > 0 && (
-          <div className="det-genres">
-            {film.genres.map(g => (
-              <span key={g} className="det-genre-chip">{g}</span>
-            ))}
-          </div>
-        )}
+        {/* Streaming — first thing after hero */}
+        <div className="det-section">
+          <div className="det-sec-label">Dónde ver</div>
+          {loading
+            ? <div className="det-stream-skeleton skeleton" />
+            : <StreamLinks film={film} />
+          }
+        </div>
 
         {/* Description */}
         {film.description && (
           <p className="det-desc">{film.description}</p>
         )}
 
-        {/* Streaming */}
-        {!loading && (
-          <div className="det-section">
-            <div className="det-sec-label">Dónde ver</div>
-            <StreamLinks film={film} />
+        {/* Genres */}
+        {film.genres?.length > 0 && (
+          <div className="det-genres">
+            {film.genres.map(g => (
+              <span key={g} className="det-genre-chip">{g}</span>
+            ))}
           </div>
         )}
 
@@ -216,7 +217,8 @@ export default function Detail({ film: initialFilm, from, user, onClose, onBack,
           </div>
         )}
 
-        {/* Reviews */}
+        {/* Reviews — only if watched */}
+        {isWatched(film) && (
         <div className="det-section">
           <div className="det-sec-label">Tu reseña</div>
           {!user ? (
@@ -265,6 +267,7 @@ export default function Detail({ film: initialFilm, from, user, onClose, onBack,
             </div>
           )}
         </div>
+        )}
 
         {/* Similar */}
         {film.similar?.length > 0 && (

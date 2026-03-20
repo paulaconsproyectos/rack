@@ -562,3 +562,9 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+.det-stream-skeleton {
+  height: 44px;
+  border-radius: var(--radius-md);
+  width: 200px;
+}
