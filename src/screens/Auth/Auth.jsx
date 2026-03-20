@@ -168,9 +168,6 @@ export default function Auth({ mode = 'login', onBack, onLogin, onRegister, onPa
               <button type="button" className="auth-forgot-link" onClick={() => { setView('forgot'); setErr('') }}>
                 ¿Olvidaste tu contraseña?
               </button>
-              <div className="demo-hint">
-                <strong>Cuenta demo:</strong> demo@zineclub.io / demo1234
-              </div>
             </form>
           )}
 

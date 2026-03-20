@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useAuth }       from './hooks/useAuth.js'
 import { useToast }      from './hooks/useToast.js'
 import { useNavigation } from './hooks/useNavigation.js'
@@ -62,6 +62,7 @@ export default function App() {
   const auth = useAuth()
   const toast = useToast()
   const nav  = useNavigation()
+  const [authMode, setAuthMode] = useState('login')
 
   useEffect(() => { registerSW() }, [])
 
@@ -82,15 +83,15 @@ export default function App() {
 
   if (auth.authState === 'landing') {
     return <Landing
-      onRegister={() => { auth.setAuthState('auth') }}
-      onLogin={() => { auth.setAuthState('auth') }}
+      onRegister={() => { setAuthMode('register'); auth.setAuthState('auth') }}
+      onLogin={() => { setAuthMode('login'); auth.setAuthState('auth') }}
     />
   }
 
   if (auth.authState === 'auth' || auth.authState === 'reset') {
     return (
       <Auth
-        mode={auth.authState === 'reset' ? 'reset' : 'login'}
+        mode={auth.authState === 'reset' ? 'reset' : authMode}
         onLogin={auth.login}
         onRegister={auth.register}
         onBack={() => auth.setAuthState('landing')}
