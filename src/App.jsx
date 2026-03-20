@@ -94,13 +94,15 @@ export default function App() {
     />
   }
 
-  if (auth.authState === 'auth') {
+  if (auth.authState === 'auth' || auth.authState === 'reset') {
     return (
       <Auth
-        mode={authMode}
+        mode={auth.authState === 'reset' ? 'reset' : authMode}
         onLogin={auth.login}
         onRegister={auth.register}
         onBack={() => auth.setAuthState('landing')}
+        onPasswordReset={auth.sendPasswordReset}
+        onUpdatePassword={auth.updatePassword}
       />
     )
   }

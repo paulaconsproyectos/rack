@@ -17,7 +17,9 @@ export function useAuth() {
     })
 
     const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthState('reset')
+      } else if (event === 'SIGNED_IN' && session?.user) {
         loadProfile(session.user)
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
@@ -125,6 +127,18 @@ export function useAuth() {
     await sb.auth.signOut()
   }
 
+  async function sendPasswordReset(email) {
+    const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/?reset=1`,
+    })
+    if (error) throw new Error('No pudimos enviar el email. Comprueba que la dirección es correcta.')
+  }
+
+  async function updatePassword(newPassword) {
+    const { error } = await sb.auth.updateUser({ password: newPassword })
+    if (error) throw new Error('No se pudo actualizar la contraseña.')
+  }
+
   function addWatchedLocal(film, pts = 10) {
     const uid        = user?.id
     const alreadySeen = (user?.watched || []).some(w => w.id === film.id)
@@ -207,6 +221,8 @@ export function useAuth() {
     login,
     register,
     logout,
+    sendPasswordReset,
+    updatePassword,
     addWatchedLocal,
     addWatchlistLocal,
     addReviewLocal,

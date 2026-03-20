@@ -161,3 +161,17 @@
 }
 
 .auth-confirm-icon { font-size: 48px; }
+
+.auth-forgot-link {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--text-4);
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  padding: 8px 0 0;
+  width: 100%;
+  transition: color var(--t-fast);
+}
+.auth-forgot-link:hover { color: var(--text-3); }
