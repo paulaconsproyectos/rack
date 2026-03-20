@@ -1,0 +1,131 @@
+.dgate {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dgate-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) scale(1.1);
+  opacity: 0.4;
+}
+
+.dgate-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(9, 9, 11, 0.5) 0%,
+    rgba(9, 9, 11, 0.85) 40%,
+    rgba(9, 9, 11, 0.98) 100%
+  );
+}
+
+.dgate-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 28px max(48px, env(safe-area-inset-bottom));
+  animation: dgate-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dgate-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dgate-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acc);
+  background: rgba(201, 169, 110, 0.12);
+  border: 1px solid rgba(201, 169, 110, 0.25);
+  border-radius: 20px;
+  padding: 5px 14px;
+  margin-bottom: 20px;
+}
+
+.dgate-poster {
+  width: 90px;
+  height: 135px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  margin-bottom: 16px;
+}
+
+.dgate-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.dgate-divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(201,169,110,0.35);
+  margin-bottom: 20px;
+}
+
+.dgate-headline {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #fff;
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.dgate-headline em {
+  font-style: italic;
+  color: var(--acc);
+}
+
+.dgate-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.6;
+  text-align: center;
+  margin: 0 0 28px;
+  max-width: 300px;
+}
+
+.dgate-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dgate-btn {
+  font-size: 16px;
+  padding: 18px;
+}
+
+.dgate-login {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.dgate-login:hover { color: rgba(255,255,255,0.7); }

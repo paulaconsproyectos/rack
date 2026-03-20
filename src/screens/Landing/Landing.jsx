@@ -9,10 +9,18 @@ const BG_FILMS = [
   { url: 'https://image.tmdb.org/t/p/w1280/9BBTo108Kgp2BNkdqFAbs4HqPYO.jpg', title: 'Dune' },
 ]
 
-export default function Landing({ onLogin, onRegister }) {
-  const [bgIdx, setBgIdx]     = useState(0)
-  const [visible, setVisible] = useState(true)
-  const [ready, setReady]     = useState(false)
+const HEADLINES = [
+  { top: 'El fin del', bottom: '"no sé qué ver".' },
+  { top: '30 segundos.', bottom: 'La película exacta.' },
+  { top: 'Sin scroll.', bottom: 'Sin algoritmos.' },
+]
+
+export default function Landing({ onLogin, onRegister, onDemo }) {
+  const [bgIdx, setBgIdx]             = useState(0)
+  const [visible, setVisible]         = useState(true)
+  const [ready, setReady]             = useState(false)
+  const [headlineIdx, setHeadlineIdx] = useState(0)
+  const [headlineIn, setHeadlineIn]   = useState(true)
 
   useEffect(() => {
     const img = new Image()
@@ -23,53 +31,53 @@ export default function Landing({ onLogin, onRegister }) {
   useEffect(() => {
     const id = setInterval(() => {
       setVisible(false)
-      setTimeout(() => {
-        setBgIdx((i) => (i + 1) % BG_FILMS.length)
-        setVisible(true)
-      }, 400)
-    }, 7000)
+      setTimeout(() => { setBgIdx(i => (i + 1) % BG_FILMS.length); setVisible(true) }, 600)
+    }, 6000)
     return () => clearInterval(id)
   }, [])
 
-  const film = BG_FILMS[bgIdx]
+  useEffect(() => {
+    const id = setInterval(() => {
+      setHeadlineIn(false)
+      setTimeout(() => { setHeadlineIdx(i => (i + 1) % HEADLINES.length); setHeadlineIn(true) }, 400)
+    }, 3500)
+    return () => clearInterval(id)
+  }, [])
+
+  const film     = BG_FILMS[bgIdx]
+  const headline = HEADLINES[headlineIdx]
 
   return (
     <div className="land">
-      {/* Cinematic backdrop */}
-      <div
-        className="land-bg"
-        style={{ backgroundImage: `url(${film.url})`, opacity: visible && ready ? 1 : 0 }}
-        aria-hidden="true"
-      />
+      <div className="land-bg" style={{ backgroundImage: `url(${film.url})`, opacity: visible && ready ? 1 : 0 }} aria-hidden="true" />
       <div className="land-overlay" aria-hidden="true" />
 
-      {/* Hero */}
       <div className="land-hero">
-        <div className="land-film-credit" aria-hidden="true">
-          En pantalla: <span>{film.title}</span>
+        <div className="land-film-credit" aria-hidden="true">En pantalla: <span>{film.title}</span></div>
+        <h1 className="land-logo">Zine<span> Club</span></h1>
+        <div className={`land-headline ${headlineIn ? 'land-headline--in' : 'land-headline--out'}`}>
+          <p className="land-headline-top">{headline.top}</p>
+          <p className="land-headline-bottom">{headline.bottom}</p>
         </div>
-        <h1 className="land-logo">
-          Zine<span> Club</span>
-        </h1>
-        <p className="land-tag">
-          ¿Qué ves esta noche?<br />
-          <span>5 preguntas. La respuesta exacta.</span>
-        </p>
+        <div className="land-proof">
+          <span>✦ 5 preguntas</span>
+          <span>✦ Tu plataforma</span>
+          <span>✦ Gratis</span>
+        </div>
       </div>
 
-      {/* CTAs */}
       <div className="land-bottom">
-        <button className="btn btn-primary" onClick={onRegister}>
-          Empezar gratis ✦
+        <button className="btn btn-primary land-btn-demo" onClick={onDemo}>
+          Probar ahora — es gratis
         </button>
-        <button className="btn btn-secondary" onClick={onLogin}>
-          Ya tengo cuenta
-        </button>
+        <div className="land-alt-actions">
+          <button className="btn btn-secondary" onClick={onRegister}>Crear cuenta</button>
+          <button className="btn btn-ghost" onClick={onLogin}>Entrar</button>
+        </div>
         <p className="land-legal">
           Al continuar aceptas los{' '}
-          <a href="/legal.html" target="_blank" rel="noopener">Términos</a>
-          {' '}y la{' '}
-          <a href="/legal.html" target="_blank" rel="noopener">Política de privacidad</a>.
+          <a href="/terminos.html" target="_blank" rel="noopener">Términos</a>{' '}y la{' '}
+          <a href="/privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.
         </p>
       </div>
     </div>

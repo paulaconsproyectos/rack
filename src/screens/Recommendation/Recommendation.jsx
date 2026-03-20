@@ -33,6 +33,7 @@ export default function Recommendation({
   isSaved,
   isWatched,
   showToast,
+  onFilmLoaded,
 }) {
   const [films, setFilms]       = useState([])
   const [idx, setIdx]           = useState(0)
@@ -70,11 +71,12 @@ export default function Recommendation({
     const f = films[idx]
     if (!f) { setError(true); return }
     setFilm(f)
+    onFilmLoaded?.(f)
     setShowTrailer(false)
     track('recommendation_shown', { film_id: f.id, title: f.title, position: idx, genres: f.genres, media_type: f.mediaType })
     setEnriching(true)
     enrichFilm(f)
-      .then(setFilm)
+      .then(f => { setFilm(f); onFilmLoaded?.(f) })
       .finally(() => setEnriching(false))
   }, [films, idx])
 

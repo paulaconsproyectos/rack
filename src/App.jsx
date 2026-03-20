@@ -16,7 +16,7 @@ import Quiz         from './screens/Quiz/Quiz.jsx'
 import Onboarding   from './screens/Onboarding/Onboarding.jsx'
 import Paywall      from './screens/Paywall/Paywall.jsx'
 import Nav          from './components/Nav.jsx'
-import { Toast, PtsFloat } from './components/Toast.jsx'
+import { Toast, PtsFloat } from './components/Toast.jsx'\nimport DemoGate     from './components/DemoGate.jsx'
 
 // Lazy-loaded — only when navigated to
 const Recommendation = lazy(() => import('./screens/Recommendation/Recommendation.jsx'))
@@ -62,7 +62,7 @@ export default function App() {
   const auth = useAuth()
   const toast = useToast()
   const nav  = useNavigation()
-  const [authMode, setAuthMode] = useState('login')
+  const [authMode, setAuthMode] = useState('login')\n  const [demoMode, setDemoMode]   = useState(false)\n  const [demoFilm, setDemoFilm]   = useState(null)
 
   useEffect(() => { registerSW() }, [])
 
@@ -82,7 +82,7 @@ export default function App() {
   if (auth.authState === 'loading') return <Spinner />
 
   if (auth.authState === 'landing') {
-    return <Landing
+    return <Landing\n      onDemo={() => { setDemoMode(true); nav.startQuiz({}) }}
       onRegister={() => { setAuthMode('register'); auth.setAuthState('auth') }}
       onLogin={() => { setAuthMode('login'); auth.setAuthState('auth') }}
     />
@@ -282,15 +282,23 @@ export default function App() {
         <Suspense fallback={<Spinner />}>
           <Recommendation
             answers={nav.quizAnswers}
-            onBack={() => nav.setScreen(null)}
-            onWatch={handleWatchAndPostView}
-            onSave={handleSave}
+            onBack={() => { setDemoMode(false); nav.setScreen(null) }}
+            onWatch={demoMode ? (film) => setDemoFilm(film) : handleWatchAndPostView}
+            onSave={demoMode ? (film) => setDemoFilm(film) : handleSave}
             onDetail={nav.openDetail}
             isSaved={isSaved}
             isWatched={isWatched}
             showToast={toast.showToast}
+            onFilmLoaded={demoMode ? (film) => setDemoFilm(film) : null}
           />
         </Suspense>
+        {demoMode && demoFilm && (
+          <DemoGate
+            film={demoFilm}
+            onRegister={() => { setDemoMode(false); setAuthMode('register'); auth.setAuthState('auth') }}
+            onLogin={() => { setDemoMode(false); setAuthMode('login'); auth.setAuthState('auth') }}
+          />
+        )}
         <Toast toast={toast.toast} />
         <PtsFloat pts={toast.ptsFloat} />
       </>
