@@ -101,19 +101,7 @@ export default function App() {
     )
   }
 
-  // ── Onboarding ──────────────────────────────────────────
-  if (!nav.onboarded) {
-    return <Onboarding onDone={(startQuiz = false) => {
-      LS.setFlag(KEYS.onboarded)
-      nav.setOnboarded(true)
-      if (startQuiz) {
-        consumeTest()
-        nav.startQuiz({})
-      }
-    }} />
-  }
-
-  // ── Helpers ─────────────────────────────────────────────
+  // ── Helpers (defined before onboarding so callbacks can use them) ──
   const user   = auth.user
   const streak = computeStreak(user?.watched || [])
 
@@ -125,6 +113,18 @@ export default function App() {
   function consumeTest() {
     if (user?.is_pro || LS.flag(KEYS.mvpCode)) return
     LS.set(KEYS.testsUsed, LS.get(KEYS.testsUsed, 0) + 1)
+  }
+
+  // ── Onboarding ──────────────────────────────────────────
+  if (!nav.onboarded) {
+    return <Onboarding onDone={(startQuiz = false) => {
+      LS.setFlag(KEYS.onboarded)
+      nav.setOnboarded(true)
+      if (startQuiz) {
+        consumeTest()
+        nav.startQuiz({})
+      }
+    }} />
   }
 
   function isWatched(film) {
