@@ -82,7 +82,48 @@ export default function App() {
   if (auth.authState === 'loading') return <Spinner />
 
   if (auth.authState === 'landing') {
-    return <Landing\n      onDemo={() => { setDemoMode(true); nav.startQuiz({}) }}
+    if (demoMode && nav.screen === 'quiz') {
+      return (
+        <Quiz
+          isMarathon={false}
+          onComplete={(answers) => {
+            nav.setQuizAnswers(answers)
+            nav.setScreen('recommendation')
+          }}
+          onExit={() => { setDemoMode(false); nav.setScreen(null) }}
+        />
+      )
+    }
+
+    if (demoMode && nav.screen === 'recommendation') {
+      return (
+        <>
+          <Suspense fallback={<Spinner />}>
+            <Recommendation
+              answers={nav.quizAnswers}
+              onBack={() => { setDemoMode(false); setDemoFilm(null); nav.setScreen(null) }}
+              onWatch={(film) => setDemoFilm(film)}
+              onSave={(film) => setDemoFilm(film)}
+              onDetail={() => {}}
+              isSaved={() => false}
+              isWatched={() => false}
+              showToast={() => {}}
+              onFilmLoaded={(film) => setDemoFilm(film)}
+            />
+          </Suspense>
+          {demoFilm && (
+            <DemoGate
+              film={demoFilm}
+              onRegister={() => { setDemoMode(false); setDemoFilm(null); nav.setScreen(null); setAuthMode('register'); auth.setAuthState('auth') }}
+              onLogin={() => { setDemoMode(false); setDemoFilm(null); nav.setScreen(null); setAuthMode('login'); auth.setAuthState('auth') }}
+            />
+          )}
+        </>
+      )
+    }
+
+    return <Landing
+      onDemo={() => { setDemoMode(true); nav.startQuiz({}) }}
       onRegister={() => { setAuthMode('register'); auth.setAuthState('auth') }}
       onLogin={() => { setAuthMode('login'); auth.setAuthState('auth') }}
     />
