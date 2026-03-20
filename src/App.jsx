@@ -171,6 +171,14 @@ export default function App() {
       setRecoFilm(film)
       setLastReco(film)
       setScreen('postview')
+      // Schedule push reminder in 2h if they don't review now
+      if (user?.id) {
+        fetch('/api/schedule-review', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id, filmId: film.id, filmTitle: film.titleEs || film.title }),
+        }).catch(() => {})
+      }
     }
   }
 
@@ -276,7 +284,7 @@ export default function App() {
         initialIdx={tiktokIdx}
         onClose={goBack}
         onDetail={openDetail}
-        onWatch={handleWatch}
+        onWatch={handleWatchAndPostView}
         onSave={handleSave}
         isWatched={isWatched}
         isSaved={isSaved}
@@ -294,7 +302,7 @@ export default function App() {
           onClose={goBackToRoot}
           onBack={navStack.length > 0 && navStack[navStack.length - 1].screen === 'detail' ? goBack : null}
           onDetail={openDetail}
-          onWatch={handleWatch}
+          onWatch={handleWatchAndPostView}
           onSave={handleSave}
           isWatched={isWatched}
           isSaved={isSaved}
@@ -364,7 +372,7 @@ export default function App() {
           onBack={() => setScreen('quiz')}
           onDetail={openDetail}
           onTikTok={openTikTok}
-          onWatch={handleWatch}
+          onWatch={handleWatchAndPostView}
           onSave={handleSave}
           isWatched={isWatched}
           isSaved={isSaved}
@@ -404,7 +412,7 @@ export default function App() {
       {tab === 2 && (
         <Search
           onDetail={openDetail}
-          onWatch={handleWatch}
+          onWatch={handleWatchAndPostView}
           onSave={handleSave}
           isWatched={isWatched}
           isSaved={isSaved}
@@ -414,7 +422,7 @@ export default function App() {
         <MiLista
           user={user}
           onDetail={openDetail}
-          onWatch={handleWatch}
+          onWatch={handleWatchAndPostView}
           onQuiz={() => openQuiz({})}
           isWatched={isWatched}
         />
